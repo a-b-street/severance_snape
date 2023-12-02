@@ -35,10 +35,16 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     }
 
     let (roads, intersections) = split_edges(&node_mapping, highways);
+    let (closest_intersection, node_map, ch) = crate::route::build_router(&intersections, &roads);
+    let path_calc = fast_paths::create_calculator(&ch);
 
     Ok(MapModel {
         roads,
         intersections,
+        closest_intersection,
+        node_map,
+        ch,
+        path_calc,
     })
 }
 
@@ -71,22 +77,23 @@ fn split_edges(
             if is_endpoint && pts.len() > 1 {
                 let road_id = RoadID(roads.len());
 
+                let mut i_ids = Vec::new();
                 for (n, point) in [(node1, pts[0]), (node, *pts.last().unwrap())] {
                     let next_id = IntersectionID(intersections.len());
-                    intersections
-                        .entry(n)
-                        .or_insert_with(|| Intersection {
-                            id: next_id,
-                            node: n,
-                            point: Point(point),
-                            roads: Vec::new(),
-                        })
-                        .roads
-                        .push(road_id);
+                    let i = intersections.entry(n).or_insert_with(|| Intersection {
+                        id: next_id,
+                        node: n,
+                        point: Point(point),
+                        roads: Vec::new(),
+                    });
+                    i.roads.push(road_id);
+                    i_ids.push(i.id);
                 }
 
                 roads.push(Road {
                     id: road_id,
+                    src_i: i_ids[0],
+                    dst_i: i_ids[1],
                     way: way.id,
                     node1,
                     node2: node,

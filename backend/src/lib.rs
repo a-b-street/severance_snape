@@ -1,16 +1,22 @@
 #[macro_use]
+extern crate anyhow;
+#[macro_use]
 extern crate log;
 
 use std::collections::HashMap;
 use std::sync::Once;
 
+use fast_paths::{FastGraph, PathCalculator};
 use geo::{LineString, Point, Polygon};
 use geojson::{Feature, GeoJson, Geometry};
-use serde::Deserialize;
+use rstar::{primitives::GeomWithData, RTree};
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
+mod node_map;
 mod osm;
 mod parse_osm;
+mod route;
 mod scrape;
 
 static START: Once = Once::new();
@@ -19,15 +25,21 @@ static START: Once = Once::new();
 pub struct MapModel {
     roads: Vec<Road>,
     intersections: Vec<Intersection>,
+    closest_intersection: RTree<IntersectionLocation>,
+    node_map: node_map::NodeMap<IntersectionID>,
+    ch: FastGraph,
+    path_calc: PathCalculator,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct RoadID(pub usize);
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
 pub struct IntersectionID(pub usize);
 
-struct Road {
+pub struct Road {
     id: RoadID,
+    src_i: IntersectionID,
+    dst_i: IntersectionID,
     way: osm::WayID,
     node1: osm::NodeID,
     node2: osm::NodeID,
@@ -35,12 +47,15 @@ struct Road {
     tags: HashMap<String, String>,
 }
 
-struct Intersection {
+pub struct Intersection {
     id: IntersectionID,
     node: osm::NodeID,
     point: Point,
     roads: Vec<RoadID>,
 }
+
+// fast_paths ID representing the OSM node ID as the data
+type IntersectionLocation = GeomWithData<[f64; 2], usize>;
 
 #[wasm_bindgen]
 impl MapModel {
@@ -62,15 +77,7 @@ impl MapModel {
         let mut features = Vec::new();
 
         for r in &self.roads {
-            let mut f = Feature::from(Geometry::from(&r.linestring));
-            f.set_property("id", r.id.0);
-            f.set_property("way", r.way.to_string());
-            f.set_property("node1", r.node1.to_string());
-            f.set_property("node2", r.node2.to_string());
-            for (k, v) in &r.tags {
-                f.set_property(k, v.to_string());
-            }
-            features.push(f);
+            features.push(r.to_gj());
         }
 
         let gj = GeoJson::from(features);
@@ -79,22 +86,42 @@ impl MapModel {
     }
 
     #[wasm_bindgen(js_name = compareRoute)]
-    pub fn compare_route(&self, input: JsValue) -> Result<String, JsValue> {
+    pub fn compare_route(&mut self, input: JsValue) -> Result<String, JsValue> {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
-
-        // Just direct temporarily
-        let f = Feature::from(Geometry::from(&LineString::from(vec![
-            (req.x1, req.y1),
-            (req.x2, req.y2),
-        ])));
-        let gj = GeoJson::from(vec![f]);
+        let gj = route::do_route(self, req).map_err(err_to_js)?;
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
+    }
+
+    fn find_edge(&self, i1: IntersectionID, i2: IntersectionID) -> &Road {
+        // TODO Store lookup table
+        for r in &self.intersections[i1.0].roads {
+            let road = &self.roads[r.0];
+            if road.src_i == i2 || road.dst_i == i2 {
+                return road;
+            }
+        }
+        // TODO why broken...
+        panic!("no road from {} to {} or vice versa", i1.0, i2.0);
+    }
+}
+
+impl Road {
+    fn to_gj(&self) -> Feature {
+        let mut f = Feature::from(Geometry::from(&self.linestring));
+        f.set_property("id", self.id.0);
+        f.set_property("way", self.way.to_string());
+        f.set_property("node1", self.node1.to_string());
+        f.set_property("node2", self.node2.to_string());
+        for (k, v) in &self.tags {
+            f.set_property(k, v.to_string());
+        }
+        f
     }
 }
 
 #[derive(Deserialize)]
-struct CompareRouteRequest {
+pub struct CompareRouteRequest {
     x1: f64,
     y1: f64,
     x2: f64,

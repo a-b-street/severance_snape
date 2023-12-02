@@ -15,6 +15,7 @@
   let route_a = null;
   let route_b = null;
   let route_gj = null;
+  let route_err = "";
 
   onMount(async () => {
     await init();
@@ -93,14 +94,19 @@
   }
 
   $: if (model && route_a && route_b) {
-    route_gj = JSON.parse(
-      model.compareRoute({
-        x1: route_a.lng,
-        y1: route_a.lat,
-        x2: route_b.lng,
-        y2: route_b.lat,
-      })
-    );
+    try {
+      route_gj = JSON.parse(
+        model.compareRoute({
+          x1: route_a.lng,
+          y1: route_a.lat,
+          x2: route_b.lng,
+          y2: route_b.lat,
+        })
+      );
+      route_err = "";
+    } catch (err) {
+      route_err = err.toString();
+    }
   }
 </script>
 
@@ -119,6 +125,9 @@
         ["Crossing", "green"],
       ]}
     />
+    {#if route_err}
+      <p>{route_err}</p>
+    {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
