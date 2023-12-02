@@ -105,6 +105,7 @@
       );
       route_err = "";
     } catch (err) {
+      route_gj = null;
       route_err = err.toString();
     }
   }
@@ -162,8 +163,9 @@
             <GeoJSON data={route_gj}>
               <LineLayer
                 paint={{
-                  "line-width": 5,
-                  "line-color": "black",
+                  "line-width": 20,
+                  "line-color": "cyan",
+                  "line-opacity": 0.5,
                 }}
               />
             </GeoJSON>
