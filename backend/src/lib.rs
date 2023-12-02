@@ -4,9 +4,9 @@ extern crate log;
 use std::collections::HashMap;
 use std::sync::Once;
 
-use serde::Deserialize;
 use geo::{LineString, Point, Polygon};
-use geojson::{Feature, Geometry, GeoJson};
+use geojson::{Feature, GeoJson, Geometry};
+use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
 mod osm;

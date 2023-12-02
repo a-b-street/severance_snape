@@ -22,7 +22,11 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
                 node_mapping.insert(id, pt);
             }
             Element::Way { id, node_ids, tags } => {
-                if is_any(&tags, "highway", vec!["footway"]) {
+                if is_any(&tags, "highway", vec!["footway", "pedestrian"]) {
+                    highways.push(Way { id, node_ids, tags });
+                } else if tags.contains_key("highway")
+                    && is_any(&tags, "sidewalk", vec!["both", "right", "left"])
+                {
                     highways.push(Way { id, node_ids, tags });
                 }
             }

@@ -58,15 +58,17 @@
         "crossing" in props
       ) {
         props.color = "green";
-      } else {
+      } else if (props.highway == "footway") {
         // TODO The categories aren't mutex, some could combo
         if (props.indoor) {
           props.color = "blue";
-        } else if (props.layer || props.bridge) {
+        } else if (props.layer || props.bridge || props.tunnel) {
           props.color = "purple";
         } else {
-          f.properties.color = "red";
+          props.color = "red";
         }
+      } else {
+        props.color = "black";
       }
     }
     return gj;
@@ -84,6 +86,7 @@
         ["Footway (ground, outdoors)", "red"],
         ["Indoors footway", "blue"],
         ["Footway not on the ground", "purple"],
+        ["Street with sidewalk (or pedestrian street)", "black"],
         ["Crossing", "green"],
       ]}
     />
