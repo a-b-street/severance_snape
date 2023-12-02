@@ -64,13 +64,12 @@ pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<GeoJson>
     if start == end {
         bail!("start = end");
     }
-
     if let Some(path) = map.path_calc.calc_path(&map.ch, start, end) {
         let mut features = Vec::new();
         for pair in path.get_nodes().windows(2) {
-            let src_i = map.node_map.translate_id(pair[0]);
-            let dst_i = map.node_map.translate_id(pair[1]);
-            let road = map.find_edge(src_i, dst_i);
+            let i1 = map.node_map.translate_id(pair[0]);
+            let i2 = map.node_map.translate_id(pair[1]);
+            let road = map.find_edge(i1, i2);
             features.push(road.to_gj());
         }
         return Ok(GeoJson::from(features));

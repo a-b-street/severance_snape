@@ -4,6 +4,7 @@ extern crate anyhow;
 extern crate log;
 
 use std::collections::HashMap;
+use std::fmt;
 use std::sync::Once;
 
 use fast_paths::{FastGraph, PathCalculator};
@@ -35,6 +36,18 @@ pub struct MapModel {
 pub struct RoadID(pub usize);
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
 pub struct IntersectionID(pub usize);
+
+impl fmt::Display for RoadID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Road #{}", self.0)
+    }
+}
+
+impl fmt::Display for IntersectionID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Intersection #{}", self.0)
+    }
+}
 
 pub struct Road {
     id: RoadID,
@@ -101,8 +114,7 @@ impl MapModel {
                 return road;
             }
         }
-        // TODO why broken...
-        panic!("no road from {} to {} or vice versa", i1.0, i2.0);
+        panic!("no road from {i1} to {i2} or vice versa");
     }
 }
 

@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 use anyhow::Result;
 use geo::{Coord, Geometry, GeometryCollection, LineString, MapCoordsInPlace, Point, Polygon};
@@ -61,7 +61,8 @@ fn split_edges(
     }
 
     // Split each way into edges
-    let mut intersections = BTreeMap::new();
+    let mut node_to_intersection: HashMap<NodeID, IntersectionID> = HashMap::new();
+    let mut intersections = Vec::new();
     let mut roads = Vec::new();
     for way in ways {
         let mut node1 = way.node_ids[0];
@@ -79,15 +80,22 @@ fn split_edges(
 
                 let mut i_ids = Vec::new();
                 for (n, point) in [(node1, pts[0]), (node, *pts.last().unwrap())] {
-                    let next_id = IntersectionID(intersections.len());
-                    let i = intersections.entry(n).or_insert_with(|| Intersection {
-                        id: next_id,
-                        node: n,
-                        point: Point(point),
-                        roads: Vec::new(),
-                    });
-                    i.roads.push(road_id);
-                    i_ids.push(i.id);
+                    let intersection = if let Some(i) = node_to_intersection.get(&n) {
+                        &mut intersections[i.0]
+                    } else {
+                        let i = IntersectionID(intersections.len());
+                        intersections.push(Intersection {
+                            id: i,
+                            node: n,
+                            point: Point(point),
+                            roads: Vec::new(),
+                        });
+                        node_to_intersection.insert(n, i);
+                        &mut intersections[i.0]
+                    };
+
+                    intersection.roads.push(road_id);
+                    i_ids.push(intersection.id);
                 }
 
                 roads.push(Road {
@@ -107,8 +115,6 @@ fn split_edges(
             }
         }
     }
-
-    let intersections = intersections.into_values().collect();
 
     (roads, intersections)
 }
