@@ -22,7 +22,7 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
                 node_mapping.insert(id, pt);
             }
             Element::Way { id, node_ids, tags } => {
-                if tags.contains_key("highway") {
+                if is_any(&tags, "highway", vec!["footway"]) {
                     highways.push(Way { id, node_ids, tags });
                 }
             }
@@ -100,4 +100,12 @@ fn split_edges(
     let intersections = intersections.into_values().collect();
 
     (roads, intersections)
+}
+
+fn is_any(tags: &HashMap<String, String>, k: &str, values: Vec<&str>) -> bool {
+    if let Some(v) = tags.get(k) {
+        values.contains(&v.as_ref())
+    } else {
+        false
+    }
 }
