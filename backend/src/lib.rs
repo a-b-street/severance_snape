@@ -78,12 +78,19 @@ impl MapModel {
         Ok(out)
     }
 
-    /*#[wasm_bindgen(js_name = compareRoute)]
-    pub fn compare_route(&self, r: usize) -> Result<String, JsValue> {
-        let obj = find_road_width::find_road_width(self, RoadID(r));
-        let out = serde_json::to_string(&obj).map_err(err_to_js)?;
+    #[wasm_bindgen(js_name = compareRoute)]
+    pub fn compare_route(&self, input: JsValue) -> Result<String, JsValue> {
+        let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
+
+        // Just direct temporarily
+        let f = Feature::from(Geometry::from(&LineString::from(vec![
+            (req.x1, req.y1),
+            (req.x2, req.y2),
+        ])));
+        let gj = GeoJson::from(vec![f]);
+        let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
-    }*/
+    }
 }
 
 #[derive(Deserialize)]
