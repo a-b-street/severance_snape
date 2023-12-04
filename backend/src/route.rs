@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use fast_paths::{FastGraph, InputGraph};
-use geo::HaversineLength;
-use geojson::GeoJson;
+use geo::{HaversineLength, LineString};
+use geojson::FeatureCollection;
 use rstar::primitives::GeomWithData;
 use rstar::RTree;
 
@@ -50,7 +50,7 @@ fn build_closest_intersection(
     RTree::bulk_load(points)
 }
 
-pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<GeoJson> {
+pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<FeatureCollection> {
     let start = map
         .closest_intersection
         .nearest_neighbor(&[req.x1, req.y1])
@@ -66,13 +66,31 @@ pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<GeoJson>
     }
     if let Some(path) = map.path_calc.calc_path(&map.ch, start, end) {
         let mut features = Vec::new();
+        let mut route_length = 0.0;
         for pair in path.get_nodes().windows(2) {
             let i1 = map.node_map.translate_id(pair[0]);
             let i2 = map.node_map.translate_id(pair[1]);
             let road = map.find_edge(i1, i2);
             features.push(road.to_gj());
+            route_length += road.linestring.haversine_length();
         }
-        return Ok(GeoJson::from(features));
+        let direct_length = LineString::new(vec![
+            map.intersections[map.node_map.translate_id(start).0]
+                .point
+                .into(),
+            map.intersections[map.node_map.translate_id(end).0]
+                .point
+                .into(),
+        ])
+        .haversine_length();
+        return Ok(FeatureCollection {
+            features,
+            bbox: None,
+            foreign_members: Some(serde_json::json!({
+                "direct_length": direct_length,
+                "route_length": route_length,
+            }).as_object().unwrap().clone()),
+        });
     }
     bail!("No path");
 }
