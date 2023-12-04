@@ -22,11 +22,18 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
                 node_mapping.insert(id, pt);
             }
             Element::Way { id, node_ids, tags } => {
-                if is_any(&tags, "highway", vec!["footway", "pedestrian"]) {
-                    highways.push(Way { id, node_ids, tags });
-                } else if tags.contains_key("highway")
-                    && is_any(&tags, "sidewalk", vec!["both", "right", "left"])
-                {
+                let include = is_any(&tags, "highway", vec!["footway", "pedestrian"])
+                    || (tags.contains_key("highway")
+                        && is_any(&tags, "sidewalk", vec!["both", "right", "left"]))
+                    // If sidewalks aren't tagged, still assume most streets have them
+                    // Exclude primary from this list for HK cases
+                    // TODO But this makes things much messier; sidewalk=separate is not tagged
+                    // often, but we should infer it
+                    || (is_any(
+                        &tags,
+                        "highway",
+                        vec!["secondary", "tertiary", "residential"]) && tags.get("foot") != Some(&"no".to_string()) && !is_any(&tags, "sidewalk", vec!["no", "none", "separate"]));
+                if include {
                     highways.push(Way { id, node_ids, tags });
                 }
             }
