@@ -141,6 +141,7 @@
       {#if model}
         <GeoJSON data={renderNetwork()}>
           <LineLayer
+            id="network"
             paint={{
               "line-width": 5,
               "line-color": constructMatchExpression(
@@ -174,6 +175,8 @@
           {#if route_gj}
             <GeoJSON data={route_gj}>
               <LineLayer
+                id="route"
+                beforeId="network"
                 paint={{
                   "line-width": 20,
                   "line-color": "cyan",
