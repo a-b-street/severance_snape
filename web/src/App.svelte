@@ -4,9 +4,11 @@
   import { onMount } from "svelte";
   import { GeoJSON, LineLayer, MapLibre, Marker, Popup } from "svelte-maplibre";
   import xmlUrl from "../assets/input.osm?url";
+  import Directions from "./Directions.svelte";
   import Layout from "./Layout.svelte";
   import Legend from "./Legend.svelte";
   import Loading from "./Loading.svelte";
+  import { classifyStep } from "./logic";
 
   let model: MapModel | undefined = undefined;
   let map;
@@ -70,25 +72,7 @@
     let gj = JSON.parse(model.render());
     // Easier to add props here than attempt style expressions
     for (let f of gj.features) {
-      let props = f.properties;
-      if (
-        props.highway == "crossing" ||
-        props.footway == "crossing" ||
-        "crossing" in props
-      ) {
-        props.color = "green";
-      } else if (props.highway == "footway") {
-        // TODO The categories aren't mutex, some could combo
-        if (props.indoor) {
-          props.color = "blue";
-        } else if (props.layer || props.bridge || props.tunnel) {
-          props.color = "purple";
-        } else {
-          props.color = "red";
-        }
-      } else {
-        props.color = "black";
-      }
+      classifyStep(f);
     }
     return gj;
   }
@@ -108,6 +92,20 @@
       route_gj = null;
       route_err = err.toString();
     }
+  }
+
+  export function constructMatchExpression<OutputType>(
+    getter: any[],
+    map: { [name: string]: OutputType },
+    fallback: OutputType
+  ): DataDrivenPropertyValueSpecification<OutputType> {
+    let x: any[] = ["match", getter];
+    for (let [key, value] of Object.entries(map)) {
+      x.push(key);
+      x.push(value);
+    }
+    x.push(fallback);
+    return x as DataDrivenPropertyValueSpecification<OutputType>;
   }
 </script>
 
@@ -129,6 +127,9 @@
     {#if route_err}
       <p>{route_err}</p>
     {/if}
+    {#if route_gj}
+      <Directions {route_gj} />
+    {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
@@ -142,10 +143,21 @@
           <LineLayer
             paint={{
               "line-width": 5,
-              "line-color": ["get", "color"],
+              "line-color": constructMatchExpression(
+                ["get", "type"],
+                {
+                  footway: "red",
+                  "indoors footway": "blue",
+                  "footway not on the ground": "purple",
+                  sidewalk: "black",
+                  crossing: "green",
+                },
+                "orange"
+              ),
             }}
             on:click={(e) =>
               window.open(e.detail.features[0].properties.way, "_blank")}
+            hoverCursor="pointer"
           >
             <Popup openOn="hover" let:data
               >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
