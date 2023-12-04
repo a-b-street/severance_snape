@@ -2,7 +2,6 @@ use anyhow::{bail, Result};
 use fast_paths::{FastGraph, InputGraph};
 use geo::{HaversineLength, LineString};
 use geojson::FeatureCollection;
-use rstar::primitives::GeomWithData;
 use rstar::RTree;
 
 use crate::node_map::NodeMap;
@@ -86,10 +85,15 @@ pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<FeatureC
         return Ok(FeatureCollection {
             features,
             bbox: None,
-            foreign_members: Some(serde_json::json!({
-                "direct_length": direct_length,
-                "route_length": route_length,
-            }).as_object().unwrap().clone()),
+            foreign_members: Some(
+                serde_json::json!({
+                    "direct_length": direct_length,
+                    "route_length": route_length,
+                })
+                .as_object()
+                .unwrap()
+                .clone(),
+            ),
         });
     }
     bail!("No path");

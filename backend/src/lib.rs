@@ -1,6 +1,4 @@
 #[macro_use]
-extern crate anyhow;
-#[macro_use]
 extern crate log;
 
 use std::collections::HashMap;
@@ -8,7 +6,7 @@ use std::fmt;
 use std::sync::Once;
 
 use fast_paths::{FastGraph, PathCalculator};
-use geo::{LineString, Point, Polygon};
+use geo::{LineString, Point};
 use geojson::{Feature, GeoJson, Geometry};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
@@ -62,6 +60,7 @@ pub struct Road {
 
 pub struct Intersection {
     id: IntersectionID,
+    #[allow(dead_code)]
     node: osm::NodeID,
     point: Point,
     roads: Vec<RoadID>,

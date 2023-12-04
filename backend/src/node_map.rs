@@ -50,9 +50,11 @@ impl<T: Copy + Ord + Debug + Serialize> NodeMap<T> {
 // A serialized NodeMap has this form in JSON. Use this to deserialize.
 #[derive(Deserialize)]
 struct InnerNodeMap<T: Copy + Ord + Debug> {
+    #[allow(dead_code)]
     id_to_node: Vec<T>,
 }
 
+#[allow(dead_code)]
 pub fn deserialize_nodemap<
     'de,
     D: Deserializer<'de>,

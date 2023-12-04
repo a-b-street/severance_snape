@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use geo::{Coord, Geometry, GeometryCollection, LineString, MapCoordsInPlace, Point, Polygon};
+use geo::{Coord, LineString, Point};
 
-use crate::osm::{NodeID, OsmID, WayID};
+use crate::osm::{NodeID, WayID};
 use crate::parse_osm::Element;
 use crate::{Intersection, IntersectionID, MapModel, Road, RoadID};
 
