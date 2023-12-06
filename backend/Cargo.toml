@@ -22,3 +22,5 @@ anyhow = "1.0.75"
 osmpbf = "0.3.2"
 rstar = { version = "0.11.0" }
 fast_paths = { git = "https://github.com/easbar/fast_paths" }
+rand = { version = "0.8.5", default-features = false }
+rand_xorshift = "0.3.0"

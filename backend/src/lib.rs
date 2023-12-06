@@ -12,6 +12,7 @@ use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
+mod heatmap;
 mod node_map;
 mod osm;
 mod parse_osm;
@@ -117,6 +118,13 @@ impl MapModel {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
         let gj = route::do_route(self, req).map_err(err_to_js)?;
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
+        Ok(out)
+    }
+
+    #[wasm_bindgen(js_name = makeHeatmap)]
+    pub fn make_heatmap(&mut self) -> Result<String, JsValue> {
+        let samples = heatmap::measure_randomly(self, 100);
+        let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
 

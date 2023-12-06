@@ -8,6 +8,8 @@
   import Layout from "./Layout.svelte";
   import Legend from "./Legend.svelte";
   import Loading from "./Loading.svelte";
+  import NetworkLayer from "./NetworkLayer.svelte";
+  import RouteLayer from "./RouteLayer.svelte";
 
   let model: MapModel | undefined = undefined;
   let map;
@@ -83,20 +85,6 @@
       route_err = err.toString();
     }
   }
-
-  export function constructMatchExpression<OutputType>(
-    getter: any[],
-    map: { [name: string]: OutputType },
-    fallback: OutputType
-  ): DataDrivenPropertyValueSpecification<OutputType> {
-    let x: any[] = ["match", getter];
-    for (let [key, value] of Object.entries(map)) {
-      x.push(key);
-      x.push(value);
-    }
-    x.push(fallback);
-    return x as DataDrivenPropertyValueSpecification<OutputType>;
-  }
 </script>
 
 <Layout>
@@ -130,67 +118,10 @@
       bind:map
     >
       {#if model}
-        <GeoJSON data={JSON.parse(model.render())}>
-          <LineLayer
-            id="network"
-            paint={{
-              "line-width": 5,
-              "line-color": constructMatchExpression(
-                ["get", "kind"],
-                {
-                  Footway: "red",
-                  Indoors: "blue",
-                  BridgeOrTunnel: "purple",
-                  Sidewalk: "black",
-                  Crossing: "green",
-                  Severance: "orange",
-                },
-                "yellow"
-              ),
-            }}
-            on:click={(e) =>
-              window.open(e.detail.features[0].properties.way, "_blank")}
-            hoverCursor="pointer"
-          >
-            <Popup openOn="hover" let:data
-              >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
-            >
-          </LineLayer>
-        </GeoJSON>
-        {#if route_a}
-          <Marker bind:lngLat={route_a} draggable
-            ><span class="dot">A</span></Marker
-          >
-          <Marker bind:lngLat={route_b} draggable
-            ><span class="dot">B</span></Marker
-          >
-        {/if}
-        {#if route_gj}
-          <GeoJSON data={route_gj}>
-            <LineLayer
-              id="route"
-              beforeId="network"
-              paint={{
-                "line-width": 20,
-                "line-color": "cyan",
-                "line-opacity": 0.5,
-              }}
-            />
-          </GeoJSON>
-        {/if}
+        <NetworkLayer {model} />
+        <RouteLayer bind:route_a bind:route_b {route_gj} />
       {/if}
     </MapLibre>
   </div>
 </Layout>
 <Loading {loading} />
-
-<style>
-  .dot {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: inline-block;
-    background-color: grey;
-    text-align: center;
-  }
-</style>
