@@ -10,10 +10,13 @@
   import Loading from "./Loading.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import RouteLayer from "./RouteLayer.svelte";
+  import ScoreLayer from "./ScoreLayer.svelte";
 
   let model: MapModel | undefined = undefined;
   let map;
   let loading = false;
+
+  let mode = "route";
 
   let route_a = null;
   let route_b = null;
@@ -93,21 +96,31 @@
       <input bind:this={fileInput} on:change={loadFile} type="file" />
     </label>
     <div><button on:click={zoomToFit}>Zoom to fit</button></div>
-    <Legend
-      rows={[
-        ["Footway (ground, outdoors)", "red"],
-        ["Indoors footway", "blue"],
-        ["Footway not on the ground", "purple"],
-        ["Street with sidewalk (or pedestrian street)", "black"],
-        ["Crossing", "green"],
-        ["Severance", "orange"],
-      ]}
-    />
-    {#if route_err}
-      <p>{route_err}</p>
-    {/if}
-    {#if route_gj}
-      <Directions {route_gj} />
+
+    <label>
+      <input bind:group={mode} type="radio" value="route" />Route
+    </label>
+    <label>
+      <input bind:group={mode} type="radio" value="score" />Score
+    </label>
+
+    {#if mode == "route"}
+      <Legend
+        rows={[
+          ["Footway (ground, outdoors)", "red"],
+          ["Indoors footway", "blue"],
+          ["Footway not on the ground", "purple"],
+          ["Street with sidewalk (or pedestrian street)", "black"],
+          ["Crossing", "green"],
+          ["Severance", "orange"],
+        ]}
+      />
+      {#if route_err}
+        <p>{route_err}</p>
+      {/if}
+      {#if route_gj}
+        <Directions {route_gj} />
+      {/if}
     {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
@@ -118,8 +131,12 @@
       bind:map
     >
       {#if model}
-        <NetworkLayer {model} />
-        <RouteLayer bind:route_a bind:route_b {route_gj} />
+        {#if mode == "route"}
+          <NetworkLayer {model} />
+          <RouteLayer bind:route_a bind:route_b {route_gj} />
+        {:else if mode == "score"}
+          <ScoreLayer {model} />
+        {/if}
       {/if}
     </MapLibre>
   </div>
