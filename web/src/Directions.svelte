@@ -30,7 +30,9 @@
 </script>
 
 <p>
-  Crow-flies {route_gj.direct_length.toFixed(0)} vs actual {route_gj.route_length.toFixed(0)}:
+  Crow-flies {route_gj.direct_length.toFixed(0)} vs actual {route_gj.route_length.toFixed(
+    0
+  )}:
   <b>{(route_gj.route_length / route_gj.direct_length).toFixed(1)}</b>
 </p>
 <p>{levelChanges(route_gj)} changes in level</p>

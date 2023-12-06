@@ -164,27 +164,43 @@
               >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
             >
           </LineLayer>
-          {#if route_a}
-            <Marker bind:lngLat={route_a} draggable
-              ><span class="dot">A</span></Marker
+        </GeoJSON>
+        {#if route_a}
+          <Marker bind:lngLat={route_a} draggable
+            ><span class="dot">A</span></Marker
+          >
+          <Marker bind:lngLat={route_b} draggable
+            ><span class="dot">B</span></Marker
+          >
+        {/if}
+        {#if route_gj}
+          <GeoJSON data={route_gj}>
+            <LineLayer
+              id="route"
+              beforeId="network"
+              paint={{
+                "line-width": 20,
+                "line-color": "cyan",
+                "line-opacity": 0.5,
+              }}
+            />
+          </GeoJSON>
+        {/if}
+        <GeoJSON data={JSON.parse(model.renderSeverances())}>
+          <LineLayer
+            id="severances"
+            paint={{
+              "line-width": 5,
+              "line-color": "orange",
+            }}
+            on:click={(e) =>
+              window.open(e.detail.features[0].properties.way, "_blank")}
+            hoverCursor="pointer"
+          >
+            <Popup openOn="hover" let:data
+              >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
             >
-            <Marker bind:lngLat={route_b} draggable
-              ><span class="dot">B</span></Marker
-            >
-          {/if}
-          {#if route_gj}
-            <GeoJSON data={route_gj}>
-              <LineLayer
-                id="route"
-                beforeId="network"
-                paint={{
-                  "line-width": 20,
-                  "line-color": "cyan",
-                  "line-opacity": 0.5,
-                }}
-              />
-            </GeoJSON>
-          {/if}
+          </LineLayer>
         </GeoJSON>
       {/if}
     </MapLibre>

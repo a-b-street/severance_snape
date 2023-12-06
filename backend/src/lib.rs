@@ -24,6 +24,7 @@ static START: Once = Once::new();
 pub struct MapModel {
     roads: Vec<Road>,
     intersections: Vec<Intersection>,
+    severances: Vec<Severance>,
     closest_intersection: RTree<IntersectionLocation>,
     node_map: node_map::NodeMap<IntersectionID>,
     ch: FastGraph,
@@ -66,6 +67,12 @@ pub struct Intersection {
     roads: Vec<RoadID>,
 }
 
+pub struct Severance {
+    way: osm::WayID,
+    linestring: LineString,
+    tags: HashMap<String, String>,
+}
+
 // fast_paths ID representing the OSM node ID as the data
 type IntersectionLocation = GeomWithData<[f64; 2], usize>;
 
@@ -92,6 +99,22 @@ impl MapModel {
             features.push(r.to_gj());
         }
 
+        let gj = GeoJson::from(features);
+        let out = serde_json::to_string(&gj).map_err(err_to_js)?;
+        Ok(out)
+    }
+
+    #[wasm_bindgen(js_name = renderSeverances)]
+    pub fn render_severances(&mut self) -> Result<String, JsValue> {
+        let mut features = Vec::new();
+        for sev in &self.severances {
+            let mut f = Feature::from(Geometry::from(&sev.linestring));
+            f.set_property("way", sev.way.to_string());
+            for (k, v) in &sev.tags {
+                f.set_property(k, v.to_string());
+            }
+            features.push(f);
+        }
         let gj = GeoJson::from(features);
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)

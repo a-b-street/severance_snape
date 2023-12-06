@@ -5,7 +5,7 @@ use geo::{Coord, LineString, Point};
 
 use crate::osm::{NodeID, WayID};
 use crate::parse_osm::Element;
-use crate::{Intersection, IntersectionID, MapModel, Road, RoadID};
+use crate::{Intersection, IntersectionID, MapModel, Road, RoadID, Severance};
 
 struct Way {
     id: WayID,
@@ -16,6 +16,7 @@ struct Way {
 pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     let mut node_mapping = HashMap::new();
     let mut highways = Vec::new();
+    let mut severances = Vec::new();
     for elem in crate::parse_osm::parse_osm(input_bytes)? {
         match elem {
             Element::Node { id, pt, .. } => {
@@ -35,6 +36,8 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
                         vec!["secondary", "tertiary", "residential"]) && tags.get("foot") != Some(&"no".to_string()) && !is_any(&tags, "sidewalk", vec!["no", "none", "separate"]));
                 if include {
                     highways.push(Way { id, node_ids, tags });
+                } else if tags.contains_key("highway") {
+                    severances.push(Way { id, node_ids, tags });
                 }
             }
             Element::Relation { .. } => {}
@@ -48,6 +51,16 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     Ok(MapModel {
         roads,
         intersections,
+        severances: severances
+            .into_iter()
+            .map(|way| Severance {
+                way: way.id,
+                linestring: LineString::new(
+                    way.node_ids.into_iter().map(|n| node_mapping[&n]).collect(),
+                ),
+                tags: way.tags,
+            })
+            .collect(),
         closest_intersection,
         node_map,
         ch,
