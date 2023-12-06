@@ -8,7 +8,6 @@
   import Layout from "./Layout.svelte";
   import Legend from "./Legend.svelte";
   import Loading from "./Loading.svelte";
-  import { classifyStep } from "./logic";
 
   let model: MapModel | undefined = undefined;
   let map;
@@ -68,15 +67,6 @@
     }
   }
 
-  function renderNetwork() {
-    let gj = JSON.parse(model.render());
-    // Easier to add props here than attempt style expressions
-    for (let f of gj.features) {
-      classifyStep(f);
-    }
-    return gj;
-  }
-
   $: if (model && route_a && route_b) {
     try {
       route_gj = JSON.parse(
@@ -122,6 +112,7 @@
         ["Footway not on the ground", "purple"],
         ["Street with sidewalk (or pedestrian street)", "black"],
         ["Crossing", "green"],
+        ["Severance", "orange"],
       ]}
     />
     {#if route_err}
@@ -139,21 +130,22 @@
       bind:map
     >
       {#if model}
-        <GeoJSON data={renderNetwork()}>
+        <GeoJSON data={JSON.parse(model.render())}>
           <LineLayer
             id="network"
             paint={{
               "line-width": 5,
               "line-color": constructMatchExpression(
-                ["get", "type"],
+                ["get", "kind"],
                 {
-                  footway: "red",
-                  "indoors footway": "blue",
-                  "footway not on the ground": "purple",
-                  sidewalk: "black",
-                  crossing: "green",
+                  Footway: "red",
+                  Indoors: "blue",
+                  BridgeOrTunnel: "purple",
+                  Sidewalk: "black",
+                  Crossing: "green",
+                  Severance: "orange",
                 },
-                "orange"
+                "yellow"
               ),
             }}
             on:click={(e) =>
@@ -186,22 +178,6 @@
             />
           </GeoJSON>
         {/if}
-        <GeoJSON data={JSON.parse(model.renderSeverances())}>
-          <LineLayer
-            id="severances"
-            paint={{
-              "line-width": 5,
-              "line-color": "orange",
-            }}
-            on:click={(e) =>
-              window.open(e.detail.features[0].properties.way, "_blank")}
-            hoverCursor="pointer"
-          >
-            <Popup openOn="hover" let:data
-              >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
-            >
-          </LineLayer>
-        </GeoJSON>
       {/if}
     </MapLibre>
   </div>

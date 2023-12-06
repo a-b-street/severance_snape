@@ -24,7 +24,7 @@ static START: Once = Once::new();
 pub struct MapModel {
     roads: Vec<Road>,
     intersections: Vec<Intersection>,
-    severances: Vec<Severance>,
+    // Only snaps to walkable roads
     closest_intersection: RTree<IntersectionLocation>,
     node_map: node_map::NodeMap<IntersectionID>,
     ch: FastGraph,
@@ -57,6 +57,20 @@ pub struct Road {
     node2: osm::NodeID,
     linestring: LineString,
     tags: HashMap<String, String>,
+    kind: RoadKind,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum RoadKind {
+    /// Outdoors and on the ground
+    Footway,
+    Indoors,
+    BridgeOrTunnel,
+    /// Or pedestrian street
+    Sidewalk,
+    Crossing,
+    Severance,
+    // TODO other types of road?
 }
 
 pub struct Intersection {
@@ -65,12 +79,6 @@ pub struct Intersection {
     node: osm::NodeID,
     point: Point,
     roads: Vec<RoadID>,
-}
-
-pub struct Severance {
-    way: osm::WayID,
-    linestring: LineString,
-    tags: HashMap<String, String>,
 }
 
 // fast_paths ID representing the OSM node ID as the data
@@ -104,22 +112,6 @@ impl MapModel {
         Ok(out)
     }
 
-    #[wasm_bindgen(js_name = renderSeverances)]
-    pub fn render_severances(&mut self) -> Result<String, JsValue> {
-        let mut features = Vec::new();
-        for sev in &self.severances {
-            let mut f = Feature::from(Geometry::from(&sev.linestring));
-            f.set_property("way", sev.way.to_string());
-            for (k, v) in &sev.tags {
-                f.set_property(k, v.to_string());
-            }
-            features.push(f);
-        }
-        let gj = GeoJson::from(features);
-        let out = serde_json::to_string(&gj).map_err(err_to_js)?;
-        Ok(out)
-    }
-
     #[wasm_bindgen(js_name = compareRoute)]
     pub fn compare_route(&mut self, input: JsValue) -> Result<String, JsValue> {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
@@ -144,6 +136,7 @@ impl Road {
     fn to_gj(&self) -> Feature {
         let mut f = Feature::from(Geometry::from(&self.linestring));
         f.set_property("id", self.id.0);
+        f.set_property("kind", format!("{:?}", self.kind));
         f.set_property("way", self.way.to_string());
         f.set_property("node1", self.node1.to_string());
         f.set_property("node2", self.node2.to_string());

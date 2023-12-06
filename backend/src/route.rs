@@ -7,6 +7,7 @@ use rstar::RTree;
 use crate::node_map::NodeMap;
 use crate::{
     CompareRouteRequest, Intersection, IntersectionID, IntersectionLocation, MapModel, Road,
+    RoadKind,
 };
 
 pub fn build_router(
@@ -21,6 +22,9 @@ pub fn build_router(
     let mut node_map = NodeMap::new();
 
     for r in roads {
+        if r.kind == RoadKind::Severance {
+            continue;
+        }
         let node1 = node_map.get_or_insert(r.src_i);
         let node2 = node_map.get_or_insert(r.dst_i);
         let cost = r.linestring.haversine_length() as usize;
@@ -41,10 +45,10 @@ fn build_closest_intersection(
 ) -> RTree<IntersectionLocation> {
     let mut points = Vec::new();
     for i in intersections {
-        points.push(IntersectionLocation::new(
-            i.point.into(),
-            node_map.get(i.id),
-        ));
+        // If the intersection only involves severances, exclude
+        if let Some(node) = node_map.get(i.id) {
+            points.push(IntersectionLocation::new(i.point.into(), node));
+        }
     }
     RTree::bulk_load(points)
 }

@@ -34,12 +34,8 @@ impl<T: Copy + Ord + Debug + Serialize> NodeMap<T> {
         id
     }
 
-    pub fn get(&self, node: T) -> NodeId {
-        if let Some(id) = self.node_to_id.get(&node) {
-            *id
-        } else {
-            panic!("{:?} not in NodeMap", node);
-        }
+    pub fn get(&self, node: T) -> Option<NodeId> {
+        self.node_to_id.get(&node).cloned()
     }
 
     pub fn translate_id(&self, id: usize) -> T {

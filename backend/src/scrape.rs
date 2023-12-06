@@ -5,7 +5,7 @@ use geo::{Coord, LineString, Point};
 
 use crate::osm::{NodeID, WayID};
 use crate::parse_osm::Element;
-use crate::{Intersection, IntersectionID, MapModel, Road, RoadID, Severance};
+use crate::{Intersection, IntersectionID, MapModel, Road, RoadID, RoadKind};
 
 struct Way {
     id: WayID,
@@ -16,28 +16,14 @@ struct Way {
 pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     let mut node_mapping = HashMap::new();
     let mut highways = Vec::new();
-    let mut severances = Vec::new();
     for elem in crate::parse_osm::parse_osm(input_bytes)? {
         match elem {
             Element::Node { id, pt, .. } => {
                 node_mapping.insert(id, pt);
             }
             Element::Way { id, node_ids, tags } => {
-                let include = is_any(&tags, "highway", vec!["footway", "pedestrian"])
-                    || (tags.contains_key("highway")
-                        && is_any(&tags, "sidewalk", vec!["both", "right", "left"]))
-                    // If sidewalks aren't tagged, still assume most streets have them
-                    // Exclude primary from this list for HK cases
-                    // TODO But this makes things much messier; sidewalk=separate is not tagged
-                    // often, but we should infer it
-                    || (is_any(
-                        &tags,
-                        "highway",
-                        vec!["secondary", "tertiary", "residential"]) && tags.get("foot") != Some(&"no".to_string()) && !is_any(&tags, "sidewalk", vec!["no", "none", "separate"]));
-                if include {
+                if tags.contains_key("highway") {
                     highways.push(Way { id, node_ids, tags });
-                } else if tags.contains_key("highway") {
-                    severances.push(Way { id, node_ids, tags });
                 }
             }
             Element::Relation { .. } => {}
@@ -51,16 +37,6 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     Ok(MapModel {
         roads,
         intersections,
-        severances: severances
-            .into_iter()
-            .map(|way| Severance {
-                way: way.id,
-                linestring: LineString::new(
-                    way.node_ids.into_iter().map(|n| node_mapping[&n]).collect(),
-                ),
-                tags: way.tags,
-            })
-            .collect(),
         closest_intersection,
         node_map,
         ch,
@@ -127,6 +103,7 @@ fn split_edges(
                     node2: node,
                     linestring: LineString::new(std::mem::take(&mut pts)),
                     tags: way.tags.clone(),
+                    kind: classify(&way.tags),
                 });
 
                 // Start the next edge
@@ -145,4 +122,49 @@ fn is_any(tags: &HashMap<String, String>, k: &str, values: Vec<&str>) -> bool {
     } else {
         false
     }
+}
+
+fn is(tags: &HashMap<String, String>, k: &str, v: &str) -> bool {
+    tags.get(k).map(|value| v == value).unwrap_or(false)
+}
+
+fn classify(tags: &HashMap<String, String>) -> RoadKind {
+    if is(tags, "highway", "footway") {
+        // TODO These aren't mutually exclusive...
+        if tags.contains_key("indoor") {
+            return RoadKind::Indoors;
+        }
+        if tags.contains_key("layer") || tags.contains_key("bridge") || tags.contains_key("tunnel")
+        {
+            return RoadKind::BridgeOrTunnel;
+        }
+        if is(tags, "footway", "crossing") {
+            return RoadKind::Crossing;
+        }
+        return RoadKind::Footway;
+    }
+
+    if is(tags, "highway", "crossing") || tags.contains_key("crossing") {
+        return RoadKind::Crossing;
+    }
+
+    if is(tags, "highway", "pedestrian") || is_any(&tags, "sidewalk", vec!["both", "right", "left"])
+    {
+        return RoadKind::Sidewalk;
+    }
+    // If sidewalks aren't tagged, still assume most streets have them
+    // Exclude primary from this list for HK cases
+    // TODO But this makes things much messier; sidewalk=separate is not tagged often, but we
+    // should infer it
+    if is_any(
+        &tags,
+        "highway",
+        vec!["secondary", "tertiary", "residential"],
+    ) && tags.get("foot") != Some(&"no".to_string())
+        && !is_any(&tags, "sidewalk", vec!["no", "none", "separate"])
+    {
+        return RoadKind::Sidewalk;
+    }
+
+    RoadKind::Severance
 }

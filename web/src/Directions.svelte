@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { classifyStep } from "./logic";
-
   export let route_gj;
 
   function levelChanges(gj) {
@@ -17,14 +15,13 @@
   }
 
   function step(f) {
-    classifyStep(f);
     let props = f.properties;
     let level = props.layer ?? "0";
     let padding = "&nbsp;".repeat(3 * Math.abs(level));
     if (props.name) {
-      return `${padding}[${level}] ${props.type} (${props.name})`;
+      return `${padding}[${level}] ${props.kind} (${props.name})`;
     } else {
-      return `${padding}[${level}] ${props.type}`;
+      return `${padding}[${level}] ${props.kind}`;
     }
   }
 </script>
