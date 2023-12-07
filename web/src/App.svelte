@@ -4,7 +4,8 @@
   import { onMount } from "svelte";
   import { GeoJSON, LineLayer, MapLibre, Marker, Popup } from "svelte-maplibre";
   import inputUrl from "../assets/input.pbf?url";
-  import { Layout, Legend, Loading } from "./common";
+  import { colorScale, limits } from "./colors";
+  import { Layout, Legend, Loading, SequentialLegend } from "./common";
   import Directions from "./Directions.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import RouteLayer from "./RouteLayer.svelte";
@@ -122,6 +123,8 @@
       {#if route_gj}
         <Directions {route_gj} />
       {/if}
+    {:else if mode == "score"}
+      <SequentialLegend {colorScale} {limits} />
     {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">

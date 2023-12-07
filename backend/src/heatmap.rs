@@ -43,7 +43,7 @@ pub fn along_severances(map: &mut MapModel, n: usize) -> FeatureCollection {
         if r.kind != RoadKind::Severance || !r.tags.is("name:en", "Waterloo Road") {
             continue;
         }
-        for line in make_perpendicular_offsets(&r.linestring, 5.0, 10.0) {
+        for line in make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
             requests.push(line.into());
         }
     }
@@ -52,6 +52,7 @@ pub fn along_severances(map: &mut MapModel, n: usize) -> FeatureCollection {
 
 fn calculate(map: &mut MapModel, requests: Vec<CompareRouteRequest>) -> FeatureCollection {
     let mut samples = Vec::new();
+    let mut max_score = 0.0_f64;
     for req in requests {
         let mut f = Feature::from(geojson::Geometry::from(&LineString::new(vec![
             (req.x1, req.y1).into(),
@@ -74,10 +75,12 @@ fn calculate(map: &mut MapModel, requests: Vec<CompareRouteRequest>) -> FeatureC
                 .as_f64()
                 .unwrap();
             let score = route / direct;
+            max_score = max_score.max(score);
             f.set_property("score", score);
             samples.push(f);
         }
     }
+    info!("Max score is {max_score}");
     FeatureCollection {
         features: samples,
         bbox: None,

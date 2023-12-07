@@ -1,6 +1,7 @@
 <script lang="ts">
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
-  import { constructMatchExpression } from "./common";
+  import { colorScale, limits } from "./colors";
+  import { constructMatchExpression, makeColorRamp } from "./common";
   import RouteLayer from "./RouteLayer.svelte";
 
   export let model;
@@ -46,8 +47,8 @@
   <LineLayer
     id="scores"
     paint={{
-      "line-width": 10,
-      "line-color": "yellow",
+      "line-width": 2,
+      "line-color": makeColorRamp(["get", "score"], limits, colorScale),
     }}
     on:click={showRoute}
   >
