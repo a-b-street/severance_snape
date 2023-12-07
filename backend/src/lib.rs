@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate log;
 
-use std::collections::HashMap;
 use std::fmt;
 use std::sync::Once;
 
@@ -17,6 +16,7 @@ mod node_map;
 mod osm_reader;
 mod route;
 mod scrape;
+mod tags;
 
 static START: Once = Once::new();
 
@@ -56,7 +56,7 @@ pub struct Road {
     node1: osm_reader::NodeID,
     node2: osm_reader::NodeID,
     linestring: LineString,
-    tags: HashMap<String, String>,
+    tags: tags::Tags,
     kind: RoadKind,
 }
 
@@ -147,7 +147,7 @@ impl Road {
         f.set_property("way", self.way.to_string());
         f.set_property("node1", self.node1.to_string());
         f.set_property("node2", self.node2.to_string());
-        for (k, v) in &self.tags {
+        for (k, v) in &self.tags.0 {
             f.set_property(k, v.to_string());
         }
         f
