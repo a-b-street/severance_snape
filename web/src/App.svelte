@@ -3,7 +3,7 @@
   import init, { MapModel } from "backend";
   import { onMount } from "svelte";
   import { GeoJSON, LineLayer, MapLibre, Marker, Popup } from "svelte-maplibre";
-  import xmlUrl from "../assets/input.osm?url";
+  import inputUrl from "../assets/input.pbf?url";
   import { Layout, Legend, Loading } from "./common";
   import Directions from "./Directions.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
@@ -25,10 +25,10 @@
     await init();
     try {
       loading = true;
-      let resp = await fetch(xmlUrl);
+      let resp = await fetch(inputUrl);
       loadModel(await resp.arrayBuffer());
     } catch (err) {
-      window.alert(`Couldn't open from URL ${xmlUrl}: ${err}`);
+      window.alert(`Couldn't open from URL ${inputUrl}: ${err}`);
     }
     loading = false;
   });
@@ -45,7 +45,9 @@
   }
 
   function loadModel(buffer: Buffer) {
+    console.time("load");
     model = new MapModel(new Uint8Array(buffer));
+    console.timeEnd("load");
     zoomToFit();
     let bbox = turfBbox(JSON.parse(model.render()));
     route_a = {
@@ -123,7 +125,11 @@
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style="https://api.maptiler.com/maps/dataviz/style.json?key=MZEJTanw3WpxRvt7qDfo"
+      style={{
+        version: 8,
+        sources: {},
+        layers: []
+      }}
       standardControls
       hash
       bind:map

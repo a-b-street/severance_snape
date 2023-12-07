@@ -79,7 +79,7 @@ pub fn parse(input_bytes: &[u8]) -> Result<Vec<Element>> {
     info!("Got {} bytes", input_bytes.len());
     // TODO Detect file type
 
-    if true {
+    if false {
         parse_xml(input_bytes)
     } else {
         parse_pbf(input_bytes)
