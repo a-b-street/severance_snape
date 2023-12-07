@@ -1,9 +1,12 @@
-use geo::{BoundingRect, Geometry, GeometryCollection, LineString, Rect};
+use geo::{
+    BoundingRect, DensifyHaversine, Geometry, GeometryCollection, HaversineBearing,
+    HaversineDestination, Line, LineString, Point, Rect,
+};
 use geojson::{Feature, FeatureCollection};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
 
-use crate::{CompareRouteRequest, MapModel};
+use crate::{CompareRouteRequest, MapModel, RoadKind};
 
 pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
     // TODO Expensive
@@ -18,13 +21,42 @@ pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
     let dist_away = 0.01;
 
     let mut rng = XorShiftRng::seed_from_u64(42);
-    let mut samples = Vec::new();
+    let mut requests = Vec::new();
     for _ in 0..n {
         let x1 = rng.gen_range(bbox.min().x..=bbox.max().x);
         let y1 = rng.gen_range(bbox.min().y..=bbox.max().y);
         let x2 = x1 + rng.gen_range(-dist_away..=dist_away);
         let y2 = y1 + rng.gen_range(-dist_away..=dist_away);
-        let req = CompareRouteRequest { x1, y1, x2, y2 };
+        requests.push(CompareRouteRequest { x1, y1, x2, y2 });
+    }
+    calculate(map, requests)
+}
+
+// Walk along severances. Every X meters, try to cross from one side to the other.
+//
+// We could focus where footways connect to severances, but that's probably a crossing. Ideally we
+// want to find footpaths parallel(ish) to severances. If we had some kind of generalized edge
+// bundling...
+pub fn along_severances(map: &mut MapModel, n: usize) -> FeatureCollection {
+    let mut requests = Vec::new();
+    for r in &map.roads {
+        if r.kind != RoadKind::Severance || !r.tags.is("name:en", "Waterloo Road") {
+            continue;
+        }
+        for line in make_perpendicular_offsets(&r.linestring, 5.0, 10.0) {
+            requests.push(line.into());
+        }
+    }
+    calculate(map, requests)
+}
+
+fn calculate(map: &mut MapModel, requests: Vec<CompareRouteRequest>) -> FeatureCollection {
+    let mut samples = Vec::new();
+    for req in requests {
+        let mut f = Feature::from(geojson::Geometry::from(&LineString::new(vec![
+            (req.x1, req.y1).into(),
+            (req.x2, req.y2).into(),
+        ])));
         if let Ok(fc) = crate::route::do_route(map, req) {
             let direct = fc
                 .foreign_members
@@ -42,10 +74,6 @@ pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
                 .as_f64()
                 .unwrap();
             let score = route / direct;
-            let mut f = Feature::from(geojson::Geometry::from(&LineString::new(vec![
-                (x1, y1).into(),
-                (x2, y2).into(),
-            ])));
             f.set_property("score", score);
             samples.push(f);
         }
@@ -55,4 +83,24 @@ pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
         bbox: None,
         foreign_members: None,
     }
+}
+
+// TODO canvas_geometry needs this too
+fn make_perpendicular_offsets(
+    linestring: &LineString,
+    walk_every_m: f64,
+    project_away_m: f64,
+) -> Vec<Line> {
+    let mut output = Vec::new();
+    // Using lines instead of coords so we can get the angle -- but is this hard to reason about?
+    // angle_at_point instead?
+    for orig_line in linestring.densify_haversine(walk_every_m).lines() {
+        // TODO For the last line, use the last point too
+        let pt: Point = orig_line.start.into();
+        let angle = pt.haversine_bearing(orig_line.end.into());
+        let projected_left = pt.haversine_destination(angle - 90.0, project_away_m);
+        let projected_right = pt.haversine_destination(angle + 90.0, project_away_m);
+        output.push(Line::new(projected_left, projected_right));
+    }
+    output
 }

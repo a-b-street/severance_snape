@@ -14,7 +14,7 @@
   let map;
   let loading = false;
 
-  let mode = "route";
+  let mode = "score";
 
   let route_a = null;
   let route_b = null;
@@ -104,17 +104,18 @@
       <input bind:group={mode} type="radio" value="score" />Score
     </label>
 
+    <Legend
+      rows={[
+        ["Footway (ground, outdoors)", "red"],
+        ["Indoors footway", "blue"],
+        ["Footway not on the ground", "purple"],
+        ["Street with sidewalk (or pedestrian street)", "black"],
+        ["Crossing", "green"],
+        ["Severance", "orange"],
+      ]}
+    />
+
     {#if mode == "route"}
-      <Legend
-        rows={[
-          ["Footway (ground, outdoors)", "red"],
-          ["Indoors footway", "blue"],
-          ["Footway not on the ground", "purple"],
-          ["Street with sidewalk (or pedestrian street)", "black"],
-          ["Crossing", "green"],
-          ["Severance", "orange"],
-        ]}
-      />
       {#if route_err}
         <p>{route_err}</p>
       {/if}

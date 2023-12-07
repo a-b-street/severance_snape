@@ -5,7 +5,7 @@ use std::fmt;
 use std::sync::Once;
 
 use fast_paths::{FastGraph, PathCalculator};
-use geo::{LineString, Point};
+use geo::{Line, LineString, Point};
 use geojson::{Feature, GeoJson, Geometry};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
@@ -122,7 +122,7 @@ impl MapModel {
 
     #[wasm_bindgen(js_name = makeHeatmap)]
     pub fn make_heatmap(&mut self) -> Result<String, JsValue> {
-        let samples = heatmap::measure_randomly(self, 100);
+        let samples = heatmap::along_severances(self, 100);
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
@@ -160,6 +160,17 @@ pub struct CompareRouteRequest {
     y1: f64,
     x2: f64,
     y2: f64,
+}
+
+impl From<Line> for CompareRouteRequest {
+    fn from(line: Line) -> Self {
+        Self {
+            x1: line.start.x,
+            y1: line.start.y,
+            x2: line.end.x,
+            y2: line.end.y,
+        }
+    }
 }
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
