@@ -1,4 +1,11 @@
+mod xml;
+
+use std::collections::HashMap;
 use std::fmt;
+
+use geo::Coord;
+
+pub use self::xml::parse;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct NodeID(pub i64);
@@ -43,3 +50,23 @@ impl fmt::Display for OsmID {
 }
 
 // TODO Into for both directions
+
+pub enum Element {
+    Node {
+        id: NodeID,
+        // TODO Probably dont do this here
+        pt: Coord,
+        tags: HashMap<String, String>,
+    },
+    Way {
+        id: WayID,
+        node_ids: Vec<NodeID>,
+        tags: HashMap<String, String>,
+    },
+    Relation {
+        id: RelationID,
+        tags: HashMap<String, String>,
+        // Role, member ID
+        members: Vec<(String, OsmID)>,
+    },
+}

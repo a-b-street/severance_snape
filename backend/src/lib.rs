@@ -14,8 +14,7 @@ use wasm_bindgen::prelude::*;
 
 mod heatmap;
 mod node_map;
-mod osm;
-mod parse_osm;
+mod osm_reader;
 mod route;
 mod scrape;
 
@@ -53,9 +52,9 @@ pub struct Road {
     id: RoadID,
     src_i: IntersectionID,
     dst_i: IntersectionID,
-    way: osm::WayID,
-    node1: osm::NodeID,
-    node2: osm::NodeID,
+    way: osm_reader::WayID,
+    node1: osm_reader::NodeID,
+    node2: osm_reader::NodeID,
     linestring: LineString,
     tags: HashMap<String, String>,
     kind: RoadKind,
@@ -77,7 +76,7 @@ pub enum RoadKind {
 pub struct Intersection {
     id: IntersectionID,
     #[allow(dead_code)]
-    node: osm::NodeID,
+    node: osm_reader::NodeID,
     point: Point,
     roads: Vec<RoadID>,
 }

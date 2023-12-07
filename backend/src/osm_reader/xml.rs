@@ -3,34 +3,15 @@ use std::collections::HashMap;
 use anyhow::Result;
 use geo::Coord;
 
-use crate::osm::*;
+use crate::osm_reader::*;
 
 // Per https://wiki.openstreetmap.org/wiki/OSM_XML#Certainties_and_Uncertainties, we assume
 // elements come in order: nodes, ways, then relations.
-pub fn parse_osm(input_bytes: &[u8]) -> Result<Vec<Element>> {
+pub fn parse(input_bytes: &[u8]) -> Result<Vec<Element>> {
     info!("Got {} bytes", input_bytes.len());
     // TODO Detect file type
 
     parse_xml(input_bytes)
-}
-
-pub enum Element {
-    Node {
-        id: NodeID,
-        pt: Coord,
-        tags: HashMap<String, String>,
-    },
-    Way {
-        id: WayID,
-        node_ids: Vec<NodeID>,
-        tags: HashMap<String, String>,
-    },
-    Relation {
-        id: RelationID,
-        tags: HashMap<String, String>,
-        // Role, member ID
-        members: Vec<(String, OsmID)>,
-    },
 }
 
 // TODO Iterator instead
