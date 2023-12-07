@@ -21,6 +21,7 @@
   let route_b = null;
   let route_gj = null;
   let route_err = "";
+  let showSeverances = true;
 
   onMount(async () => {
     await init();
@@ -117,6 +118,10 @@
     />
 
     {#if mode == "route"}
+      <label>
+        <input type="checkbox" bind:checked={showSeverances} />
+        Show severances
+      </label>
       {#if route_err}
         <p>{route_err}</p>
       {/if}
@@ -140,7 +145,7 @@
     >
       {#if model}
         {#if mode == "route"}
-          <NetworkLayer {model} />
+          <NetworkLayer {model} {showSeverances} />
           <RouteLayer bind:route_a bind:route_b {route_gj} />
         {:else if mode == "score"}
           <ScoreLayer {model} />
