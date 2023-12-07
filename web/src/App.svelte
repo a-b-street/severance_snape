@@ -128,7 +128,7 @@
       style={{
         version: 8,
         sources: {},
-        layers: []
+        layers: [],
       }}
       standardControls
       hash

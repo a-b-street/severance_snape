@@ -1,19 +1,59 @@
 <script lang="ts">
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
+  import { constructMatchExpression } from "./common";
+  import RouteLayer from "./RouteLayer.svelte";
 
   export let model;
+
+  let route_gj = null;
+
+  // TODO hack... need to toggle off interactiveness of network layer, so just copy it?
+
+  function showRoute(e) {
+    let linestring = e.detail.features[0].geometry.coordinates;
+    route_gj = JSON.parse(
+      model.compareRoute({
+        x1: linestring[0][0],
+        y1: linestring[0][1],
+        x2: linestring[1][0],
+        y2: linestring[1][1],
+      })
+    );
+  }
 </script>
 
+<GeoJSON data={JSON.parse(model.render())}>
+  <LineLayer
+    id="network"
+    paint={{
+      "line-width": 5,
+      "line-color": constructMatchExpression(
+        ["get", "kind"],
+        {
+          Footway: "red",
+          Indoors: "blue",
+          BridgeOrTunnel: "purple",
+          Sidewalk: "black",
+          Crossing: "green",
+          Severance: "orange",
+        },
+        "yellow"
+      ),
+    }}
+  />
+</GeoJSON>
 <GeoJSON data={JSON.parse(model.makeHeatmap())}>
   <LineLayer
     id="scores"
     paint={{
-      "line-width": 5,
-      "line-color": "red",
+      "line-width": 10,
+      "line-color": "yellow",
     }}
+    on:click={showRoute}
   >
     <Popup openOn="hover" let:data
       >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
     >
   </LineLayer>
 </GeoJSON>
+<RouteLayer {route_gj} route_a={null} route_b={null} />
