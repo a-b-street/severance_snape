@@ -17,7 +17,8 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     let mut highways = Vec::new();
     for elem in crate::osm_reader::parse(input_bytes)? {
         match elem {
-            Element::Node { id, pt, .. } => {
+            Element::Node { id, lon, lat, .. } => {
+                let pt = Coord { x: lon, y: lat };
                 node_mapping.insert(id, pt);
             }
             Element::Way { id, node_ids, tags } => {

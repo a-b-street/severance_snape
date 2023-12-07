@@ -1,21 +1,11 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use geo::Coord;
 
 use crate::osm_reader::*;
 
-// Per https://wiki.openstreetmap.org/wiki/OSM_XML#Certainties_and_Uncertainties, we assume
-// elements come in order: nodes, ways, then relations.
-pub fn parse(input_bytes: &[u8]) -> Result<Vec<Element>> {
-    info!("Got {} bytes", input_bytes.len());
-    // TODO Detect file type
-
-    parse_xml(input_bytes)
-}
-
 // TODO Iterator instead
-fn parse_xml(input_bytes: &[u8]) -> Result<Vec<Element>> {
+pub fn parse_xml(input_bytes: &[u8]) -> Result<Vec<Element>> {
     let input_string = String::from_utf8(input_bytes.to_vec())?;
     // TODO anyhow compatibility
     let tree = roxmltree::Document::parse(&input_string).unwrap();
@@ -30,12 +20,10 @@ fn parse_xml(input_bytes: &[u8]) -> Result<Vec<Element>> {
             }
             "node" => {
                 let id = NodeID(obj.attribute("id").unwrap().parse::<i64>()?);
-                let pt = Coord {
-                    x: obj.attribute("lon").unwrap().parse::<f64>()?,
-                    y: obj.attribute("lat").unwrap().parse::<f64>()?,
-                };
+                let lon = obj.attribute("lon").unwrap().parse::<f64>()?;
+                let lat = obj.attribute("lat").unwrap().parse::<f64>()?;
                 let tags = read_tags(obj);
-                elements.push(Element::Node { id, pt, tags });
+                elements.push(Element::Node { id, lon, lat, tags });
             }
             "way" => {
                 let id = WayID(obj.attribute("id").unwrap().parse::<i64>()?);

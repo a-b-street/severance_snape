@@ -4,7 +4,7 @@ use osmpbf::ElementReader;
 use crate::osm_reader::*;
 
 // TODO Iterator instead
-fn parse_pbf(input_bytes: &[u8]) -> Result<Vec<Element>> {
+pub fn parse_pbf(input_bytes: &[u8]) -> Result<Vec<Element>> {
     let mut elements = Vec::new();
     let reader = ElementReader::new(input_bytes);
     reader.for_each(|element| {
@@ -16,11 +16,9 @@ fn parse_pbf(input_bytes: &[u8]) -> Result<Vec<Element>> {
                     tags.insert(k.to_string(), v.to_string());
                 }
 
-                let pt = Coord {
-                    x: node.lon(),
-                    y: node.lat(),
-                };
-                elements.push(Element::Node { id, pt, tags });
+                let lon = node.lon();
+                let lat = node.lat();
+                elements.push(Element::Node { id, lon, lat, tags });
             }
             osmpbf::Element::DenseNode(node) => {
                 let id = NodeID(node.id());
@@ -29,11 +27,9 @@ fn parse_pbf(input_bytes: &[u8]) -> Result<Vec<Element>> {
                     tags.insert(k.to_string(), v.to_string());
                 }
 
-                let pt = Coord {
-                    x: node.lon(),
-                    y: node.lat(),
-                };
-                elements.push(Element::Node { id, pt, tags });
+                let lon = node.lon();
+                let lat = node.lat();
+                elements.push(Element::Node { id, lon, lat, tags });
             }
             osmpbf::Element::Way(way) => {
                 let id = WayID(way.id());

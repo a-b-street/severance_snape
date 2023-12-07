@@ -4,9 +4,10 @@ mod xml;
 use std::collections::HashMap;
 use std::fmt;
 
-use geo::Coord;
+use anyhow::Result;
 
-pub use self::xml::parse;
+pub use self::pbf::parse_pbf;
+pub use self::xml::parse_xml;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
 pub struct NodeID(pub i64);
@@ -55,8 +56,8 @@ impl fmt::Display for OsmID {
 pub enum Element {
     Node {
         id: NodeID,
-        // TODO Probably dont do this here
-        pt: Coord,
+        lon: f64,
+        lat: f64,
         tags: HashMap<String, String>,
     },
     Way {
@@ -70,4 +71,17 @@ pub enum Element {
         // Role, member ID
         members: Vec<(String, OsmID)>,
     },
+}
+
+// Per https://wiki.openstreetmap.org/wiki/OSM_XML#Certainties_and_Uncertainties, we assume
+// elements come in order: nodes, ways, then relations.
+pub fn parse(input_bytes: &[u8]) -> Result<Vec<Element>> {
+    info!("Got {} bytes", input_bytes.len());
+    // TODO Detect file type
+
+    if true {
+        parse_xml(input_bytes)
+    } else {
+        parse_pbf(input_bytes)
+    }
 }
