@@ -4,10 +4,8 @@
   import { onMount } from "svelte";
   import { GeoJSON, LineLayer, MapLibre, Marker, Popup } from "svelte-maplibre";
   import xmlUrl from "../assets/input.osm?url";
+  import { Layout, Legend, Loading } from "./common";
   import Directions from "./Directions.svelte";
-  import Layout from "./Layout.svelte";
-  import Legend from "./Legend.svelte";
-  import Loading from "./Loading.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import RouteLayer from "./RouteLayer.svelte";
   import ScoreLayer from "./ScoreLayer.svelte";

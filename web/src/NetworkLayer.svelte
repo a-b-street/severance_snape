@@ -1,21 +1,8 @@
 <script lang="ts">
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
+  import { constructMatchExpression } from "./common";
 
   export let model;
-
-  function constructMatchExpression<OutputType>(
-    getter: any[],
-    map: { [name: string]: OutputType },
-    fallback: OutputType
-  ): DataDrivenPropertyValueSpecification<OutputType> {
-    let x: any[] = ["match", getter];
-    for (let [key, value] of Object.entries(map)) {
-      x.push(key);
-      x.push(value);
-    }
-    x.push(fallback);
-    return x as DataDrivenPropertyValueSpecification<OutputType>;
-  }
 </script>
 
 <GeoJSON data={JSON.parse(model.render())}>
