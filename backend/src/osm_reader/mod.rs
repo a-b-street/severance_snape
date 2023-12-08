@@ -76,12 +76,25 @@ pub enum Element {
 // Per https://wiki.openstreetmap.org/wiki/OSM_XML#Certainties_and_Uncertainties, we assume
 // elements come in order: nodes, ways, then relations.
 pub fn parse(input_bytes: &[u8]) -> Result<Vec<Element>> {
-    info!("Got {} bytes", input_bytes.len());
-    // TODO Detect file type
-
-    if false {
+    if is_xml(input_bytes) {
+        info!("Got {} bytes, looks like XML", input_bytes.len());
         parse_xml(input_bytes)
     } else {
+        info!(
+            "Got {} bytes, assuming PBF (doesn't look like XML)",
+            input_bytes.len()
+        );
         parse_pbf(input_bytes)
     }
+}
+
+fn is_xml(input_bytes: &[u8]) -> bool {
+    let check_header = "<?xml";
+    if input_bytes.len() < check_header.len() {
+        return false;
+    }
+    if let Ok(x) = std::str::from_utf8(&input_bytes[..check_header.len()]) {
+        return x.to_lowercase() == check_header;
+    }
+    false
 }
