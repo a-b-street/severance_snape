@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use geo::{Coord, LineString, Point};
+use osm_reader::{Element, NodeID, WayID};
 
-use crate::osm_reader::{Element, NodeID, WayID};
 use crate::tags::Tags;
 use crate::{Intersection, IntersectionID, MapModel, Road, RoadID, RoadKind};
 
@@ -16,7 +16,7 @@ struct Way {
 pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     let mut node_mapping = HashMap::new();
     let mut highways = Vec::new();
-    for elem in crate::osm_reader::parse(input_bytes)? {
+    for elem in osm_reader::parse(input_bytes)? {
         match elem {
             Element::Node { id, lon, lat, .. } => {
                 let pt = Coord { x: lon, y: lat };

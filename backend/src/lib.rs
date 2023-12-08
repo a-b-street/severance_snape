@@ -13,7 +13,6 @@ use wasm_bindgen::prelude::*;
 
 mod heatmap;
 mod node_map;
-mod osm_reader;
 mod route;
 mod scrape;
 mod tags;

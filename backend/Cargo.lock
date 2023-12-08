@@ -76,10 +76,9 @@ dependencies = [
  "geo",
  "geojson",
  "log",
- "osmpbf",
+ "osm-reader",
  "rand",
  "rand_xorshift",
- "roxmltree",
  "rstar",
  "serde",
  "serde-wasm-bindgen",
@@ -463,6 +462,16 @@ name = "once_cell"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
+
+[[package]]
+name = "osm-reader"
+version = "0.1.0"
+source = "git+https://github.com/a-b-street/osm-reader#40f27e3d08b2c4a9258ed67b38a036c98c3eb18a"
+dependencies = [
+ "anyhow",
+ "osmpbf",
+ "roxmltree",
+]
 
 [[package]]
 name = "osmpbf"
