@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use geo::{Coord, Densify, Line, LineString};
-use geojson::{Feature, FeatureCollection};
+use geojson::FeatureCollection;
 use rstar::{primitives::GeomWithData, RTree};
 
 use crate::{CompareRouteRequest, IntersectionID, MapModel, RoadKind};
@@ -65,17 +65,7 @@ fn calculate(map: &mut MapModel, requests: Vec<CompareRouteRequest>) -> FeatureC
     let mut samples = Vec::new();
     let mut max_score = 0.0_f64;
     for req in requests {
-        let mut f = Feature::from(geojson::Geometry::from(&LineString::new(vec![
-            map.mercator.to_wgs84(Coord {
-                x: req.x1,
-                y: req.y1,
-            }),
-            map.mercator.to_wgs84(Coord {
-                x: req.x2,
-                y: req.y2,
-            }),
-        ])));
-        if let Ok(fc) = crate::route::do_route(map, req) {
+        if let Ok((mut f, fc)) = crate::route::do_route(map, req) {
             let direct = fc
                 .foreign_members
                 .as_ref()

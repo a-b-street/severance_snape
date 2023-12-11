@@ -1,7 +1,7 @@
 use anyhow::{bail, Result};
 use fast_paths::{FastGraph, InputGraph};
-use geo::{HaversineLength, LineString};
-use geojson::FeatureCollection;
+use geo::{HaversineLength, LineString, MapCoords};
+use geojson::{Feature, FeatureCollection};
 use rstar::RTree;
 
 use crate::node_map::NodeMap;
@@ -52,7 +52,11 @@ fn build_closest_intersection(
     RTree::bulk_load(points)
 }
 
-pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<FeatureCollection> {
+// Also returns the line of the snapped request (in WGS84)
+pub fn do_route(
+    map: &mut MapModel,
+    req: CompareRouteRequest,
+) -> Result<(Feature, FeatureCollection)> {
     let start = map
         .closest_intersection
         .nearest_neighbor(&[req.x1, req.y1])
@@ -66,7 +70,20 @@ pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<FeatureC
     if start == end {
         bail!("start = end");
     }
+
     if let Some(path) = map.path_calc.calc_path(&map.ch, start, end) {
+        let direct_line = LineString::new(vec![
+            map.intersections[map.node_map.translate_id(start).0]
+                .point
+                .into(),
+            map.intersections[map.node_map.translate_id(end).0]
+                .point
+                .into(),
+        ]);
+        let direct_feature = Feature::from(geojson::Geometry::from(
+            &direct_line.map_coords(|c| map.mercator.to_wgs84(c)),
+        ));
+
         let mut features = Vec::new();
         let mut route_length = 0.0;
         for pair in path.get_nodes().windows(2) {
@@ -76,28 +93,23 @@ pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<FeatureC
             features.push(road.to_gj(&map.mercator));
             route_length += road.linestring.haversine_length();
         }
-        let direct_length = LineString::new(vec![
-            map.intersections[map.node_map.translate_id(start).0]
-                .point
-                .into(),
-            map.intersections[map.node_map.translate_id(end).0]
-                .point
-                .into(),
-        ])
-        .haversine_length();
-        return Ok(FeatureCollection {
-            features,
-            bbox: None,
-            foreign_members: Some(
-                serde_json::json!({
-                    "direct_length": direct_length,
-                    "route_length": route_length,
-                })
-                .as_object()
-                .unwrap()
-                .clone(),
-            ),
-        });
+        let direct_length = direct_line.haversine_length();
+        return Ok((
+            direct_feature,
+            FeatureCollection {
+                features,
+                bbox: None,
+                foreign_members: Some(
+                    serde_json::json!({
+                        "direct_length": direct_length,
+                        "route_length": route_length,
+                    })
+                    .as_object()
+                    .unwrap()
+                    .clone(),
+                ),
+            },
+        ));
     }
     bail!("No path");
 }

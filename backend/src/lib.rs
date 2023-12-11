@@ -125,7 +125,7 @@ impl MapModel {
             x: req.x2,
             y: req.y2,
         });
-        let gj = route::do_route(
+        let (_, gj) = route::do_route(
             self,
             CompareRouteRequest {
                 x1: pt1.x,
