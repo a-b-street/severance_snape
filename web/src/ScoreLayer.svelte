@@ -5,6 +5,8 @@
   import RouteLayer from "./RouteLayer.svelte";
 
   export let model;
+  export let showSeverances: boolean;
+  export let opacity: number;
 
   let route_gj = null;
 
@@ -40,6 +42,15 @@
         },
         "yellow"
       ),
+      "line-opacity": showSeverances
+        ? opacity / 100.0
+        : constructMatchExpression(
+            ["get", "kind"],
+            {
+              Severance: 0.0,
+            },
+            opacity / 100.0
+          ),
     }}
   />
 </GeoJSON>
@@ -47,7 +58,7 @@
   <LineLayer
     id="scores"
     paint={{
-      "line-width": 2,
+      "line-width": 8,
       "line-color": makeColorRamp(["get", "score"], limits, colorScale),
     }}
     on:click={showRoute}

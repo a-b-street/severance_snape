@@ -21,7 +21,9 @@
   let route_b = null;
   let route_gj = null;
   let route_err = "";
+  let opacity = 100;
   let showSeverances = true;
+  let showBasemap = false;
 
   onMount(async () => {
     await init();
@@ -116,12 +118,20 @@
         ["Severance", "orange"],
       ]}
     />
-
-    {#if mode == "route"}
+    <div>
       <label>
         <input type="checkbox" bind:checked={showSeverances} />
         Show severances
       </label>
+    </div>
+    <div>
+      <label>
+        Network opacity:
+        <input type="range" min="0" max="100" bind:value={opacity} />
+      </label>
+    </div>
+
+    {#if mode == "route"}
       {#if route_err}
         <p>{route_err}</p>
       {/if}
@@ -131,24 +141,33 @@
     {:else if mode == "score"}
       <SequentialLegend {colorScale} {limits} />
     {/if}
+
+    <hr />
+
+    <label>
+      <input type="checkbox" bind:checked={showBasemap} />
+      Show basemap
+    </label>
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style={{
-        version: 8,
-        sources: {},
-        layers: [],
-      }}
+      style={showBasemap
+        ? "https://api.maptiler.com/maps/dataviz/style.json?key=MZEJTanw3WpxRvt7qDfo"
+        : {
+            version: 8,
+            sources: {},
+            layers: [],
+          }}
       standardControls
       hash
       bind:map
     >
       {#if model}
         {#if mode == "route"}
-          <NetworkLayer {model} {showSeverances} />
-          <RouteLayer bind:route_a bind:route_b {route_gj} />
+          <NetworkLayer {model} {showSeverances} {opacity} />
+          <RouteLayer bind:route_a bind:route_b {route_gj} {map} />
         {:else if mode == "score"}
-          <ScoreLayer {model} />
+          <ScoreLayer {model} {showSeverances} {opacity} />
         {/if}
       {/if}
     </MapLibre>

@@ -5,6 +5,7 @@
   export let model;
   // TODO Use filter expressions?
   export let showSeverances: boolean;
+  export let opacity: number;
 </script>
 
 <GeoJSON data={JSON.parse(model.render())}>
@@ -25,13 +26,13 @@
         "yellow"
       ),
       "line-opacity": showSeverances
-        ? 1.0
+        ? opacity / 100
         : constructMatchExpression(
             ["get", "kind"],
             {
               Severance: 0.0,
             },
-            1.0
+            opacity / 100.0
           ),
     }}
     on:click={(e) => window.open(e.detail.features[0].properties.way, "_blank")}

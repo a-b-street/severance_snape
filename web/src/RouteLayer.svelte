@@ -1,9 +1,22 @@
 <script lang="ts">
+  import { onDestroy, onMount } from "svelte";
   import { GeoJSON, LineLayer, Marker } from "svelte-maplibre";
 
   export let route_a;
   export let route_b;
   export let route_gj;
+  export let map;
+
+  onMount(() => {
+    map?.on("contextmenu", onRightClick);
+  });
+  onDestroy(() => {
+    map?.off("contextmenu", onRightClick);
+  });
+  function onRightClick(e) {
+    // Move the first marker, for convenience
+    route_a = e.lngLat;
+  }
 </script>
 
 {#if route_a}
