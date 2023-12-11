@@ -1,9 +1,9 @@
 <script lang="ts">
-  export let loading = false;
+  export let msg: string | null = null;
 </script>
 
-{#if loading}
-  <div>Loading</div>
+{#if msg}
+  <div>{msg}</div>
 {/if}
 
 <style>

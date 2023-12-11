@@ -1,19 +1,16 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
-  import init, { MapModel } from "backend";
-  import { onMount } from "svelte";
   import { GeoJSON, LineLayer, MapLibre, Marker, Popup } from "svelte-maplibre";
-  import inputUrl from "../assets/input.pbf?url";
   import { colorScale, limits } from "./colors";
-  import { Layout, Legend, Loading, SequentialLegend } from "./common";
+  import { Layout, Legend, SequentialLegend } from "./common";
   import Directions from "./Directions.svelte";
+  import MapLoader from "./MapLoader.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import RouteLayer from "./RouteLayer.svelte";
   import ScoreLayer from "./ScoreLayer.svelte";
 
   let model: MapModel | undefined = undefined;
   let map;
-  let loading = false;
 
   let mode = "score";
 
@@ -23,46 +20,6 @@
   let route_err = "";
   let opacity = 100;
   let showSeverances = true;
-  let showBasemap = false;
-
-  onMount(async () => {
-    await init();
-    try {
-      loading = true;
-      let resp = await fetch(inputUrl);
-      loadModel(await resp.arrayBuffer());
-    } catch (err) {
-      window.alert(`Couldn't open from URL ${inputUrl}: ${err}`);
-    }
-    loading = false;
-  });
-
-  let fileInput: HTMLInputElement;
-  async function loadFile(e: Event) {
-    try {
-      loading = true;
-      loadModel(await fileInput.files![0].arrayBuffer());
-    } catch (err) {
-      window.alert(`Couldn't open this file: ${err}`);
-    }
-    loading = false;
-  }
-
-  function loadModel(buffer: Buffer) {
-    console.time("load");
-    model = new MapModel(new Uint8Array(buffer));
-    console.timeEnd("load");
-    zoomToFit();
-    let bbox = turfBbox(JSON.parse(model.render()));
-    route_a = {
-      lng: lerp(0.4, bbox[0], bbox[2]),
-      lat: lerp(0.4, bbox[1], bbox[3]),
-    };
-    route_b = {
-      lng: lerp(0.6, bbox[0], bbox[2]),
-      lat: lerp(0.6, bbox[1], bbox[3]),
-    };
-  }
 
   function lerp(pct, a, b) {
     return a + pct * (b - a);
@@ -75,6 +32,24 @@
       map.fitBounds(bbox, { animate: false });
     }
   }
+
+  function gotModel(_m) {
+    if (!model) {
+      return;
+    }
+    console.log("New map model loaded");
+    zoomToFit();
+    let bbox = turfBbox(JSON.parse(model.render()));
+    route_a = {
+      lng: lerp(0.4, bbox[0], bbox[2]),
+      lat: lerp(0.4, bbox[1], bbox[3]),
+    };
+    route_b = {
+      lng: lerp(0.6, bbox[0], bbox[2]),
+      lat: lerp(0.6, bbox[1], bbox[3]),
+    };
+  }
+  $: gotModel(model);
 
   $: if (model && route_a && route_b) {
     try {
@@ -96,9 +71,9 @@
 
 <Layout>
   <div slot="left">
-    <label>
-      <input bind:this={fileInput} on:change={loadFile} type="file" />
-    </label>
+    {#if map}
+      <MapLoader {map} bind:model />
+    {/if}
     <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
     <label>
@@ -141,23 +116,10 @@
     {:else if mode == "score"}
       <SequentialLegend {colorScale} {limits} />
     {/if}
-
-    <hr />
-
-    <label>
-      <input type="checkbox" bind:checked={showBasemap} />
-      Show basemap
-    </label>
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style={showBasemap
-        ? "https://api.maptiler.com/maps/dataviz/style.json?key=MZEJTanw3WpxRvt7qDfo"
-        : {
-            version: 8,
-            sources: {},
-            layers: [],
-          }}
+      style="https://api.maptiler.com/maps/dataviz/style.json?key=MZEJTanw3WpxRvt7qDfo"
       standardControls
       hash
       bind:map
@@ -173,4 +135,3 @@
     </MapLibre>
   </div>
 </Layout>
-<Loading {loading} />

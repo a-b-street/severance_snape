@@ -86,4 +86,4 @@
     >
   </LineLayer>
 </GeoJSON>
-<RouteLayer {route_gj} route_a={null} route_b={null} />
+<RouteLayer {route_gj} route_a={null} route_b={null} {map} />
