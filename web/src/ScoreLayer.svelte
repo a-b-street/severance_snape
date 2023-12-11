@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onDestroy, onMount } from "svelte";
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import { constructMatchExpression, makeColorRamp } from "./common";
   import RouteLayer from "./RouteLayer.svelte";
 
   export let model;
+  export let map;
   export let showSeverances: boolean;
   export let opacity: number;
 
@@ -22,6 +24,22 @@
         y2: linestring[1][1],
       })
     );
+  }
+
+  onMount(() => {
+    map?.on("click", onClick);
+  });
+  onDestroy(() => {
+    map?.off("click", onClick);
+  });
+  function onClick(e) {
+    // If we click off a severance line, clear things
+    for (let f of map.queryRenderedFeatures(e.point, {
+      layers: ["scores"],
+    })) {
+      return;
+    }
+    route_gj = null;
   }
 </script>
 

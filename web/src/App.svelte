@@ -167,7 +167,7 @@
           <NetworkLayer {model} {showSeverances} {opacity} />
           <RouteLayer bind:route_a bind:route_b {route_gj} {map} />
         {:else if mode == "score"}
-          <ScoreLayer {model} {showSeverances} {opacity} />
+          <ScoreLayer {map} {model} {showSeverances} {opacity} />
         {/if}
       {/if}
     </MapLibre>
