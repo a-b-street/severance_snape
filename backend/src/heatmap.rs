@@ -40,7 +40,7 @@ pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
 pub fn along_severances(map: &mut MapModel, n: usize) -> FeatureCollection {
     let mut requests = Vec::new();
     for r in &map.roads {
-        if r.kind != RoadKind::Severance || !r.tags.is("name:en", "Waterloo Road") {
+        if r.kind != RoadKind::Severance {
             continue;
         }
         for line in make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
