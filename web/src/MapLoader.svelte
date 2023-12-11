@@ -9,10 +9,17 @@
 
   let example = "";
   let msg = null;
+  let useLocalVite = false;
 
   onMount(async () => {
     await init();
-    //await loadFromUrl(inputUrl);
+
+    // When running locally if a vite public/ directory is set up, load from that for speed
+    try {
+      let resp = await fetch("/kowloon.pbf", { method: "HEAD" });
+      useLocalVite = resp.ok;
+      console.log("Using local cache, not od2net.org");
+    } catch (err) {}
   });
 
   let fileInput: HTMLInputElement;
@@ -46,9 +53,13 @@
 
   async function loadExample(example) {
     if (example != "") {
-      await loadFromUrl(
-        `https://assets.od2net.org/severance_pbfs/${example}.pbf`
-      );
+      if (useLocalVite) {
+        await loadFromUrl(`/${example}.pbf`);
+      } else {
+        await loadFromUrl(
+          `https://assets.od2net.org/severance_pbfs/${example}.pbf`
+        );
+      }
     }
   }
   $: loadExample(example);
