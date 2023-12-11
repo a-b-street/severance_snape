@@ -2,7 +2,6 @@
   import turfBbox from "@turf/bbox";
   import init, { MapModel } from "backend";
   import { onMount } from "svelte";
-  import inputUrl from "../assets/input.pbf?url";
   import { Loading, OverpassSelector } from "./common";
 
   export let model: MapModel | undefined = undefined;
@@ -13,7 +12,7 @@
 
   onMount(async () => {
     await init();
-    await loadFromUrl(inputUrl);
+    //await loadFromUrl(inputUrl);
   });
 
   let fileInput: HTMLInputElement;
@@ -48,7 +47,7 @@
   async function loadExample(example) {
     if (example != "") {
       await loadFromUrl(
-        `https://assets.od2net.org/pbf_clips/${example}.osm.pbf`
+        `https://assets.od2net.org/severance_pbfs/${example}.pbf`
       );
     }
   }
@@ -81,11 +80,17 @@
       Or load an example:
       <select bind:value={example}>
         <option value="">Custom file loaded</option>
-        <option value="antwerp">Antwerp</option>
-        <option value="berlin">Berlin</option>
-        <option value="london">South London</option>
-        <option value="paris">Paris</option>
-        <option value="seattle">Seattle</option>
+        <option value="akihabara">Akihabara</option>
+        <option value="hanegi">Hanegi Park</option>
+        <option value="harujuku">Harujuku</option>
+        <option value="taipei_main_station">Taipei main station</option>
+        <option value="ximending">Ximending</option>
+        <option value="hong_kong">Hong Kong</option>
+        <option value="kowloon">Kowloon</option>
+        <option value="bristol">Bristol</option>
+        <option value="elephant_castle">Elephant & Castle</option>
+        <option value="westminster">Westminster</option>
+        <option value="montlake">Montlake</option>
       </select>
     </label>
   </div>
