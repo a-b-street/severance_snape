@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use geo::{
     BoundingRect, DensifyHaversine, Geometry, GeometryCollection, HaversineBearing,
     HaversineDestination, Line, LineString, Point, Rect,
@@ -5,8 +7,9 @@ use geo::{
 use geojson::{Feature, FeatureCollection};
 use rand::{Rng, SeedableRng};
 use rand_xorshift::XorShiftRng;
+use rstar::{primitives::GeomWithData, RTree};
 
-use crate::{CompareRouteRequest, MapModel, RoadKind};
+use crate::{CompareRouteRequest, IntersectionID, MapModel, RoadKind};
 
 pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
     // TODO Expensive
@@ -37,7 +40,7 @@ pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
 // We could focus where footways connect to severances, but that's probably a crossing. Ideally we
 // want to find footpaths parallel(ish) to severances. If we had some kind of generalized edge
 // bundling...
-pub fn along_severances(map: &mut MapModel, n: usize) -> FeatureCollection {
+pub fn along_severances(map: &mut MapModel) -> FeatureCollection {
     let mut requests = Vec::new();
     for r in &map.roads {
         if r.kind != RoadKind::Severance {
@@ -45,6 +48,48 @@ pub fn along_severances(map: &mut MapModel, n: usize) -> FeatureCollection {
         }
         for line in make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
             requests.push(line.into());
+        }
+    }
+    calculate(map, requests)
+}
+
+// For every intersection involving a footway, look for any other nearby intersection and see how
+// hard it is to walk there.
+pub fn nearby_footway_intersections(map: &mut MapModel, dist_meters: f64) -> FeatureCollection {
+    // Look for intersections we want to connect
+    let mut footway_intersections = HashSet::new();
+    for r in &map.roads {
+        if r.kind == RoadKind::Footway {
+            footway_intersections.insert(r.src_i);
+            footway_intersections.insert(r.dst_i);
+        }
+    }
+
+    // Make an rtree
+    let mut points: Vec<GeomWithData<[f64; 2], IntersectionID>> = Vec::new();
+    for i in &footway_intersections {
+        points.push(GeomWithData::new(map.intersections[i.0].point.into(), *i));
+    }
+    let rtree = RTree::bulk_load(points);
+
+    // For every intersection, try to go to every nearby intersection
+    let mut requests = Vec::new();
+    for i1 in &footway_intersections {
+        let i1_pt = map.intersections[i1.0].point;
+        for i2 in rtree.locate_within_distance(i1_pt.into(), dist_meters) {
+            let i2_pt = map.intersections[i2.data.0].point;
+            requests.push(CompareRouteRequest {
+                x1: i1_pt.x(),
+                y1: i1_pt.y(),
+                x2: i2_pt.x(),
+                y2: i2_pt.y(),
+            });
+            if requests.len() > 100 {
+                break;
+            }
+        }
+        if requests.len() > 100 {
+            break;
         }
     }
     calculate(map, requests)

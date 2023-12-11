@@ -121,7 +121,8 @@ impl MapModel {
 
     #[wasm_bindgen(js_name = makeHeatmap)]
     pub fn make_heatmap(&mut self) -> Result<String, JsValue> {
-        let samples = heatmap::along_severances(self, 100);
+        //let samples = heatmap::along_severances(self);
+        let samples = heatmap::nearby_footway_intersections(self, 0.01);
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
