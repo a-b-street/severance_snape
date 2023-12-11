@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use geo::{Coord, LineString, Point};
+use geo::{Coord, Geometry, GeometryCollection, LineString, MapCoordsInPlace, Point};
 use osm_reader::{Element, NodeID, WayID};
 
+use crate::mercator::Mercator;
 use crate::tags::Tags;
 use crate::{Intersection, IntersectionID, MapModel, Road, RoadID, RoadKind};
 
@@ -35,13 +36,35 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
         }
     }
 
-    let (roads, intersections) = split_edges(&node_mapping, highways);
+    let (mut roads, mut intersections) = split_edges(&node_mapping, highways);
+
+    // TODO expensive
+    let collection: GeometryCollection = roads
+        .iter()
+        .map(|r| Geometry::LineString(r.linestring.clone()))
+        .chain(
+            intersections
+                .iter()
+                .map(|i| Geometry::Point(i.point.clone())),
+        )
+        .collect::<Vec<_>>()
+        .into();
+    let mercator = Mercator::from(collection).unwrap();
+    for r in &mut roads {
+        r.linestring
+            .map_coords_in_place(|pt| mercator.to_mercator(pt));
+    }
+    for i in &mut intersections {
+        i.point.map_coords_in_place(|pt| mercator.to_mercator(pt));
+    }
+
     let (closest_intersection, node_map, ch) = crate::route::build_router(&intersections, &roads);
     let path_calc = fast_paths::create_calculator(&ch);
 
     Ok(MapModel {
         roads,
         intersections,
+        mercator,
         closest_intersection,
         node_map,
         ch,

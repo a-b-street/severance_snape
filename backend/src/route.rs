@@ -38,7 +38,6 @@ pub fn build_router(
     (closest_intersection, node_map, ch)
 }
 
-// TODO We may be able to override the distance function? Does it work with WGS84?
 fn build_closest_intersection(
     intersections: &Vec<Intersection>,
     node_map: &NodeMap<IntersectionID>,
@@ -74,7 +73,7 @@ pub fn do_route(map: &mut MapModel, req: CompareRouteRequest) -> Result<FeatureC
             let i1 = map.node_map.translate_id(pair[0]);
             let i2 = map.node_map.translate_id(pair[1]);
             let road = map.find_edge(i1, i2);
-            features.push(road.to_gj());
+            features.push(road.to_gj(&map.mercator));
             route_length += road.linestring.haversine_length();
         }
         let direct_length = LineString::new(vec![

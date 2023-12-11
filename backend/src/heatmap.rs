@@ -1,39 +1,10 @@
 use std::collections::HashSet;
 
-use geo::{
-    BoundingRect, DensifyHaversine, Geometry, GeometryCollection, HaversineBearing,
-    HaversineDestination, Line, LineString, Point, Rect,
-};
+use geo::{Coord, Densify, Line, LineString};
 use geojson::{Feature, FeatureCollection};
-use rand::{Rng, SeedableRng};
-use rand_xorshift::XorShiftRng;
 use rstar::{primitives::GeomWithData, RTree};
 
 use crate::{CompareRouteRequest, IntersectionID, MapModel, RoadKind};
-
-pub fn measure_randomly(map: &mut MapModel, n: usize) -> FeatureCollection {
-    // TODO Expensive
-    let bbox: Rect<f64> = map
-        .roads
-        .iter()
-        .map(|r| Geometry::LineString(r.linestring.clone()))
-        .collect::<GeometryCollection>()
-        .bounding_rect()
-        .unwrap();
-    // TODO Do this in the right coordinate space
-    let dist_away = 0.01;
-
-    let mut rng = XorShiftRng::seed_from_u64(42);
-    let mut requests = Vec::new();
-    for _ in 0..n {
-        let x1 = rng.gen_range(bbox.min().x..=bbox.max().x);
-        let y1 = rng.gen_range(bbox.min().y..=bbox.max().y);
-        let x2 = x1 + rng.gen_range(-dist_away..=dist_away);
-        let y2 = y1 + rng.gen_range(-dist_away..=dist_away);
-        requests.push(CompareRouteRequest { x1, y1, x2, y2 });
-    }
-    calculate(map, requests)
-}
 
 // Walk along severances. Every X meters, try to cross from one side to the other.
 //
@@ -77,6 +48,7 @@ pub fn nearby_footway_intersections(map: &mut MapModel, dist_meters: f64) -> Fea
     for i1 in &footway_intersections {
         let i1_pt = map.intersections[i1.0].point;
         for i2 in rtree.locate_within_distance(i1_pt.into(), dist_meters) {
+            // TODO Skip trivial things connected by a road
             let i2_pt = map.intersections[i2.data.0].point;
             requests.push(CompareRouteRequest {
                 x1: i1_pt.x(),
@@ -84,12 +56,6 @@ pub fn nearby_footway_intersections(map: &mut MapModel, dist_meters: f64) -> Fea
                 x2: i2_pt.x(),
                 y2: i2_pt.y(),
             });
-            if requests.len() > 100 {
-                break;
-            }
-        }
-        if requests.len() > 100 {
-            break;
         }
     }
     calculate(map, requests)
@@ -100,8 +66,14 @@ fn calculate(map: &mut MapModel, requests: Vec<CompareRouteRequest>) -> FeatureC
     let mut max_score = 0.0_f64;
     for req in requests {
         let mut f = Feature::from(geojson::Geometry::from(&LineString::new(vec![
-            (req.x1, req.y1).into(),
-            (req.x2, req.y2).into(),
+            map.mercator.to_wgs84(Coord {
+                x: req.x1,
+                y: req.y1,
+            }),
+            map.mercator.to_wgs84(Coord {
+                x: req.x2,
+                y: req.y2,
+            }),
         ])));
         if let Ok(fc) = crate::route::do_route(map, req) {
             let direct = fc
@@ -142,13 +114,22 @@ fn make_perpendicular_offsets(
     let mut output = Vec::new();
     // Using lines instead of coords so we can get the angle -- but is this hard to reason about?
     // angle_at_point instead?
-    for orig_line in linestring.densify_haversine(walk_every_m).lines() {
+    for orig_line in linestring.densify(walk_every_m).lines() {
         // TODO For the last line, use the last point too
-        let pt: Point = orig_line.start.into();
-        let angle = pt.haversine_bearing(orig_line.end.into());
-        let projected_left = pt.haversine_destination(angle - 90.0, project_away_m);
-        let projected_right = pt.haversine_destination(angle + 90.0, project_away_m);
+        let angle_degs = (orig_line.end.y - orig_line.start.y)
+            .atan2(orig_line.end.x - orig_line.start.x)
+            .to_degrees();
+        let projected_left = project_away(orig_line.start, angle_degs - 90.0, project_away_m);
+        let projected_right = project_away(orig_line.start, angle_degs + 90.0, project_away_m);
         output.push(Line::new(projected_left, projected_right));
     }
     output
+}
+
+fn project_away(pt: Coord, angle_degs: f64, dist_away_m: f64) -> Coord {
+    let (sin, cos) = angle_degs.to_radians().sin_cos();
+    Coord {
+        x: pt.x + dist_away_m * cos,
+        y: pt.y + dist_away_m * sin,
+    }
 }

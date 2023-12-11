@@ -5,13 +5,14 @@ use std::fmt;
 use std::sync::Once;
 
 use fast_paths::{FastGraph, PathCalculator};
-use geo::{Line, LineString, Point};
+use geo::{Coord, Line, LineString, MapCoordsInPlace, Point};
 use geojson::{Feature, GeoJson, Geometry};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 mod heatmap;
+mod mercator;
 mod node_map;
 mod route;
 mod scrape;
@@ -23,6 +24,8 @@ static START: Once = Once::new();
 pub struct MapModel {
     roads: Vec<Road>,
     intersections: Vec<Intersection>,
+    // All geometry stored in worldspace, including rtrees
+    mercator: mercator::Mercator,
     // Only snaps to walkable roads
     closest_intersection: RTree<IntersectionLocation>,
     node_map: node_map::NodeMap<IntersectionID>,
@@ -103,7 +106,7 @@ impl MapModel {
         let mut features = Vec::new();
 
         for r in &self.roads {
-            features.push(r.to_gj());
+            features.push(r.to_gj(&self.mercator));
         }
 
         let gj = GeoJson::from(features);
@@ -114,15 +117,33 @@ impl MapModel {
     #[wasm_bindgen(js_name = compareRoute)]
     pub fn compare_route(&mut self, input: JsValue) -> Result<String, JsValue> {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
-        let gj = route::do_route(self, req).map_err(err_to_js)?;
+        let pt1 = self.mercator.to_mercator(Coord {
+            x: req.x1,
+            y: req.y1,
+        });
+        let pt2 = self.mercator.to_mercator(Coord {
+            x: req.x2,
+            y: req.y2,
+        });
+        let gj = route::do_route(
+            self,
+            CompareRouteRequest {
+                x1: pt1.x,
+                y1: pt1.y,
+                x2: pt2.x,
+                y2: pt2.y,
+            },
+        )
+        .map_err(err_to_js)?;
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
     }
 
     #[wasm_bindgen(js_name = makeHeatmap)]
     pub fn make_heatmap(&mut self) -> Result<String, JsValue> {
-        //let samples = heatmap::along_severances(self);
-        let samples = heatmap::nearby_footway_intersections(self, 0.01);
+        let samples = heatmap::along_severances(self);
+        // TODO unit here is weird or wrong or something
+        //let samples = heatmap::nearby_footway_intersections(self, 500.0);
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
@@ -140,8 +161,11 @@ impl MapModel {
 }
 
 impl Road {
-    fn to_gj(&self) -> Feature {
-        let mut f = Feature::from(Geometry::from(&self.linestring));
+    fn to_gj(&self, mercator: &mercator::Mercator) -> Feature {
+        let mut linestring = self.linestring.clone();
+        linestring.map_coords_in_place(|c| mercator.to_wgs84(c));
+
+        let mut f = Feature::from(Geometry::from(&linestring));
         f.set_property("id", self.id.0);
         f.set_property("kind", format!("{:?}", self.kind));
         f.set_property("way", self.way.to_string());
@@ -154,6 +178,8 @@ impl Road {
     }
 }
 
+// Mercator worldspace internally, but not when it comes in from the app
+// TODO only use this on the boundary
 #[derive(Deserialize)]
 pub struct CompareRouteRequest {
     x1: f64,
