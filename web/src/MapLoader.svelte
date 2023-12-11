@@ -8,24 +8,19 @@
   export let model: MapModel | undefined = undefined;
   export let map;
 
+  let example = "";
   let msg = null;
 
   onMount(async () => {
     await init();
-    try {
-      msg = `Downloading ${inputUrl}`;
-      let resp = await fetch(inputUrl);
-      loadModel(await resp.arrayBuffer());
-    } catch (err) {
-      window.alert(`Couldn't open from URL ${inputUrl}: ${err}`);
-    }
-    msg = null;
+    await loadFromUrl(inputUrl);
   });
 
   let fileInput: HTMLInputElement;
   async function loadFile(e: Event) {
     try {
       loadModel(await fileInput.files![0].arrayBuffer());
+      example = "";
     } catch (err) {
       window.alert(`Couldn't open this file: ${err}`);
     }
@@ -43,8 +38,29 @@
     try {
       // TODO Can we avoid turning into bytes?
       loadModel(new TextEncoder().encode(e.detail));
+      example = "";
     } catch (err) {
       window.alert(`Couldn't import from Overpass: ${err}`);
+    }
+    msg = null;
+  }
+
+  async function loadExample(example) {
+    if (example != "") {
+      await loadFromUrl(
+        `https://assets.od2net.org/pbf_clips/${example}.osm.pbf`
+      );
+    }
+  }
+  $: loadExample(example);
+
+  async function loadFromUrl(url: string) {
+    try {
+      msg = `Downloading ${url}`;
+      let resp = await fetch(url);
+      loadModel(await resp.arrayBuffer());
+    } catch (err) {
+      window.alert(`Couldn't open from URL ${url}: ${err}`);
     }
     msg = null;
   }
@@ -57,6 +73,20 @@
     <label>
       Load an osm.xml or a .pbf file:
       <input bind:this={fileInput} on:change={loadFile} type="file" />
+    </label>
+  </div>
+
+  <div>
+    <label>
+      Or load an example:
+      <select bind:value={example}>
+        <option value="">Custom file loaded</option>
+        <option value="antwerp">Antwerp</option>
+        <option value="berlin">Berlin</option>
+        <option value="london">South London</option>
+        <option value="paris">Paris</option>
+        <option value="seattle">Seattle</option>
+      </select>
     </label>
   </div>
 

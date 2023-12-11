@@ -15,15 +15,20 @@
   // TODO hack... need to toggle off interactiveness of network layer, so just copy it?
 
   function showRoute(e) {
-    let linestring = e.detail.features[0].geometry.coordinates;
-    route_gj = JSON.parse(
-      model.compareRoute({
-        x1: linestring[0][0],
-        y1: linestring[0][1],
-        x2: linestring[1][0],
-        y2: linestring[1][1],
-      })
-    );
+    try {
+      let linestring = e.detail.features[0].geometry.coordinates;
+      route_gj = JSON.parse(
+        model.compareRoute({
+          x1: linestring[0][0],
+          y1: linestring[0][1],
+          x2: linestring[1][0],
+          y2: linestring[1][1],
+        })
+      );
+    } catch (err) {
+      window.alert(`No route: ${err}`);
+      route_gj = null;
+    }
   }
 
   onMount(() => {
