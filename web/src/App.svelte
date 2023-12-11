@@ -1,6 +1,6 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
-  import { GeoJSON, LineLayer, MapLibre, Popup } from "svelte-maplibre";
+  import { GeoJSON, LineLayer, MapLibre } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import { Layout, Legend, SequentialLegend } from "./common";
   import Directions from "./Directions.svelte";
@@ -135,3 +135,9 @@
     </MapLibre>
   </div>
 </Layout>
+
+<style>
+  :global(body, button, input) {
+    font-size: 26px;
+  }
+</style>
