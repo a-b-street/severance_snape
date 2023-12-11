@@ -3,7 +3,6 @@
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import { constructMatchExpression, makeColorRamp } from "./common";
-  import RouteLayer from "./RouteLayer.svelte";
 
   export let model;
   export let map;
@@ -91,4 +90,16 @@
     >
   </LineLayer>
 </GeoJSON>
-<RouteLayer {route_gj} route_a={null} route_b={null} {map} />
+{#if route_gj}
+  <GeoJSON data={route_gj}>
+    <LineLayer
+      id="route"
+      beforeId="network"
+      paint={{
+        "line-width": 20,
+        "line-color": "cyan",
+        "line-opacity": 0.5,
+      }}
+    />
+  </GeoJSON>
+{/if}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
-  import { GeoJSON, LineLayer, MapLibre, Marker, Popup } from "svelte-maplibre";
+  import { GeoJSON, LineLayer, MapLibre, Popup } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import { Layout, Legend, SequentialLegend } from "./common";
   import Directions from "./Directions.svelte";
