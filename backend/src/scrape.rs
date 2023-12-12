@@ -17,24 +17,22 @@ struct Way {
 pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     let mut node_mapping = HashMap::new();
     let mut highways = Vec::new();
-    for elem in osm_reader::parse(input_bytes)? {
-        match elem {
-            Element::Node { id, lon, lat, .. } => {
-                let pt = Coord { x: lon, y: lat };
-                node_mapping.insert(id, pt);
-            }
-            Element::Way { id, node_ids, tags } => {
-                if tags.contains_key("highway") {
-                    highways.push(Way {
-                        id,
-                        node_ids,
-                        tags: tags.into(),
-                    });
-                }
-            }
-            Element::Relation { .. } => {}
+    osm_reader::parse(input_bytes, |elem| match elem {
+        Element::Node { id, lon, lat, .. } => {
+            let pt = Coord { x: lon, y: lat };
+            node_mapping.insert(id, pt);
         }
-    }
+        Element::Way { id, node_ids, tags } => {
+            if tags.contains_key("highway") {
+                highways.push(Way {
+                    id,
+                    node_ids,
+                    tags: tags.into(),
+                });
+            }
+        }
+        Element::Relation { .. } => {}
+    })?;
 
     let (mut roads, mut intersections) = split_edges(&node_mapping, highways);
 
