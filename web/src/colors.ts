@@ -1,10 +1,11 @@
 export const kindToColor = {
-  Footway: "red",
-  Indoors: "blue",
-  BridgeOrTunnel: "purple",
+  Footway: "black",
+  Indoors: "grey",
+  // TODO dashed
+  BridgeOrTunnel: "black",
   Sidewalk: "black",
   Crossing: "green",
-  Severance: "orange",
+  Severance: "red",
 };
 
 export const colorScale = [

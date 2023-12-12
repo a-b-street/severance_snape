@@ -2,7 +2,7 @@
   import { MapModel } from "backend";
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { constructMatchExpression } from "./common";
+  import { constructMatchExpression, PropertiesTable } from "./common";
 
   export let model: MapModel;
   // TODO Use filter expressions?
@@ -33,8 +33,8 @@
     on:click={(e) => window.open(e.detail.features[0].properties.way, "_blank")}
     hoverCursor="pointer"
   >
-    <Popup openOn="hover" let:data
-      >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
-    >
+    <Popup openOn="hover" let:data>
+      <PropertiesTable properties={data.properties} />
+    </Popup>
   </LineLayer>
 </GeoJSON>

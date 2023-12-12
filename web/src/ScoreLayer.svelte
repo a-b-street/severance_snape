@@ -86,9 +86,9 @@
     }}
     on:click={showRoute}
   >
-    <Popup openOn="hover" let:data
-      >{@html JSON.stringify(data.properties, null, "<br />")}</Popup
-    >
+    <Popup openOn="hover" let:data>
+      <span style="font-size: 26px">{data.properties.score.toFixed(1)}x</span>
+    </Popup>
   </LineLayer>
 </GeoJSON>
 {#if route_gj}
