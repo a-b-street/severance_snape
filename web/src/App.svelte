@@ -1,7 +1,7 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
   import { GeoJSON, LineLayer, MapLibre } from "svelte-maplibre";
-  import { colorScale, limits } from "./colors";
+  import { colorScale, kindToColor, limits } from "./colors";
   import { Layout, Legend, SequentialLegend } from "./common";
   import Directions from "./Directions.svelte";
   import MapLoader from "./MapLoader.svelte";
@@ -85,12 +85,12 @@
 
     <Legend
       rows={[
-        ["Footway (ground, outdoors)", "red"],
-        ["Indoors footway", "blue"],
-        ["Footway not on the ground", "purple"],
-        ["Street with sidewalk (or pedestrian street)", "black"],
-        ["Crossing", "green"],
-        ["Severance", "orange"],
+        ["Footway (ground, outdoors)", kindToColor.Footway],
+        ["Indoors footway", kindToColor.Indoors],
+        ["Footway not on the ground", kindToColor.BridgeOrTunnel],
+        ["Street with sidewalk (or pedestrian street)", kindToColor.Sidewalk],
+        ["Crossing", kindToColor.Crossing],
+        ["Severance", kindToColor.Severance],
       ]}
     />
     <div>

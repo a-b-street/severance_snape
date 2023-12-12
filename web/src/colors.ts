@@ -1,3 +1,12 @@
+export const kindToColor = {
+  Footway: "red",
+  Indoors: "blue",
+  BridgeOrTunnel: "purple",
+  Sidewalk: "black",
+  Crossing: "green",
+  Severance: "orange",
+};
+
 export const colorScale = [
   "#CDE594",
   "#80C6A3",

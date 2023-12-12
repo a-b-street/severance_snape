@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
-  import { colorScale, limits } from "./colors";
+  import { colorScale, kindToColor, limits } from "./colors";
   import { constructMatchExpression, makeColorRamp } from "./common";
 
   export let model;
@@ -54,14 +54,7 @@
       "line-width": 5,
       "line-color": constructMatchExpression(
         ["get", "kind"],
-        {
-          Footway: "red",
-          Indoors: "blue",
-          BridgeOrTunnel: "purple",
-          Sidewalk: "black",
-          Crossing: "green",
-          Severance: "orange",
-        },
+        kindToColor,
         "yellow"
       ),
       "line-opacity": showSeverances

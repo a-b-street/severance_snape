@@ -1,5 +1,6 @@
 <script lang="ts">
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
+  import { kindToColor } from "./colors";
   import { constructMatchExpression } from "./common";
 
   export let model;
@@ -15,14 +16,7 @@
       "line-width": 5,
       "line-color": constructMatchExpression(
         ["get", "kind"],
-        {
-          Footway: "red",
-          Indoors: "blue",
-          BridgeOrTunnel: "purple",
-          Sidewalk: "black",
-          Crossing: "green",
-          Severance: "orange",
-        },
+        kindToColor,
         "yellow"
       ),
       "line-opacity": showSeverances
