@@ -1,19 +1,27 @@
 <script lang="ts">
+  import { MapModel } from "backend";
+  import type { FeatureCollection } from "geojson";
+  import type { Map, MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
-  import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
+  import {
+    GeoJSON,
+    LineLayer,
+    Popup,
+    type LayerClickInfo,
+  } from "svelte-maplibre";
   import { colorScale, kindToColor, limits } from "./colors";
   import { constructMatchExpression, makeColorRamp } from "./common";
 
-  export let model;
-  export let map;
+  export let model: MapModel;
+  export let map: Map;
   export let showSeverances: boolean;
   export let opacity: number;
 
-  let route_gj = null;
+  let route_gj: FeatureCollection | null = null;
 
   // TODO hack... need to toggle off interactiveness of network layer, so just copy it?
 
-  function showRoute(e) {
+  function showRoute(e: CustomEvent<LayerClickInfo>) {
     try {
       let linestring = e.detail.features[0].geometry.coordinates;
       route_gj = JSON.parse(
@@ -36,7 +44,7 @@
   onDestroy(() => {
     map?.off("click", onClick);
   });
-  function onClick(e) {
+  function onClick(e: MapMouseEvent) {
     // If we click off a severance line, clear things
     for (let f of map.queryRenderedFeatures(e.point, {
       layers: ["scores"],

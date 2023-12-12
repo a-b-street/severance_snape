@@ -1,14 +1,14 @@
 <script lang="ts">
-  import turfBbox from "@turf/bbox";
   import init, { MapModel } from "backend";
+  import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
   import { Loading, OverpassSelector } from "./common";
 
   export let model: MapModel | undefined = undefined;
-  export let map;
+  export let map: Map;
 
   let example = "";
-  let msg = null;
+  let msg: string | null = null;
   let useLocalVite = false;
 
   onMount(async () => {
@@ -33,7 +33,7 @@
     msg = null;
   }
 
-  function loadModel(buffer: Buffer) {
+  function loadModel(buffer: ArrayBuffer) {
     msg = "Building map model from OSM input";
     console.time("load");
     model = new MapModel(new Uint8Array(buffer));
@@ -51,7 +51,7 @@
     msg = null;
   }
 
-  async function loadExample(example) {
+  async function loadExample(example: string) {
     if (example != "") {
       if (useLocalVite) {
         await loadFromUrl(`/${example}.pbf`);

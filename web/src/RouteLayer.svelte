@@ -1,11 +1,13 @@
 <script lang="ts">
+  import type { FeatureCollection } from "geojson";
+  import type { LngLat, Map, MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
   import { GeoJSON, LineLayer, Marker } from "svelte-maplibre";
 
-  export let route_a;
-  export let route_b;
-  export let route_gj;
-  export let map;
+  export let route_a: LngLat;
+  export let route_b: LngLat;
+  export let route_gj: FeatureCollection;
+  export let map: Map;
 
   onMount(() => {
     map?.on("contextmenu", onRightClick);
@@ -13,7 +15,7 @@
   onDestroy(() => {
     map?.off("contextmenu", onRightClick);
   });
-  function onRightClick(e) {
+  function onRightClick(e: MapMouseEvent) {
     // Move the first marker, for convenience
     route_a = e.lngLat;
   }

@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { MapModel } from "backend";
   import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { constructMatchExpression } from "./common";
 
-  export let model;
+  export let model: MapModel;
   // TODO Use filter expressions?
   export let showSeverances: boolean;
   export let opacity: number;

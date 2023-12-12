@@ -1,12 +1,14 @@
 <script lang="ts">
-  export let route_gj;
+  import type { Feature, FeatureCollection } from "geojson";
 
-  function levelChanges(gj) {
+  export let route_gj: FeatureCollection;
+
+  function levelChanges(gj: FeatureCollection) {
     let count = 0;
     // No windows(2)?
     for (let i = 0; i < gj.features.length - 1; i++) {
-      let l1 = route_gj.features[i].properties.layer ?? "0";
-      let l2 = route_gj.features[i + 1].properties.layer ?? "0";
+      let l1 = route_gj.features[i].properties!.layer ?? "0";
+      let l2 = route_gj.features[i + 1].properties!.layer ?? "0";
       if (l1 != l2) {
         count++;
       }
@@ -14,8 +16,8 @@
     return count;
   }
 
-  function step(f) {
-    let props = f.properties;
+  function step(f: Feature) {
+    let props = f.properties!;
     let level = props.layer ?? "0";
     let padding = "&nbsp;".repeat(3 * Math.abs(level));
     if (props.name) {

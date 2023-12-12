@@ -1,6 +1,9 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
-  import { GeoJSON, LineLayer, MapLibre } from "svelte-maplibre";
+  import { MapModel } from "backend";
+  import type { FeatureCollection } from "geojson";
+  import type { LngLat, Map } from "maplibre-gl";
+  import { MapLibre } from "svelte-maplibre";
   import { colorScale, kindToColor, limits } from "./colors";
   import { Layout, Legend, SequentialLegend } from "./common";
   import Directions from "./Directions.svelte";
@@ -10,18 +13,18 @@
   import ScoreLayer from "./ScoreLayer.svelte";
 
   let model: MapModel | undefined = undefined;
-  let map;
+  let map: Map;
 
-  let mode = "score";
+  let mode: "score" | "route" = "score";
 
-  let route_a = null;
-  let route_b = null;
-  let route_gj = null;
+  let route_a: LngLat | null = null;
+  let route_b: LngLat | null = null;
+  let route_gj: FeatureCollection | null = null;
   let route_err = "";
   let opacity = 100;
   let showSeverances = true;
 
-  function lerp(pct, a, b) {
+  function lerp(pct: number, a: number, b: number): number {
     return a + pct * (b - a);
   }
 
@@ -33,7 +36,7 @@
     }
   }
 
-  function gotModel(_m) {
+  function gotModel(_m: MapModel) {
     if (!model) {
       return;
     }
