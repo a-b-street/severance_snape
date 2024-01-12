@@ -19,6 +19,9 @@
       let resp = await fetch("/kowloon.pbf", { method: "HEAD" });
       useLocalVite = resp.ok;
       console.log("Using local cache, not od2net.org");
+
+      // For quicker dev
+      example = "kowloon";
     } catch (err) {}
   });
 

@@ -142,10 +142,15 @@ fn split_edges(
     (roads, intersections)
 }
 
+// TODO This should probably be configurable per region. In HK, primary and above are severances.
+// And we need to handle roads with sidewalk tags; we can't just assume footways everywhere.
 fn classify(tags: &Tags) -> RoadKind {
-    if tags.is("highway", "footway") {
+    if tags.is_any(
+        "highway",
+        vec!["footway", "steps", "path", "track", "corridor"],
+    ) {
         // TODO These aren't mutually exclusive...
-        if tags.has("indoor") {
+        if tags.has("indoor") || tags.is("highway", "corridor") {
             return RoadKind::Indoors;
         }
         if tags.has_any(vec!["layer", "bridge", "tunnel"]) {
@@ -161,6 +166,21 @@ fn classify(tags: &Tags) -> RoadKind {
         return RoadKind::Crossing;
     }
 
+    // Even if a big road has a sidewalk, it's a severance
+    if tags.is_any(
+        "highway",
+        vec![
+            "motorway",
+            "motorway_link",
+            "trunk",
+            "trunk_link",
+            "primary",
+            "primary_link",
+        ],
+    ) {
+        return RoadKind::Severance;
+    }
+
     if tags.is("highway", "pedestrian") || tags.is_any("sidewalk", vec!["both", "right", "left"]) {
         return RoadKind::Sidewalk;
     }
@@ -170,12 +190,29 @@ fn classify(tags: &Tags) -> RoadKind {
     // should infer it
     if tags.is_any(
         "highway",
-        vec!["secondary", "tertiary", "residential", "unclassified"],
+        vec![
+            "secondary",
+            "secondary_link",
+            "tertiary",
+            "tertiary_link",
+            "residential",
+            "unclassified",
+            "service",
+            "living_street",
+            "cycleway",
+        ],
     ) && !tags.is("foot", "no")
         && !tags.is_any("sidewalk", vec!["no", "none", "separate"])
     {
+        // TODO https://www.openstreetmap.org/way/670819535 is foot=yes, sidewalk=no...
+        // TODO https://www.openstreetmap.org/way/107296516 has sidewalk=separate. We want to
+        // de-emphasize / not use it, but it's not a severance...
         return RoadKind::Sidewalk;
     }
+
+    // TODO construction?
+
+    // TODO Maybe just use tagged / assumed speed limit instead?
 
     RoadKind::Severance
 }
