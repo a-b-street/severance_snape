@@ -168,8 +168,10 @@ fn classify(tags: &Tags) -> RoadKind {
     // Exclude primary from this list for HK cases
     // TODO But this makes things much messier; sidewalk=separate is not tagged often, but we
     // should infer it
-    if tags.is_any("highway", vec!["secondary", "tertiary", "residential"])
-        && !tags.is("foot", "no")
+    if tags.is_any(
+        "highway",
+        vec!["secondary", "tertiary", "residential", "unclassified"],
+    ) && !tags.is("foot", "no")
         && !tags.is_any("sidewalk", vec!["no", "none", "separate"])
     {
         return RoadKind::Sidewalk;

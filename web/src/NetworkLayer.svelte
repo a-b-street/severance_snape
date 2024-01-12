@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MapModel } from "backend";
-  import { GeoJSON, LineLayer, Popup } from "svelte-maplibre";
+  import { GeoJSON, hoverStateFilter, LineLayer, Popup } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { constructMatchExpression, PropertiesTable } from "./common";
 
@@ -10,11 +10,11 @@
   export let opacity: number;
 </script>
 
-<GeoJSON data={JSON.parse(model.render())}>
+<GeoJSON data={JSON.parse(model.render())} generateId>
   <LineLayer
     id="network"
     paint={{
-      "line-width": 5,
+      "line-width": hoverStateFilter(5, 7),
       "line-color": constructMatchExpression(
         ["get", "kind"],
         kindToColor,
@@ -30,6 +30,7 @@
             opacity / 100.0
           ),
     }}
+    manageHoverState
     on:click={(e) => window.open(e.detail.features[0].properties.way, "_blank")}
     hoverCursor="pointer"
   >
