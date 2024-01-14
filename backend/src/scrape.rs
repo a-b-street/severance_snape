@@ -23,12 +23,9 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
             node_mapping.insert(id, pt);
         }
         Element::Way { id, node_ids, tags } => {
-            if tags.contains_key("highway") {
-                highways.push(Way {
-                    id,
-                    node_ids,
-                    tags: tags.into(),
-                });
+            let tags: Tags = tags.into();
+            if tags.has("highway") && !tags.is("highway", "proposed") {
+                highways.push(Way { id, node_ids, tags });
             }
         }
         Element::Relation { .. } => {}
