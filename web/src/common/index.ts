@@ -1,11 +1,32 @@
-import type { DataDrivenPropertyValueSpecification } from "maplibre-gl";
+import type { Feature, Point, Position } from "geojson";
+import type {
+  DataDrivenPropertyValueSpecification,
+  ExpressionSpecification,
+} from "maplibre-gl";
 
 export { default as Layout } from "./Layout.svelte";
 export { default as Legend } from "./Legend.svelte";
 export { default as Loading } from "./Loading.svelte";
+export { default as Modal } from "./Modal.svelte";
 export { default as OverpassSelector } from "./OverpassSelector.svelte";
 export { default as PropertiesTable } from "./PropertiesTable.svelte";
 export { default as SequentialLegend } from "./SequentialLegend.svelte";
+
+export const isPolygon: ExpressionSpecification = [
+  "==",
+  ["geometry-type"],
+  "Polygon",
+];
+export const isLine: ExpressionSpecification = [
+  "==",
+  ["geometry-type"],
+  "LineString",
+];
+export const isPoint: ExpressionSpecification = [
+  "==",
+  ["geometry-type"],
+  "Point",
+];
 
 export function constructMatchExpression<OutputType>(
   getter: any[],
@@ -37,4 +58,31 @@ export function makeColorRamp(
   // we want to set 100 as the cap.
   step.push(colorScale[colorScale.length - 1]);
   return step as DataDrivenPropertyValueSpecification<string>;
+}
+
+// Hack around
+// https://stackoverflow.com/questions/67336062/typescript-not-parsed-in-svelte-html-section
+// until we're using Svelte 5
+export function notNull<T>(x: T | null | undefined): T {
+  if (x == null || x == undefined) {
+    throw new Error("Oops, notNull given something null");
+  }
+  return x;
+}
+
+export function pointFeature(pt: Position): Feature<Point> {
+  return {
+    type: "Feature",
+    properties: {},
+    geometry: {
+      type: "Point",
+      coordinates: setPrecision(pt),
+    },
+  };
+}
+
+// Per https://datatracker.ietf.org/doc/html/rfc7946#section-11.2, 6 decimal
+// places (10cm) is plenty of precision
+export function setPrecision(pt: Position): Position {
+  return [Math.round(pt[0] * 10e6) / 10e6, Math.round(pt[1] * 10e6) / 10e6];
 }

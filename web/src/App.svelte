@@ -6,6 +6,7 @@
   import { MapLibre } from "svelte-maplibre";
   import { colorScale, kindToColor, limits } from "./colors";
   import { Layout, Legend, SequentialLegend } from "./common";
+  import PolygonToolLayer from "./common/draw_polygon/PolygonToolLayer.svelte";
   import Directions from "./Directions.svelte";
   import MapLoader from "./MapLoader.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
@@ -127,6 +128,7 @@
       hash
       bind:map
     >
+      <PolygonToolLayer />
       {#if model}
         {#if mode == "route"}
           <NetworkLayer {model} {showSeverances} {opacity} />
