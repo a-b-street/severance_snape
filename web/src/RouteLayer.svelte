@@ -3,17 +3,17 @@
   import type { LngLat, Map, MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
   import { GeoJSON, LineLayer, Marker } from "svelte-maplibre";
+  import { map } from "./stores";
 
   export let route_a: LngLat;
   export let route_b: LngLat;
   export let route_gj: FeatureCollection;
-  export let map: Map;
 
   onMount(() => {
-    map?.on("contextmenu", onRightClick);
+    $map?.on("contextmenu", onRightClick);
   });
   onDestroy(() => {
-    map?.off("contextmenu", onRightClick);
+    $map?.off("contextmenu", onRightClick);
   });
   function onRightClick(e: MapMouseEvent) {
     // Move the first marker, for convenience

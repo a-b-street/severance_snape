@@ -12,12 +12,22 @@
   import NetworkLayer from "./NetworkLayer.svelte";
   import RouteLayer from "./RouteLayer.svelte";
   import ScoreLayer from "./ScoreLayer.svelte";
+  import {
+    mapContents,
+    map as mapStore,
+    mode,
+    model,
+    sidebarContents,
+  } from "./stores";
 
-  let model: MapModel | undefined = undefined;
+  // TODO do the wasm stuff here
+
   let map: Map;
+  $: if (map) {
+    mapStore.set(map);
+  }
 
-  let mode: "score" | "route" = "score";
-
+  // TODO all gonna move
   let route_a: LngLat | null = null;
   let route_b: LngLat | null = null;
   let route_gj: FeatureCollection | null = null;
@@ -30,20 +40,20 @@
   }
 
   function zoomToFit() {
-    if (map && model) {
+    if (map && $model) {
       // TODO wasteful
-      let bbox = turfBbox(JSON.parse(model.render()));
+      let bbox = turfBbox(JSON.parse($model.render()));
       map.fitBounds(bbox, { animate: false });
     }
   }
 
   function gotModel(_m: MapModel) {
-    if (!model) {
+    if (!$model) {
       return;
     }
     console.log("New map model loaded");
     zoomToFit();
-    let bbox = turfBbox(JSON.parse(model.render()));
+    let bbox = turfBbox(JSON.parse($model.render()));
     route_a = {
       lng: lerp(0.4, bbox[0], bbox[2]),
       lat: lerp(0.4, bbox[1], bbox[3]),
@@ -53,12 +63,12 @@
       lat: lerp(0.6, bbox[1], bbox[3]),
     };
   }
-  $: gotModel(model);
+  $: gotModel($model);
 
-  $: if (model && route_a && route_b) {
+  $: if ($model && route_a && route_b) {
     try {
       route_gj = JSON.parse(
-        model.compareRoute({
+        $model.compareRoute({
           x1: route_a.lng,
           y1: route_a.lat,
           x2: route_b.lng,
@@ -71,20 +81,33 @@
       route_err = err.toString();
     }
   }
+
+  let sidebarDiv: HTMLDivElement;
+  let mapDiv: HTMLDivElement;
+  $: if (sidebarDiv && $sidebarContents) {
+    sidebarDiv.innerHTML = "";
+    sidebarDiv.appendChild($sidebarContents);
+  }
+  $: if (mapDiv && $mapContents) {
+    mapDiv.innerHTML = "";
+    mapDiv.appendChild($mapContents);
+  }
 </script>
 
 <Layout>
   <div slot="left">
+    <div bind:this={sidebarDiv} />
+
     {#if map}
-      <MapLoader {map} bind:model />
+      <MapLoader />
     {/if}
     <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
     <label>
-      <input bind:group={mode} type="radio" value="route" />Route
+      <input bind:group={$mode} type="radio" value="route" />Route
     </label>
     <label>
-      <input bind:group={mode} type="radio" value="score" />Score
+      <input bind:group={$mode} type="radio" value="score" />Score
     </label>
 
     <Legend
@@ -110,14 +133,14 @@
       </label>
     </div>
 
-    {#if mode == "route"}
+    {#if $mode == "route"}
       {#if route_err}
         <p>{route_err}</p>
       {/if}
       {#if route_gj}
         <Directions {route_gj} />
       {/if}
-    {:else if mode == "score"}
+    {:else if $mode == "score"}
       <SequentialLegend {colorScale} {limits} />
     {/if}
   </div>
@@ -128,13 +151,15 @@
       hash
       bind:map
     >
+      <div bind:this={mapDiv} />
+
       <PolygonToolLayer />
-      {#if model}
-        {#if mode == "route"}
-          <NetworkLayer {model} {showSeverances} {opacity} />
-          <RouteLayer bind:route_a bind:route_b {route_gj} {map} />
-        {:else if mode == "score"}
-          <ScoreLayer {map} {model} {showSeverances} {opacity} />
+      {#if $model}
+        {#if $mode == "route"}
+          <NetworkLayer {showSeverances} {opacity} />
+          <RouteLayer bind:route_a bind:route_b {route_gj} />
+        {:else if $mode == "score"}
+          <ScoreLayer {showSeverances} {opacity} />
         {/if}
       {/if}
     </MapLibre>

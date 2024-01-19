@@ -11,9 +11,8 @@
   } from "svelte-maplibre";
   import { colorScale, kindToColor, limits } from "./colors";
   import { constructMatchExpression, makeColorRamp } from "./common";
+  import { map, model } from "./stores";
 
-  export let model: MapModel;
-  export let map: Map;
   export let showSeverances: boolean;
   export let opacity: number;
 
@@ -25,7 +24,7 @@
     try {
       let linestring = e.detail.features[0].geometry.coordinates;
       route_gj = JSON.parse(
-        model.compareRoute({
+        $model.compareRoute({
           x1: linestring[0][0],
           y1: linestring[0][1],
           x2: linestring[1][0],
@@ -39,14 +38,14 @@
   }
 
   onMount(() => {
-    map?.on("click", onClick);
+    $map?.on("click", onClick);
   });
   onDestroy(() => {
-    map?.off("click", onClick);
+    $map?.off("click", onClick);
   });
   function onClick(e: MapMouseEvent) {
     // If we click off a severance line, clear things
-    for (let f of map.queryRenderedFeatures(e.point, {
+    for (let f of $map.queryRenderedFeatures(e.point, {
       layers: ["scores"],
     })) {
       return;
@@ -55,7 +54,7 @@
   }
 </script>
 
-<GeoJSON data={JSON.parse(model.render())}>
+<GeoJSON data={JSON.parse($model.render())}>
   <LineLayer
     id="network"
     paint={{
@@ -77,7 +76,7 @@
     }}
   />
 </GeoJSON>
-<GeoJSON data={JSON.parse(model.makeHeatmap())}>
+<GeoJSON data={JSON.parse($model.makeHeatmap())}>
   <LineLayer
     id="scores"
     paint={{

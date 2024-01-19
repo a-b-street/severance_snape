@@ -3,14 +3,14 @@
   import { GeoJSON, hoverStateFilter, LineLayer, Popup } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { constructMatchExpression, PropertiesTable } from "./common";
+  import { model } from "./stores";
 
-  export let model: MapModel;
   // TODO Use filter expressions?
   export let showSeverances: boolean;
   export let opacity: number;
 </script>
 
-<GeoJSON data={JSON.parse(model.render())} generateId>
+<GeoJSON data={JSON.parse($model.render())} generateId>
   <LineLayer
     id="network"
     paint={{

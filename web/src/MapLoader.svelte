@@ -3,9 +3,7 @@
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
   import { Loading, OverpassSelector } from "./common";
-
-  export let model: MapModel | undefined = undefined;
-  export let map: Map;
+  import { map, model } from "./stores";
 
   let example = "";
   let msg: string | null = null;
@@ -39,7 +37,7 @@
   function loadModel(buffer: ArrayBuffer) {
     msg = "Building map model from OSM input";
     console.time("load");
-    model = new MapModel(new Uint8Array(buffer));
+    $model = new MapModel(new Uint8Array(buffer));
     console.timeEnd("load");
   }
 
@@ -111,7 +109,7 @@
   </div>
 
   <OverpassSelector
-    {map}
+    map={$map}
     on:gotXml={gotXml}
     on:loading={(e) => (msg = e.detail)}
     on:error={(e) => window.alert(e.detail)}
