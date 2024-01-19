@@ -4,14 +4,12 @@
   import type { FeatureCollection } from "geojson";
   import type { LngLat, Map } from "maplibre-gl";
   import { MapLibre } from "svelte-maplibre";
-  import { colorScale, kindToColor, limits } from "./colors";
-  import { Layout, Legend, SequentialLegend } from "./common";
+  import { kindToColor } from "./colors";
+  import { Layout, Legend } from "./common";
   import PolygonToolLayer from "./common/draw_polygon/PolygonToolLayer.svelte";
-  import Directions from "./Directions.svelte";
   import MapLoader from "./MapLoader.svelte";
-  import NetworkLayer from "./NetworkLayer.svelte";
-  import RouteLayer from "./RouteLayer.svelte";
-  import ScoreLayer from "./ScoreLayer.svelte";
+  import RouteMode from "./RouteMode.svelte";
+  import ScoreMode from "./ScoreMode.svelte";
   import {
     mapContents,
     map as mapStore,
@@ -27,17 +25,8 @@
     mapStore.set(map);
   }
 
-  // TODO all gonna move
-  let route_a: LngLat | null = null;
-  let route_b: LngLat | null = null;
-  let route_gj: FeatureCollection | null = null;
-  let route_err = "";
   let opacity = 100;
   let showSeverances = true;
-
-  function lerp(pct: number, a: number, b: number): number {
-    return a + pct * (b - a);
-  }
 
   function zoomToFit() {
     if (map && $model) {
@@ -53,34 +42,8 @@
     }
     console.log("New map model loaded");
     zoomToFit();
-    let bbox = turfBbox(JSON.parse($model.render()));
-    route_a = {
-      lng: lerp(0.4, bbox[0], bbox[2]),
-      lat: lerp(0.4, bbox[1], bbox[3]),
-    };
-    route_b = {
-      lng: lerp(0.6, bbox[0], bbox[2]),
-      lat: lerp(0.6, bbox[1], bbox[3]),
-    };
   }
   $: gotModel($model);
-
-  $: if ($model && route_a && route_b) {
-    try {
-      route_gj = JSON.parse(
-        $model.compareRoute({
-          x1: route_a.lng,
-          y1: route_a.lat,
-          x2: route_b.lng,
-          y2: route_b.lat,
-        })
-      );
-      route_err = "";
-    } catch (err) {
-      route_gj = null;
-      route_err = err.toString();
-    }
-  }
 
   let sidebarDiv: HTMLDivElement;
   let mapDiv: HTMLDivElement;
@@ -132,17 +95,6 @@
         <input type="range" min="0" max="100" bind:value={opacity} />
       </label>
     </div>
-
-    {#if $mode == "route"}
-      {#if route_err}
-        <p>{route_err}</p>
-      {/if}
-      {#if route_gj}
-        <Directions {route_gj} />
-      {/if}
-    {:else if $mode == "score"}
-      <SequentialLegend {colorScale} {limits} />
-    {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
@@ -156,10 +108,9 @@
       <PolygonToolLayer />
       {#if $model}
         {#if $mode == "route"}
-          <NetworkLayer {showSeverances} {opacity} />
-          <RouteLayer bind:route_a bind:route_b {route_gj} />
+          <RouteMode {showSeverances} {opacity} />
         {:else if $mode == "score"}
-          <ScoreLayer {showSeverances} {opacity} />
+          <ScoreMode {showSeverances} {opacity} />
         {/if}
       {/if}
     </MapLibre>
