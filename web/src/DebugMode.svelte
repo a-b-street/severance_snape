@@ -11,7 +11,7 @@
 
 <SplitComponent>
   <div slot="sidebar">
-    <h1>Debug mode</h1>
+    <h2>Debug mode</h2>
     <div>
       <button on:click={() => ($mode = "title")}>Change study area</button>
       <button on:click={() => ($mode = "route")}>Route mode</button>

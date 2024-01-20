@@ -81,8 +81,8 @@
       </Modal>
     {/if}
 
-    <h1>Choose your study area</h1>
-    <button on:click={() => ($showAbout = true)}>About the crossing tool</button
+    <h2>Choose your study area</h2>
+    <button on:click={() => ($showAbout = true)}>About this tool</button
     >
     <hr />
 

@@ -65,6 +65,7 @@
 
 <Layout>
   <div slot="left">
+    <h1>Severance Snape</h1>
     <div bind:this={sidebarDiv} />
 
     {#if $mode != "title"}

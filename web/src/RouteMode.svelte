@@ -60,7 +60,7 @@
 
 <SplitComponent>
   <div slot="sidebar">
-    <h1>Route mode</h1>
+    <h2>Route mode</h2>
     <div>
       <button on:click={() => ($mode = "title")}>Change study area</button>
       <button on:click={() => ($mode = "score")}>Score mode</button>
