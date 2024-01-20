@@ -76,7 +76,10 @@
           ["Footway (ground, outdoors)", kindToColor.Footway],
           ["Indoors footway", kindToColor.Indoors],
           ["Footway not on the ground", kindToColor.BridgeOrTunnel],
-          ["Street with sidewalk (or pedestrian street)", kindToColor.Sidewalk],
+          [
+            "Street with vehicle traffic (maybe with a sidewalk, maybe not)",
+            kindToColor.WithTraffic,
+          ],
           ["Crossing", kindToColor.Crossing],
           ["Severance", kindToColor.Severance],
         ]}

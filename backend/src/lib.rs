@@ -63,12 +63,10 @@ pub struct Road {
 
 #[derive(Debug, PartialEq)]
 pub enum RoadKind {
-    /// Outdoors and on the ground
     Footway,
     Indoors,
     BridgeOrTunnel,
-    /// Or pedestrian street
-    Sidewalk,
+    WithTraffic,
     Crossing,
     Severance,
     // TODO other types of road?

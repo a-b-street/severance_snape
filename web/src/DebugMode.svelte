@@ -13,6 +13,7 @@
   <div slot="sidebar">
     <h1>Debug mode</h1>
     <div>
+      <button on:click={() => ($mode = "title")}>Change study area</button>
       <button on:click={() => ($mode = "route")}>Route mode</button>
       <button on:click={() => ($mode = "score")}>Score mode</button>
     </div>

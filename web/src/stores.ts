@@ -16,3 +16,4 @@ export let mode: Writable<Mode> = writable("title");
 export let model: Writable<MapModel | null> = writable(null);
 export let map: Writable<Map | null> = writable(null);
 export let showAbout: Writable<boolean> = writable(true);
+export let importStreetsWithTraffic: Writable<boolean> = writable(true);

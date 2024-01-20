@@ -23,7 +23,7 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
         }
         Element::Way { id, node_ids, tags } => {
             let tags: Tags = tags.into();
-            if tags.has("highway") && !tags.is("highway", "proposed") {
+            if classify(&tags).is_some() {
                 highways.push(Way { id, node_ids, tags });
             }
         }
@@ -128,7 +128,7 @@ fn split_edges(
                     node2: node,
                     linestring: LineString::new(std::mem::take(&mut pts)),
                     tags: way.tags.clone(),
-                    kind: classify(&way.tags),
+                    kind: classify(&way.tags).unwrap(),
                 });
 
                 // Start the next edge
@@ -143,29 +143,34 @@ fn split_edges(
 
 // TODO This should probably be configurable per region. In HK, primary and above are severances.
 // And we need to handle roads with sidewalk tags; we can't just assume footways everywhere.
-fn classify(tags: &Tags) -> RoadKind {
+fn classify(tags: &Tags) -> Option<RoadKind> {
+    if !tags.has("highway") || tags.is("highway", "proposed") || tags.is("area", "yes") {
+        return None;
+    }
+
     if tags.is_any(
         "highway",
         vec!["footway", "steps", "path", "track", "corridor"],
     ) {
         // TODO These aren't mutually exclusive...
         if tags.has("indoor") || tags.is("highway", "corridor") {
-            return RoadKind::Indoors;
+            return Some(RoadKind::Indoors);
         }
         if tags.has_any(vec!["layer", "bridge", "tunnel"]) {
-            return RoadKind::BridgeOrTunnel;
+            return Some(RoadKind::BridgeOrTunnel);
         }
         if tags.is("footway", "crossing") {
-            return RoadKind::Crossing;
+            return Some(RoadKind::Crossing);
         }
-        return RoadKind::Footway;
+        return Some(RoadKind::Footway);
     }
 
     if tags.is("highway", "crossing") || tags.has("crossing") {
-        return RoadKind::Crossing;
+        return Some(RoadKind::Crossing);
     }
 
     // Even if a big road has a sidewalk, it's a severance
+    // TODO Ideally these'd have separate sidewalks
     if tags.is_any(
         "highway",
         vec![
@@ -177,16 +182,24 @@ fn classify(tags: &Tags) -> RoadKind {
             "primary_link",
         ],
     ) {
-        return RoadKind::Severance;
+        return Some(RoadKind::Severance);
+    }
+
+    // Totally exclude these; they're just noise. We'll use the separate footways instead.
+    // I'm assuming there isn't a silly mix like "sidewalk:left = separate, sidewalk:right = yes".
+    if tags.is("sidewalk", "separate")
+        || tags.is("sidewalk:left", "separate")
+        || tags.is("sidewalk:right", "separate")
+    {
+        return None;
     }
 
     if tags.is("highway", "pedestrian") || tags.is_any("sidewalk", vec!["both", "right", "left"]) {
-        return RoadKind::Sidewalk;
+        return Some(RoadKind::WithTraffic);
     }
-    // If sidewalks aren't tagged, still assume most streets have them
-    // Exclude primary from this list for HK cases
-    // TODO But this makes things much messier; sidewalk=separate is not tagged often, but we
-    // should infer it
+    // If sidewalks aren't tagged, still assume most classes of streets have them
+    // TODO If these happen to have a separate sidewalk but sidewalk=separate is not tagged, then
+    // this will make things messier.
     if tags.is_any(
         "highway",
         vec![
@@ -201,17 +214,14 @@ fn classify(tags: &Tags) -> RoadKind {
             "cycleway",
         ],
     ) && !tags.is("foot", "no")
-        && !tags.is_any("sidewalk", vec!["no", "none", "separate"])
     {
-        // TODO https://www.openstreetmap.org/way/670819535 is foot=yes, sidewalk=no...
-        // TODO https://www.openstreetmap.org/way/107296516 has sidewalk=separate. We want to
-        // de-emphasize / not use it, but it's not a severance...
-        return RoadKind::Sidewalk;
+        return Some(RoadKind::WithTraffic);
     }
 
     // TODO construction?
 
     // TODO Maybe just use tagged / assumed speed limit instead?
 
-    RoadKind::Severance
+    // TODO wait, why's this the fallback case?
+    Some(RoadKind::Severance)
 }
