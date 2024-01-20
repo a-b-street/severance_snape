@@ -65,9 +65,13 @@
           crossing in that area.
         </p>
         <p>
-          This tool is created by <a
-            href="https://github.com/dabreegster/"
-            target="_blank">Dustin Carlino</a
+          This <a
+            href="https://github.com/dabreegster/severance_snape/"
+            target="_blank">open source</a
+          >
+          tool is created by
+          <a href="https://github.com/dabreegster/" target="_blank"
+            >Dustin Carlino</a
           >
           and relies heavily on
           <a href="https://www.openstreetmap.org/about" target="_blank"
@@ -82,8 +86,7 @@
     {/if}
 
     <h2>Choose your study area</h2>
-    <button on:click={() => ($showAbout = true)}>About this tool</button
-    >
+    <button on:click={() => ($showAbout = true)}>About this tool</button>
     <hr />
 
     {#if $map && wasmReady}
