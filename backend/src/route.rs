@@ -4,7 +4,7 @@ use geo::{HaversineLength, LineString};
 use geojson::{Feature, FeatureCollection};
 use rstar::RTree;
 
-use crate::node_map::NodeMap;
+use crate::common::NodeMap;
 use crate::{
     CompareRouteRequest, Intersection, IntersectionID, IntersectionLocation, MapModel, Road,
     RoadKind,
