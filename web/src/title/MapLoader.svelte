@@ -79,14 +79,7 @@
 <div style="border: 1px solid black; padding: 8px;">
   <div>
     <label>
-      Load an osm.xml or a .pbf file:
-      <input bind:this={fileInput} on:change={loadFile} type="file" />
-    </label>
-  </div>
-
-  <div>
-    <label>
-      Or load an example:
+      Load an example:
       <select bind:value={example}>
         <option value="">Custom file loaded</option>
         <option value="akihabara">Akihabara</option>
@@ -102,6 +95,13 @@
         <option value="montlake">Montlake</option>
         <option value="strasbourg">Strasbourg</option>
       </select>
+    </label>
+  </div>
+
+  <div>
+    <label>
+      Load an osm.xml or a .pbf file:
+      <input bind:this={fileInput} on:change={loadFile} type="file" />
     </label>
   </div>
 

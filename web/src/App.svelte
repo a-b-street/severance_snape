@@ -51,6 +51,7 @@
     }
     console.log("New map model loaded");
     zoomToFit();
+    $mode = "route";
   }
   $: gotModel($model);
 
@@ -70,37 +71,33 @@
   <div slot="left">
     <div bind:this={sidebarDiv} />
 
-    <div><button on:click={zoomToFit}>Zoom to fit</button></div>
+    {#if $mode != "title"}
+      <hr />
+      <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
-    <label>
-      <input bind:group={$mode} type="radio" value="route" />Route
-    </label>
-    <label>
-      <input bind:group={$mode} type="radio" value="score" />Score
-    </label>
-
-    <Legend
-      rows={[
-        ["Footway (ground, outdoors)", kindToColor.Footway],
-        ["Indoors footway", kindToColor.Indoors],
-        ["Footway not on the ground", kindToColor.BridgeOrTunnel],
-        ["Street with sidewalk (or pedestrian street)", kindToColor.Sidewalk],
-        ["Crossing", kindToColor.Crossing],
-        ["Severance", kindToColor.Severance],
-      ]}
-    />
-    <div>
-      <label>
-        <input type="checkbox" bind:checked={showSeverances} />
-        Show severances
-      </label>
-    </div>
-    <div>
-      <label>
-        Network opacity:
-        <input type="range" min="0" max="100" bind:value={opacity} />
-      </label>
-    </div>
+      <Legend
+        rows={[
+          ["Footway (ground, outdoors)", kindToColor.Footway],
+          ["Indoors footway", kindToColor.Indoors],
+          ["Footway not on the ground", kindToColor.BridgeOrTunnel],
+          ["Street with sidewalk (or pedestrian street)", kindToColor.Sidewalk],
+          ["Crossing", kindToColor.Crossing],
+          ["Severance", kindToColor.Severance],
+        ]}
+      />
+      <div>
+        <label>
+          <input type="checkbox" bind:checked={showSeverances} />
+          Show severances
+        </label>
+      </div>
+      <div>
+        <label>
+          Network opacity:
+          <input type="range" min="0" max="100" bind:value={opacity} />
+        </label>
+      </div>
+    {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre

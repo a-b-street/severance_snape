@@ -13,7 +13,7 @@
   import { constructMatchExpression, notNull, PropertiesTable } from "./common";
   import Directions from "./Directions.svelte";
   import SplitComponent from "./SplitComponent.svelte";
-  import { map, model, type RouteGJ } from "./stores";
+  import { map, model, type RouteGJ, mode } from "./stores";
 
   // TODO Use filter expressions?
   export let showSeverances: boolean;
@@ -69,6 +69,12 @@
 
 <SplitComponent>
   <div slot="sidebar">
+    <h1>Route mode</h1>
+    <div>
+      <button on:click={() => $mode = "title"}>Change study area</button>
+      <button on:click={() => $mode = "score"}>Score mode</button>
+    </div>
+    <p>Move the <b>A</b> and <b>B</b> pins to find a walking route</p>
     {#if route_err}
       <p>{route_err}</p>
     {/if}
