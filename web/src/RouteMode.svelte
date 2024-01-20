@@ -66,7 +66,10 @@
       <button on:click={() => ($mode = "score")}>Score mode</button>
     </div>
     <button on:click={() => ($mode = "debug")}>Debug OSM</button>
-    <p>Move the <b>A</b> and <b>B</b> pins to find a walking route</p>
+    <p>
+      Move the <b>A</b> and <b>B</b> pins to find a walking route. (Hint: right-click
+      to set the first pin somewhere.)
+    </p>
     {#if route_err}
       <p>{route_err}</p>
     {/if}
@@ -101,7 +104,9 @@
     height: 30px;
     border-radius: 50%;
     display: inline-block;
-    background-color: grey;
+    background-color: blue;
     text-align: center;
+    color: white;
+    font-weight: bold;
   }
 </style>
