@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use fast_paths::{FastGraph, InputGraph};
-use geo::{HaversineLength, LineString, MapCoords};
+use geo::{HaversineLength, LineString};
 use geojson::{Feature, FeatureCollection};
 use rstar::RTree;
 
@@ -81,7 +81,7 @@ pub fn do_route(
                 .into(),
         ]);
         let direct_feature = Feature::from(geojson::Geometry::from(
-            &direct_line.map_coords(|c| map.mercator.to_wgs84(c)),
+            &map.mercator.to_wgs84(&direct_line),
         ));
 
         let mut features = Vec::new();

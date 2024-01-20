@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use geo::{Coord, Geometry, GeometryCollection, LineString, MapCoordsInPlace, Point};
+use geo::{ConvexHull, Coord, Geometry, GeometryCollection, LineString, Point};
 use osm_reader::{Element, NodeID, WayID};
 
 use crate::mercator::Mercator;
@@ -34,7 +34,7 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
     let (mut roads, mut intersections) = split_edges(&node_mapping, highways);
 
     // TODO expensive
-    let collection: GeometryCollection = roads
+    let mut collection: GeometryCollection = roads
         .iter()
         .map(|r| Geometry::LineString(r.linestring.clone()))
         .chain(
@@ -44,14 +44,16 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
         )
         .collect::<Vec<_>>()
         .into();
-    let mercator = Mercator::from(collection).unwrap();
+    let mercator = Mercator::from(collection.clone()).unwrap();
     for r in &mut roads {
-        r.linestring
-            .map_coords_in_place(|pt| mercator.to_mercator(pt));
+        mercator.to_mercator_in_place(&mut r.linestring);
     }
     for i in &mut intersections {
-        i.point.map_coords_in_place(|pt| mercator.to_mercator(pt));
+        mercator.to_mercator_in_place(&mut i.point);
     }
+
+    mercator.to_mercator_in_place(&mut collection);
+    let boundary_polygon = collection.convex_hull();
 
     let (closest_intersection, node_map, ch) = crate::route::build_router(&intersections, &roads);
     let path_calc = fast_paths::create_calculator(&ch);
@@ -64,6 +66,7 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
         node_map,
         ch,
         path_calc,
+        boundary_polygon,
     })
 }
 

@@ -1,9 +1,8 @@
 <script lang="ts">
-  import turfBbox from "@turf/bbox";
   import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
-  import { MapLibre } from "svelte-maplibre";
+  import { FillLayer, GeoJSON, MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { Layout, Legend } from "./common";
   import PolygonToolLayer from "./common/draw_polygon/PolygonToolLayer.svelte";
@@ -34,14 +33,10 @@
 
   function zoomToFit() {
     if (map && $model) {
-      // TODO wasteful
-      let bbox = turfBbox(JSON.parse($model.render())) as [
-        number,
-        number,
-        number,
-        number
-      ];
-      map.fitBounds(bbox, { animate: false });
+      map.fitBounds(
+        Array.from($model.getBounds()) as [number, number, number, number],
+        { animate: false }
+      );
     }
   }
 
@@ -113,6 +108,9 @@
         <TitleMode {wasmReady} />
       {/if}
       {#if $model}
+        <GeoJSON data={JSON.parse($model.getInvertedBoundary())}>
+          <FillLayer paint={{ "fill-color": "black", "fill-opacity": 0.3 }} />
+        </GeoJSON>
         {#if $mode == "route"}
           <RouteMode {showSeverances} {opacity} />
         {:else if $mode == "score"}

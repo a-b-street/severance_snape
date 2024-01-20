@@ -16,7 +16,7 @@
     SequentialLegend,
   } from "./common";
   import SplitComponent from "./SplitComponent.svelte";
-  import { map, model, mode } from "./stores";
+  import { map, mode, model } from "./stores";
 
   export let showSeverances: boolean;
   export let opacity: number;
@@ -66,10 +66,13 @@
   <div slot="sidebar">
     <h1>Score mode</h1>
     <div>
-      <button on:click={() => $mode = "title"}>Change study area</button>
-      <button on:click={() => $mode = "route"}>Route mode</button>
+      <button on:click={() => ($mode = "title")}>Change study area</button>
+      <button on:click={() => ($mode = "route")}>Route mode</button>
     </div>
-    <p>The desire lines are coloured based on their detour factor. <b>Click</b> one to see the route</p>
+    <p>
+      The desire lines are coloured based on their detour factor. <b>Click</b> one
+      to see the route
+    </p>
     <SequentialLegend {colorScale} {limits} />
   </div>
   <div slot="map">

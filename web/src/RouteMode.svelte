@@ -1,5 +1,4 @@
 <script lang="ts">
-  import turfBbox from "@turf/bbox";
   import type { MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
   import {
@@ -13,14 +12,14 @@
   import { constructMatchExpression, notNull, PropertiesTable } from "./common";
   import Directions from "./Directions.svelte";
   import SplitComponent from "./SplitComponent.svelte";
-  import { map, model, type RouteGJ, mode } from "./stores";
+  import { map, mode, model, type RouteGJ } from "./stores";
 
   // TODO Use filter expressions?
   export let showSeverances: boolean;
   export let opacity: number;
 
   // TODO Maybe need to do this when model changes
-  let bbox = turfBbox(JSON.parse($model!.render()));
+  let bbox = Array.from($model!.getBounds());
   let route_a = {
     lng: lerp(0.4, bbox[0], bbox[2]),
     lat: lerp(0.4, bbox[1], bbox[3]),
@@ -71,8 +70,8 @@
   <div slot="sidebar">
     <h1>Route mode</h1>
     <div>
-      <button on:click={() => $mode = "title"}>Change study area</button>
-      <button on:click={() => $mode = "score"}>Score mode</button>
+      <button on:click={() => ($mode = "title")}>Change study area</button>
+      <button on:click={() => ($mode = "score")}>Score mode</button>
     </div>
     <p>Move the <b>A</b> and <b>B</b> pins to find a walking route</p>
     {#if route_err}

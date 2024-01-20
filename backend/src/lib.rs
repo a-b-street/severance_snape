@@ -5,7 +5,7 @@ use std::fmt;
 use std::sync::Once;
 
 use fast_paths::{FastGraph, PathCalculator};
-use geo::{Coord, Line, LineString, MapCoordsInPlace, Point};
+use geo::{Coord, Line, LineString, Point, Polygon};
 use geojson::{Feature, GeoJson, Geometry};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
@@ -31,6 +31,7 @@ pub struct MapModel {
     node_map: node_map::NodeMap<IntersectionID>,
     ch: FastGraph,
     path_calc: PathCalculator,
+    boundary_polygon: Polygon,
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
@@ -117,11 +118,11 @@ impl MapModel {
     #[wasm_bindgen(js_name = compareRoute)]
     pub fn compare_route(&mut self, input: JsValue) -> Result<String, JsValue> {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
-        let pt1 = self.mercator.to_mercator(Coord {
+        let pt1 = self.mercator.pt_to_mercator(Coord {
             x: req.x1,
             y: req.y1,
         });
-        let pt2 = self.mercator.to_mercator(Coord {
+        let pt2 = self.mercator.pt_to_mercator(Coord {
             x: req.x2,
             y: req.y2,
         });
@@ -148,6 +149,31 @@ impl MapModel {
         Ok(out)
     }
 
+    /// Return a polygon covering the world, minus a hole for the boundary, in WGS84
+    #[wasm_bindgen(js_name = getInvertedBoundary)]
+    pub fn get_inverted_boundary(&self) -> Result<String, JsValue> {
+        let (boundary, _) = self.mercator.to_wgs84(&self.boundary_polygon).into_inner();
+        let polygon = Polygon::new(
+            LineString::from(vec![
+                (180.0, 90.0),
+                (-180.0, 90.0),
+                (-180.0, -90.0),
+                (180.0, -90.0),
+                (180.0, 90.0),
+            ]),
+            vec![boundary],
+        );
+        let f = Feature::from(Geometry::from(&polygon));
+        let out = serde_json::to_string(&f).map_err(err_to_js)?;
+        Ok(out)
+    }
+
+    #[wasm_bindgen(js_name = getBounds)]
+    pub fn get_bounds(&self) -> Vec<f64> {
+        let b = &self.mercator.wgs84_bounds;
+        vec![b.min().x, b.min().y, b.max().x, b.max().y]
+    }
+
     fn find_edge(&self, i1: IntersectionID, i2: IntersectionID) -> &Road {
         // TODO Store lookup table
         for r in &self.intersections[i1.0].roads {
@@ -162,10 +188,7 @@ impl MapModel {
 
 impl Road {
     fn to_gj(&self, mercator: &mercator::Mercator) -> Feature {
-        let mut linestring = self.linestring.clone();
-        linestring.map_coords_in_place(|c| mercator.to_wgs84(c));
-
-        let mut f = Feature::from(Geometry::from(&linestring));
+        let mut f = Feature::from(Geometry::from(&mercator.to_wgs84(&self.linestring)));
         f.set_property("id", self.id.0);
         f.set_property("kind", format!("{:?}", self.kind));
         f.set_property("way", self.way.to_string());
