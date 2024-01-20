@@ -1,5 +1,5 @@
 <script lang="ts">
-  import init, { MapModel } from "backend";
+  import { MapModel } from "backend";
   import { onMount } from "svelte";
   import { Loading, OverpassSelector } from "./common";
   import { map, model } from "./stores";
@@ -9,8 +9,6 @@
   let useLocalVite = false;
 
   onMount(async () => {
-    await init();
-
     // When running locally if a vite public/ directory is set up, load from that for speed
     try {
       let resp = await fetch("/kowloon.pbf", { method: "HEAD" });

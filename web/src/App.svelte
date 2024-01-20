@@ -1,7 +1,8 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
-  import { MapModel } from "backend";
+  import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
+  import { onMount } from "svelte";
   import { MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { Layout, Legend } from "./common";
@@ -17,7 +18,11 @@
     sidebarContents,
   } from "./stores";
 
-  // TODO do the wasm stuff here
+  let wasmReady = false;
+  onMount(async () => {
+    await init();
+    wasmReady = true;
+  });
 
   let map: Map;
   $: if (map) {
@@ -65,7 +70,7 @@
   <div slot="left">
     <div bind:this={sidebarDiv} />
 
-    {#if map}
+    {#if map && wasmReady}
       <MapLoader />
     {/if}
     <div><button on:click={zoomToFit}>Zoom to fit</button></div>
