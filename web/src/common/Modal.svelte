@@ -28,5 +28,6 @@
     width: 80%;
     height: 80%;
     background: white;
+    overflow: scroll;
   }
 </style>

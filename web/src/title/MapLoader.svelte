@@ -1,8 +1,8 @@
 <script lang="ts">
   import { MapModel } from "backend";
   import { onMount } from "svelte";
-  import { Loading, OverpassSelector } from "./common";
-  import { map, model } from "./stores";
+  import { Loading, OverpassSelector } from "../common";
+  import { map, model } from "../stores";
 
   let example = "";
   let msg: string | null = null;
@@ -16,7 +16,7 @@
       console.log("Using local cache, not od2net.org");
 
       // For quicker dev
-      example = "kowloon";
+      //example = "kowloon";
     } catch (err) {}
   });
 

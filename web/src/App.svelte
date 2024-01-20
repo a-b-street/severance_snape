@@ -7,7 +7,6 @@
   import { kindToColor } from "./colors";
   import { Layout, Legend } from "./common";
   import PolygonToolLayer from "./common/draw_polygon/PolygonToolLayer.svelte";
-  import MapLoader from "./MapLoader.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
   import {
@@ -17,6 +16,7 @@
     model,
     sidebarContents,
   } from "./stores";
+  import TitleMode from "./title/TitleMode.svelte";
 
   let wasmReady = false;
   onMount(async () => {
@@ -70,9 +70,6 @@
   <div slot="left">
     <div bind:this={sidebarDiv} />
 
-    {#if map && wasmReady}
-      <MapLoader />
-    {/if}
     <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
     <label>
@@ -115,6 +112,9 @@
       <div bind:this={mapDiv} />
 
       <PolygonToolLayer />
+      {#if $mode == "title"}
+        <TitleMode {wasmReady} />
+      {/if}
       {#if $model}
         {#if $mode == "route"}
           <RouteMode {showSeverances} {opacity} />
