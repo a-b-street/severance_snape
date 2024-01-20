@@ -105,6 +105,7 @@
       >Import current view</button
     >
   </div>
+  <i>or...</i>
   <div>
     <button type="button" on:click={startPolygonTool}
       >Draw an area to import on the map</button

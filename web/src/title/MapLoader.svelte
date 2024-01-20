@@ -102,12 +102,16 @@
     </label>
   </div>
 
+  <i>or...</i>
+
   <div>
     <label>
       Load an osm.xml or a .pbf file:
       <input bind:this={fileInput} on:change={loadFile} type="file" />
     </label>
   </div>
+
+  <i>or...</i>
 
   <OverpassSelector
     map={$map}
