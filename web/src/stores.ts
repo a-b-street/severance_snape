@@ -6,7 +6,7 @@ import { writable, type Writable } from "svelte/store";
 export let sidebarContents: Writable<HTMLDivElement | null> = writable(null);
 export let mapContents: Writable<HTMLDivElement | null> = writable(null);
 
-export type Mode = "title" | "score" | "route";
+export type Mode = "title" | "score" | "route" | "debug";
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;
   route_length: number;

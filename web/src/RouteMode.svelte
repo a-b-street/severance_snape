@@ -1,20 +1,12 @@
 <script lang="ts">
   import type { MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
-  import {
-    GeoJSON,
-    hoverStateFilter,
-    LineLayer,
-    Marker,
-    Popup,
-  } from "svelte-maplibre";
-  import { kindToColor } from "./colors";
-  import { constructMatchExpression, notNull, PropertiesTable } from "./common";
+  import { GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
+  import NetworkLayer from "./NetworkLayer.svelte";
   import SplitComponent from "./SplitComponent.svelte";
   import { map, mode, model, type RouteGJ } from "./stores";
 
-  // TODO Use filter expressions?
   export let showSeverances: boolean;
   export let opacity: number;
 
@@ -73,6 +65,7 @@
       <button on:click={() => ($mode = "title")}>Change study area</button>
       <button on:click={() => ($mode = "score")}>Score mode</button>
     </div>
+    <button on:click={() => ($mode = "debug")}>Debug OSM</button>
     <p>Move the <b>A</b> and <b>B</b> pins to find a walking route</p>
     {#if route_err}
       <p>{route_err}</p>
@@ -82,36 +75,7 @@
     {/if}
   </div>
   <div slot="map">
-    <GeoJSON data={JSON.parse(notNull($model).render())} generateId>
-      <LineLayer
-        id="network"
-        paint={{
-          "line-width": hoverStateFilter(5, 7),
-          "line-color": constructMatchExpression(
-            ["get", "kind"],
-            kindToColor,
-            "yellow"
-          ),
-          "line-opacity": showSeverances
-            ? opacity / 100
-            : constructMatchExpression(
-                ["get", "kind"],
-                {
-                  Severance: 0.0,
-                },
-                opacity / 100.0
-              ),
-        }}
-        manageHoverState
-        on:click={(e) =>
-          window.open(notNull(e.detail.features[0].properties).way, "_blank")}
-        hoverCursor="pointer"
-      >
-        <Popup openOn="hover" let:data>
-          <PropertiesTable properties={notNull(data).properties} />
-        </Popup>
-      </LineLayer>
-    </GeoJSON>
+    <NetworkLayer {showSeverances} {opacity} />
 
     <Marker bind:lngLat={route_a} draggable><span class="dot">A</span></Marker>
     <Marker bind:lngLat={route_b} draggable><span class="dot">B</span></Marker>

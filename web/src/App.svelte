@@ -6,6 +6,7 @@
   import { kindToColor } from "./colors";
   import { Layout, Legend } from "./common";
   import PolygonToolLayer from "./common/draw_polygon/PolygonToolLayer.svelte";
+  import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
   import {
@@ -115,6 +116,8 @@
           <RouteMode {showSeverances} {opacity} />
         {:else if $mode == "score"}
           <ScoreMode {showSeverances} {opacity} />
+        {:else if $mode == "debug"}
+          <DebugMode {showSeverances} {opacity} />
         {/if}
       {/if}
     </MapLibre>

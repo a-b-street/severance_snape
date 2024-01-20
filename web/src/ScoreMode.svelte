@@ -8,13 +8,9 @@
     Popup,
     type LayerClickInfo,
   } from "svelte-maplibre";
-  import { colorScale, kindToColor, limits } from "./colors";
-  import {
-    constructMatchExpression,
-    makeColorRamp,
-    notNull,
-    SequentialLegend,
-  } from "./common";
+  import { colorScale, limits } from "./colors";
+  import { makeColorRamp, notNull, SequentialLegend } from "./common";
+  import NetworkLayer from "./NetworkLayer.svelte";
   import SplitComponent from "./SplitComponent.svelte";
   import { map, mode, model } from "./stores";
 
@@ -69,6 +65,7 @@
       <button on:click={() => ($mode = "title")}>Change study area</button>
       <button on:click={() => ($mode = "route")}>Route mode</button>
     </div>
+    <button on:click={() => ($mode = "debug")}>Debug OSM</button>
     <p>
       The desire lines are coloured based on their detour factor. <b>Click</b> one
       to see the route
@@ -76,28 +73,8 @@
     <SequentialLegend {colorScale} {limits} />
   </div>
   <div slot="map">
-    <GeoJSON data={JSON.parse(notNull($model).render())}>
-      <LineLayer
-        id="network"
-        paint={{
-          "line-width": 5,
-          "line-color": constructMatchExpression(
-            ["get", "kind"],
-            kindToColor,
-            "yellow"
-          ),
-          "line-opacity": showSeverances
-            ? opacity / 100.0
-            : constructMatchExpression(
-                ["get", "kind"],
-                {
-                  Severance: 0.0,
-                },
-                opacity / 100.0
-              ),
-        }}
-      />
-    </GeoJSON>
+    <NetworkLayer {showSeverances} {opacity} />
+
     <GeoJSON data={JSON.parse(notNull($model).makeHeatmap())}>
       <LineLayer
         id="scores"
@@ -114,6 +91,7 @@
         </Popup>
       </LineLayer>
     </GeoJSON>
+
     {#if route_gj}
       <GeoJSON data={route_gj}>
         <LineLayer

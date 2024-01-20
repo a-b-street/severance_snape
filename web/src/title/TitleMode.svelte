@@ -2,7 +2,7 @@
   import { Modal, notNull } from "../common";
   import PolygonToolLayer from "../common/draw_polygon/PolygonToolLayer.svelte";
   import SplitComponent from "../SplitComponent.svelte";
-  import { map, showAbout, model } from "../stores";
+  import { map, model, showAbout } from "../stores";
   import MapLoader from "./MapLoader.svelte";
 
   export let wasmReady: boolean;
