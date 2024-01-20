@@ -87,14 +87,17 @@ type IntersectionLocation = GeomWithData<[f64; 2], usize>;
 impl MapModel {
     /// Call with bytes of an osm.pbf or osm.xml string
     #[wasm_bindgen(constructor)]
-    pub fn new(input_bytes: &[u8]) -> Result<MapModel, JsValue> {
+    pub fn new(
+        input_bytes: &[u8],
+        import_streets_without_sidewalk_tagging: bool,
+    ) -> Result<MapModel, JsValue> {
         // Panics shouldn't happen, but if they do, console.log them.
         console_error_panic_hook::set_once();
         START.call_once(|| {
             console_log::init_with_level(log::Level::Info).unwrap();
         });
 
-        scrape::scrape_osm(input_bytes).map_err(err_to_js)
+        scrape::scrape_osm(input_bytes, import_streets_without_sidewalk_tagging).map_err(err_to_js)
     }
 
     /// Returns a GeoJSON string. Just shows the full ped network

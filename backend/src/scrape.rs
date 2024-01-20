@@ -13,7 +13,10 @@ struct Way {
     tags: Tags,
 }
 
-pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
+pub fn scrape_osm(
+    input_bytes: &[u8],
+    import_streets_without_sidewalk_tagging: bool,
+) -> Result<MapModel> {
     let mut node_mapping = HashMap::new();
     let mut highways = Vec::new();
     osm_reader::parse(input_bytes, |elem| match elem {
@@ -23,14 +26,18 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
         }
         Element::Way { id, node_ids, tags } => {
             let tags: Tags = tags.into();
-            if classify(&tags).is_some() {
+            if classify(&tags, import_streets_without_sidewalk_tagging).is_some() {
                 highways.push(Way { id, node_ids, tags });
             }
         }
         Element::Relation { .. } => {}
     })?;
 
-    let (mut roads, mut intersections) = split_edges(&node_mapping, highways);
+    let (mut roads, mut intersections) = split_edges(
+        &node_mapping,
+        highways,
+        import_streets_without_sidewalk_tagging,
+    );
 
     // TODO expensive
     let mut collection: GeometryCollection = roads
@@ -72,6 +79,7 @@ pub fn scrape_osm(input_bytes: &[u8]) -> Result<MapModel> {
 fn split_edges(
     node_mapping: &HashMap<NodeID, Coord>,
     ways: Vec<Way>,
+    import_streets_without_sidewalk_tagging: bool,
 ) -> (Vec<Road>, Vec<Intersection>) {
     // Count how many ways reference each node
     let mut node_counter: HashMap<NodeID, usize> = HashMap::new();
@@ -128,7 +136,7 @@ fn split_edges(
                     node2: node,
                     linestring: LineString::new(std::mem::take(&mut pts)),
                     tags: way.tags.clone(),
-                    kind: classify(&way.tags).unwrap(),
+                    kind: classify(&way.tags, import_streets_without_sidewalk_tagging).unwrap(),
                 });
 
                 // Start the next edge
@@ -141,13 +149,16 @@ fn split_edges(
     (roads, intersections)
 }
 
-// TODO This should probably be configurable per region. In HK, primary and above are severances.
-// And we need to handle roads with sidewalk tags; we can't just assume footways everywhere.
-fn classify(tags: &Tags) -> Option<RoadKind> {
+/// This function classifies an OSM way as a RoadKind. If it returns `None`, then the way is
+/// totally excluded from the walking graph.
+// TODO This should probably be configurable per region. In Hong Kong, primary and above are
+// severances. In some places, maybe secondary or tertiary should also be considered severances.
+fn classify(tags: &Tags, import_streets_without_sidewalk_tagging: bool) -> Option<RoadKind> {
     if !tags.has("highway") || tags.is("highway", "proposed") || tags.is("area", "yes") {
         return None;
     }
 
+    // Some kind of explicit footway
     if tags.is_any(
         "highway",
         vec!["footway", "steps", "path", "track", "corridor"],
@@ -169,8 +180,9 @@ fn classify(tags: &Tags) -> Option<RoadKind> {
         return Some(RoadKind::Crossing);
     }
 
-    // Even if a big road has a sidewalk, it's a severance
-    // TODO Ideally these'd have separate sidewalks
+    // Big roads are always severances.
+    // TODO Big roads without separate sidewalks aren't walkable at all right now.
+    // https://github.com/dabreegster/severance_snape/issues/5
     if tags.is_any(
         "highway",
         vec![
@@ -185,11 +197,12 @@ fn classify(tags: &Tags) -> Option<RoadKind> {
         return Some(RoadKind::Severance);
     }
 
-    // Totally exclude these; they're just noise. We'll use the separate footways instead.
+    // Totally exclude roads that claim to have a separately mapped sidewalk; they're just noise.
     // I'm assuming there isn't a silly mix like "sidewalk:left = separate, sidewalk:right = yes".
     if tags.is("sidewalk", "separate")
         || tags.is("sidewalk:left", "separate")
         || tags.is("sidewalk:right", "separate")
+        || tags.is("sidewalk:both", "separate")
     {
         return None;
     }
@@ -197,9 +210,11 @@ fn classify(tags: &Tags) -> Option<RoadKind> {
     if tags.is("highway", "pedestrian") || tags.is_any("sidewalk", vec!["both", "right", "left"]) {
         return Some(RoadKind::WithTraffic);
     }
-    // If sidewalks aren't tagged, still assume most classes of streets have them
-    // TODO If these happen to have a separate sidewalk but sidewalk=separate is not tagged, then
-    // this will make things messier.
+
+    // No sidewalk tagging. We can make a guess about which ones are still routable for walking. In
+    // places with thoroughly tagged sidewalks, disable this. Keeping this on is usually messy,
+    // because there'll be a mix of separately mapped RoadKind::Footways and then one of these
+    // RoadKind::WithTraffic in the middle.
     if tags.is_any(
         "highway",
         vec![
@@ -215,12 +230,16 @@ fn classify(tags: &Tags) -> Option<RoadKind> {
         ],
     ) && !tags.is("foot", "no")
     {
-        return Some(RoadKind::WithTraffic);
+        if import_streets_without_sidewalk_tagging {
+            return Some(RoadKind::WithTraffic);
+        } else {
+            return None;
+        }
     }
 
-    // TODO construction?
+    // TODO highway=construction?
 
-    // TODO Maybe just use tagged / assumed speed limit instead?
+    // TODO Maybe just use tagged / assumed speed limit instead of highway classification?
 
     // TODO wait, why's this the fallback case?
     Some(RoadKind::Severance)

@@ -2,7 +2,7 @@
   import { MapModel } from "backend";
   import { onMount } from "svelte";
   import { Loading, OverpassSelector } from "../common";
-  import { map, model } from "../stores";
+  import { importStreetsWithoutSidewalkTagging, map, model } from "../stores";
 
   let example = "";
   let msg: string | null = null;
@@ -34,7 +34,10 @@
   function loadModel(buffer: ArrayBuffer) {
     msg = "Building map model from OSM input";
     console.time("load");
-    $model = new MapModel(new Uint8Array(buffer));
+    $model = new MapModel(
+      new Uint8Array(buffer),
+      $importStreetsWithoutSidewalkTagging
+    );
     console.timeEnd("load");
   }
 
