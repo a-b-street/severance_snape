@@ -1,9 +1,11 @@
 <script lang="ts">
-  import type { Feature, FeatureCollection } from "geojson";
+  import type { Feature } from "geojson";
+  import { notNull } from "./common";
+  import type { RouteGJ } from "./stores";
 
-  export let route_gj: FeatureCollection;
+  export let route_gj: RouteGJ;
 
-  function levelChanges(gj: FeatureCollection) {
+  function levelChanges(gj: RouteGJ) {
     let count = 0;
     // No windows(2)?
     for (let i = 0; i < gj.features.length - 1; i++) {
@@ -37,6 +39,8 @@
 <p>{levelChanges(route_gj)} changes in level</p>
 <ol>
   {#each route_gj.features as f}
-    <li><a href={f.properties.way} target="_blank">{@html step(f)}</a></li>
+    <li>
+      <a href={notNull(f.properties).way} target="_blank">{@html step(f)}</a>
+    </li>
   {/each}
 </ol>

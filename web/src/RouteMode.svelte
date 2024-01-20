@@ -1,7 +1,6 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
-  import type { FeatureCollection } from "geojson";
-  import type { LngLat, Map, MapMouseEvent } from "maplibre-gl";
+  import type { MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
   import {
     GeoJSON,
@@ -11,34 +10,34 @@
     Popup,
   } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { constructMatchExpression, PropertiesTable } from "./common";
+  import { constructMatchExpression, notNull, PropertiesTable } from "./common";
   import Directions from "./Directions.svelte";
   import SplitComponent from "./SplitComponent.svelte";
-  import { map, model } from "./stores";
+  import { map, model, type RouteGJ } from "./stores";
 
   // TODO Use filter expressions?
   export let showSeverances: boolean;
   export let opacity: number;
 
   // TODO Maybe need to do this when model changes
-  let bbox = turfBbox(JSON.parse($model.render()));
-  let route_a: LngLat = {
+  let bbox = turfBbox(JSON.parse($model!.render()));
+  let route_a = {
     lng: lerp(0.4, bbox[0], bbox[2]),
     lat: lerp(0.4, bbox[1], bbox[3]),
   };
-  let route_b: LngLat = {
+  let route_b = {
     lng: lerp(0.6, bbox[0], bbox[2]),
     lat: lerp(0.6, bbox[1], bbox[3]),
   };
 
   // TODO or empty
-  let route_gj: FeatureCollection | null = null;
+  let route_gj: RouteGJ | null = null;
   let route_err = "";
 
   $: if (route_a && route_b) {
     try {
       route_gj = JSON.parse(
-        $model.compareRoute({
+        $model!.compareRoute({
           x1: route_a.lng,
           y1: route_a.lat,
           x2: route_b.lng,
@@ -46,7 +45,7 @@
         })
       );
       route_err = "";
-    } catch (err) {
+    } catch (err: any) {
       route_gj = null;
       route_err = err.toString();
     }
@@ -78,7 +77,7 @@
     {/if}
   </div>
   <div slot="map">
-    <GeoJSON data={JSON.parse($model.render())} generateId>
+    <GeoJSON data={JSON.parse(notNull($model).render())} generateId>
       <LineLayer
         id="network"
         paint={{
@@ -100,11 +99,11 @@
         }}
         manageHoverState
         on:click={(e) =>
-          window.open(e.detail.features[0].properties.way, "_blank")}
+          window.open(notNull(e.detail.features[0].properties).way, "_blank")}
         hoverCursor="pointer"
       >
         <Popup openOn="hover" let:data>
-          <PropertiesTable properties={data.properties} />
+          <PropertiesTable properties={notNull(data).properties} />
         </Popup>
       </LineLayer>
     </GeoJSON>

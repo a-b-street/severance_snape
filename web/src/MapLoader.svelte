@@ -1,6 +1,5 @@
 <script lang="ts">
   import init, { MapModel } from "backend";
-  import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
   import { Loading, OverpassSelector } from "./common";
   import { map, model } from "./stores";

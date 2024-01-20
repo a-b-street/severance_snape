@@ -1,8 +1,7 @@
 <script lang="ts">
   import turfBbox from "@turf/bbox";
   import { MapModel } from "backend";
-  import type { FeatureCollection } from "geojson";
-  import type { LngLat, Map } from "maplibre-gl";
+  import type { Map } from "maplibre-gl";
   import { MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { Layout, Legend } from "./common";
@@ -31,12 +30,17 @@
   function zoomToFit() {
     if (map && $model) {
       // TODO wasteful
-      let bbox = turfBbox(JSON.parse($model.render()));
+      let bbox = turfBbox(JSON.parse($model.render())) as [
+        number,
+        number,
+        number,
+        number
+      ];
       map.fitBounds(bbox, { animate: false });
     }
   }
 
-  function gotModel(_m: MapModel) {
+  function gotModel(_m: MapModel | null) {
     if (!$model) {
       return;
     }

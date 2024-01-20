@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { MapModel } from "backend";
-  import type { FeatureCollection } from "geojson";
-  import type { Map, MapMouseEvent } from "maplibre-gl";
+  import type { Feature, FeatureCollection, LineString } from "geojson";
+  import type { MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
   import {
     GeoJSON,
@@ -13,6 +12,7 @@
   import {
     constructMatchExpression,
     makeColorRamp,
+    notNull,
     SequentialLegend,
   } from "./common";
   import SplitComponent from "./SplitComponent.svelte";
@@ -27,9 +27,10 @@
 
   function showRoute(e: CustomEvent<LayerClickInfo>) {
     try {
-      let linestring = e.detail.features[0].geometry.coordinates;
+      let linestring = (e.detail.features[0] as Feature<LineString>).geometry
+        .coordinates;
       route_gj = JSON.parse(
-        $model.compareRoute({
+        $model!.compareRoute({
           x1: linestring[0][0],
           y1: linestring[0][1],
           x2: linestring[1][0],
@@ -50,9 +51,11 @@
   });
   function onClick(e: MapMouseEvent) {
     // If we click off a severance line, clear things
-    for (let f of $map.queryRenderedFeatures(e.point, {
-      layers: ["scores"],
-    })) {
+    if (
+      $map!.queryRenderedFeatures(e.point, {
+        layers: ["scores"],
+      }).length > 0
+    ) {
       return;
     }
     route_gj = null;
@@ -64,7 +67,7 @@
     <SequentialLegend {colorScale} {limits} />
   </div>
   <div slot="map">
-    <GeoJSON data={JSON.parse($model.render())}>
+    <GeoJSON data={JSON.parse(notNull($model).render())}>
       <LineLayer
         id="network"
         paint={{
@@ -86,7 +89,7 @@
         }}
       />
     </GeoJSON>
-    <GeoJSON data={JSON.parse($model.makeHeatmap())}>
+    <GeoJSON data={JSON.parse(notNull($model).makeHeatmap())}>
       <LineLayer
         id="scores"
         paint={{
@@ -97,7 +100,7 @@
       >
         <Popup openOn="hover" let:data>
           <span style="font-size: 26px"
-            >{data.properties.score.toFixed(1)}x</span
+            >{notNull(data).properties.score.toFixed(1)}x</span
           >
         </Popup>
       </LineLayer>
