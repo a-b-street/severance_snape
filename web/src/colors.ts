@@ -3,7 +3,7 @@ export const kindToColor = {
   Indoors: "grey",
   // TODO dashed
   BridgeOrTunnel: "black",
-  Sidewalk: "black",
+  Sidewalk: "#4C3926",
   Crossing: "green",
   Severance: "red",
 };

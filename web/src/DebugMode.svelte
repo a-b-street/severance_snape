@@ -45,6 +45,7 @@
         hoverCursor="pointer"
       >
         <Popup openOn="hover" let:data>
+          <h2>Classified as {notNull(data).properties.kind}</h2>
           <PropertiesTable properties={notNull(data).properties} />
         </Popup>
       </LineLayer>
