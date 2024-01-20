@@ -2,19 +2,19 @@
   import { Modal, notNull } from "../common";
   import PolygonToolLayer from "../common/draw_polygon/PolygonToolLayer.svelte";
   import SplitComponent from "../SplitComponent.svelte";
-  import { map } from "../stores";
+  import { map, showAbout, model } from "../stores";
   import MapLoader from "./MapLoader.svelte";
 
   export let wasmReady: boolean;
 
-  // TODO Once per session
-  let showModal = true;
+  // When other modes reset here, they can't clear the model without a race condition
+  $model = null;
 </script>
 
 <SplitComponent>
   <div slot="sidebar">
-    {#if showModal}
-      <Modal on:close={() => (showModal = false)} let:dialog>
+    {#if $showAbout}
+      <Modal on:close={() => ($showAbout = false)} let:dialog>
         <h1>Severance Snape</h1>
         <p>
           This is an <b>experimental</b> tool to study "severances" for people walking.
@@ -77,7 +77,8 @@
     {/if}
 
     <h1>Choose your study area</h1>
-    <button on:click={() => (showModal = true)}>About the crossing tool</button>
+    <button on:click={() => ($showAbout = true)}>About the crossing tool</button
+    >
     <hr />
 
     {#if $map && wasmReady}
