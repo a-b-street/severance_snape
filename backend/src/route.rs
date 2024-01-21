@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 use fast_paths::{FastGraph, InputGraph};
-use geo::{HaversineLength, LineString};
+use geo::{EuclideanLength, LineString};
 use geojson::{Feature, FeatureCollection};
 use rstar::RTree;
 
@@ -27,7 +27,8 @@ pub fn build_router(
         }
         let node1 = node_map.get_or_insert(r.src_i);
         let node2 = node_map.get_or_insert(r.dst_i);
-        let cost = r.linestring.haversine_length() as usize;
+        // Use units of cm for comparing edges
+        let cost = (100.0 * r.linestring.euclidean_length()).round() as usize;
         input_graph.add_edge(node1, node2, cost);
         input_graph.add_edge(node2, node1, cost);
     }
@@ -91,9 +92,9 @@ pub fn do_route(
             let i2 = map.node_map.translate_id(pair[1]);
             let road = map.find_edge(i1, i2);
             features.push(road.to_gj(&map.mercator));
-            route_length += road.linestring.haversine_length();
+            route_length += road.linestring.euclidean_length();
         }
-        let direct_length = direct_line.haversine_length();
+        let direct_length = direct_line.euclidean_length();
         return Ok((
             direct_feature,
             FeatureCollection {

@@ -78,6 +78,20 @@
             >OpenStreetMap</a
           > data.
         </p>
+
+        <details>
+          <summary>Changelog</summary>
+          <p>
+            <a
+              href="https://github.com/dabreegster/severance_snape/commits/"
+              target="_blank">GitHub</a
+            > has more detail; this is a summary
+          </p>
+          <ul>
+            <li>21 January - fix shortest route calculations</li>
+          </ul>
+        </details>
+
         <center
           ><button on:click={() => notNull(dialog).close()}>Start!</button
           ></center
