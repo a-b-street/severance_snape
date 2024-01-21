@@ -11,9 +11,16 @@
       }
     }
   }
+
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key == "Escape" || e.key == "Enter") {
+      e.stopPropagation();
+      dialog.close();
+    }
+  }
 </script>
 
-<svelte:window on:click={onClick} />
+<svelte:window on:click={onClick} on:keydown={onKeyDown} />
 
 <dialog open on:close bind:this={dialog}>
   <div>
