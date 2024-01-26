@@ -33,7 +33,7 @@
           y1: route_a.lat,
           x2: route_b.lng,
           y2: route_b.lat,
-        })
+        }),
       );
       route_err = "";
     } catch (err: any) {

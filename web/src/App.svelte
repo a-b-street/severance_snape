@@ -36,7 +36,7 @@
     if (map && $model) {
       map.fitBounds(
         Array.from($model.getBounds()) as [number, number, number, number],
-        { animate: false }
+        { animate: false },
       );
     }
   }

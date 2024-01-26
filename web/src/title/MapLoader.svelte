@@ -36,7 +36,7 @@
     console.time("load");
     $model = new MapModel(
       new Uint8Array(buffer),
-      $importStreetsWithoutSidewalkTagging
+      $importStreetsWithoutSidewalkTagging,
     );
     console.timeEnd("load");
   }
@@ -58,7 +58,7 @@
         await loadFromUrl(`/${example}.pbf`);
       } else {
         await loadFromUrl(
-          `https://assets.od2net.org/severance_pbfs/${example}.pbf`
+          `https://assets.od2net.org/severance_pbfs/${example}.pbf`,
         );
       }
     }

@@ -28,7 +28,7 @@
           "line-color": constructMatchExpression(
             ["get", "kind"],
             kindToColor,
-            "yellow"
+            "yellow",
           ),
           "line-opacity": showSeverances
             ? opacity / 100
@@ -37,7 +37,7 @@
                 {
                   Severance: 0.0,
                 },
-                opacity / 100.0
+                opacity / 100.0,
               ),
         }}
         manageHoverState

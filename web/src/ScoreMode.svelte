@@ -31,7 +31,7 @@
           y1: linestring[0][1],
           x2: linestring[1][0],
           y2: linestring[1][1],
-        })
+        }),
       );
     } catch (err) {
       window.alert(`No route: ${err}`);
