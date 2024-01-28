@@ -1,7 +1,12 @@
 <script lang="ts">
-  import { GeoJSON, hoverStateFilter, LineLayer, Popup } from "svelte-maplibre";
+  import { GeoJSON, hoverStateFilter, LineLayer } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { constructMatchExpression, notNull, PropertiesTable } from "./common";
+  import {
+    constructMatchExpression,
+    notNull,
+    Popup,
+    PropertiesTable,
+  } from "./common";
   import SplitComponent from "./SplitComponent.svelte";
   import { mode, model } from "./stores";
 
@@ -45,9 +50,9 @@
           window.open(notNull(e.detail.features[0].properties).way, "_blank")}
         hoverCursor="pointer"
       >
-        <Popup openOn="hover" let:data>
-          <h2>Classified as {notNull(data).properties.kind}</h2>
-          <PropertiesTable properties={notNull(data).properties} />
+        <Popup openOn="hover" let:props>
+          <h2>Classified as {props.kind}</h2>
+          <PropertiesTable properties={props} />
         </Popup>
       </LineLayer>
     </GeoJSON>

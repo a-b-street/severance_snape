@@ -2,14 +2,9 @@
   import type { Feature, FeatureCollection, LineString } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
-  import {
-    GeoJSON,
-    LineLayer,
-    Popup,
-    type LayerClickInfo,
-  } from "svelte-maplibre";
+  import { GeoJSON, LineLayer, type LayerClickInfo } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
-  import { makeColorRamp, notNull, SequentialLegend } from "./common";
+  import { makeColorRamp, Popup, notNull, SequentialLegend } from "./common";
   import NetworkLayer from "./NetworkLayer.svelte";
   import SplitComponent from "./SplitComponent.svelte";
   import { map, mode, model } from "./stores";
@@ -84,10 +79,8 @@
         }}
         on:click={showRoute}
       >
-        <Popup openOn="hover" let:data>
-          <span style="font-size: 26px"
-            >{notNull(data).properties.score.toFixed(1)}x</span
-          >
+        <Popup openOn="hover" let:props>
+          <span style="font-size: 26px">{props.score.toFixed(1)}x</span>
         </Popup>
       </LineLayer>
     </GeoJSON>
