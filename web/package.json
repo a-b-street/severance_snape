@@ -28,6 +28,6 @@
   "dependencies": {
     "@turf/nearest-point-on-line": "^6.5.0",
     "@types/geojson": "^7946.0.13",
-    "svelte-maplibre": "^0.7.6"
+    "svelte-maplibre": "^0.7.7"
   }
 }
