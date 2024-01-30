@@ -7,13 +7,22 @@
   let example = "";
   let msg: string | null = null;
   let useLocalVite = false;
+  let exampleAreas: [string, [string, string][]][] = [];
 
   onMount(async () => {
     // When running locally if a vite public/ directory is set up, load from that for speed
     try {
-      let resp = await fetch("/kowloon.pbf", { method: "HEAD" });
-      useLocalVite = resp.ok;
-      console.log("Using local cache, not od2net.org");
+      let resp = await fetch("/osm/areas.json");
+      if (resp.ok) {
+        useLocalVite = true;
+        console.log("Using local cache, not od2net.org");
+        exampleAreas = await resp.json();
+      } else {
+        let resp = await fetch(
+          `https://assets.od2net.org/severance_pbfs/areas.json`,
+        );
+        exampleAreas = await resp.json();
+      }
 
       // For quicker dev
       //example = "kowloon";
@@ -83,21 +92,15 @@
   <div>
     <label>
       Load an example:
-      <select bind:value={example}>
+      <select bind:value={example} on:change={() => loadExample(example)}>
         <option value="">Custom file loaded</option>
-        <option value="akihabara">Akihabara</option>
-        <option value="hanegi">Hanegi Park</option>
-        <option value="harujuku">Harujuku</option>
-        <option value="taipei_main_station">Taipei main station</option>
-        <option value="ximending">Ximending</option>
-        <option value="hong_kong">Hong Kong</option>
-        <option value="kowloon">Kowloon</option>
-        <option value="bristol">Bristol</option>
-        <option value="elephant_castle">Elephant & Castle</option>
-        <option value="westminster">Westminster</option>
-        <option value="montlake">Montlake</option>
-        <option value="strasbourg">Strasbourg</option>
-        <option value="warsaw">Warsaw</option>
+        {#each exampleAreas as [country, areas]}
+          <optgroup label={country}>
+            {#each areas as [value, label]}
+              <option {value}>{label}</option>
+            {/each}
+          </optgroup>
+        {/each}
       </select>
     </label>
   </div>
