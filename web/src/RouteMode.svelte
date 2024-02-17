@@ -11,7 +11,7 @@
   export let opacity: number;
 
   // TODO Maybe need to do this when model changes
-  let bbox = Array.from($model!.getBounds());
+  let bbox: number[] = Array.from($model!.getBounds());
   let route_a = {
     lng: lerp(0.4, bbox[0], bbox[2]),
     lat: lerp(0.4, bbox[1], bbox[3]),
