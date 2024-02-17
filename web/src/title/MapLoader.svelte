@@ -88,38 +88,36 @@
 
 <Loading {msg} />
 
-<div style="border: 1px solid black; padding: 8px;">
-  <div>
-    <label>
-      Load an example:
-      <select bind:value={example} on:change={() => loadExample(example)}>
-        <option value="">Custom file loaded</option>
-        {#each exampleAreas as [country, areas]}
-          <optgroup label={country}>
-            {#each areas as [value, label]}
-              <option {value}>{label}</option>
-            {/each}
-          </optgroup>
-        {/each}
-      </select>
-    </label>
-  </div>
-
-  <i>or...</i>
-
-  <div>
-    <label>
-      Load an osm.xml or a .pbf file:
-      <input bind:this={fileInput} on:change={loadFile} type="file" />
-    </label>
-  </div>
-
-  <i>or...</i>
-
-  <OverpassSelector
-    map={$map}
-    on:gotXml={gotXml}
-    on:loading={(e) => (msg = e.detail)}
-    on:error={(e) => window.alert(e.detail)}
-  />
+<div>
+  <label>
+    Load an example:
+    <select bind:value={example} on:change={() => loadExample(example)}>
+      <option value="">Custom file loaded</option>
+      {#each exampleAreas as [country, areas]}
+        <optgroup label={country}>
+          {#each areas as [value, label]}
+            <option {value}>{label}</option>
+          {/each}
+        </optgroup>
+      {/each}
+    </select>
+  </label>
 </div>
+
+<i>or...</i>
+
+<div>
+  <label>
+    Load an osm.xml or a .pbf file:
+    <input bind:this={fileInput} on:change={loadFile} type="file" />
+  </label>
+</div>
+
+<i>or...</i>
+
+<OverpassSelector
+  map={$map}
+  on:gotXml={gotXml}
+  on:loading={(e) => (msg = e.detail)}
+  on:error={(e) => window.alert(e.detail)}
+/>

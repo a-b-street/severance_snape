@@ -6,14 +6,6 @@
 </div>
 
 <style>
-  * {
-    box-sizing: border-box;
-  }
-
-  :global(body) {
-    margin: 0px;
-  }
-
   div {
     float: left;
   }

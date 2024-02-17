@@ -88,6 +88,7 @@
             > has more detail; this is a summary
           </p>
           <ul>
+            <li>17 February - use Pico for styling</li>
             <li>21 January - fix shortest route calculations</li>
           </ul>
         </details>

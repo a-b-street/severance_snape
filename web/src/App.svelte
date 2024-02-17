@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "@picocss/pico/css/pico.jade.min.css";
   import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
@@ -127,9 +128,3 @@
     </MapLibre>
   </div>
 </Layout>
-
-<style>
-  :global(body, button, input) {
-    font-size: 26px;
-  }
-</style>
