@@ -64,7 +64,7 @@
   async function loadExample(example: string) {
     if (example != "") {
       if (useLocalVite) {
-        await loadFromUrl(`/${example}.pbf`);
+        await loadFromUrl(`/osm/${example}.pbf`);
       } else {
         await loadFromUrl(
           `https://assets.od2net.org/severance_pbfs/${example}.pbf`,
