@@ -2,8 +2,7 @@
   import type { Feature, Polygon } from "geojson";
   import type { LngLat, Map } from "maplibre-gl";
   import { createEventDispatcher } from "svelte";
-  import { PolygonTool } from "./draw_polygon/polygon_tool";
-  import PolygonControls from "./draw_polygon/PolygonControls.svelte";
+  import { PolygonControls, PolygonTool } from "maplibre-draw-polygon";
 
   export let map: Map | null;
 
@@ -14,12 +13,6 @@
   }>();
 
   let polygonTool: PolygonTool | null = null;
-
-  /*map.on("draw.create", async (e) => {
-      let boundaryGj = e.features[0];
-      drawControls!.deleteAll();
-      await importPolygon(boundaryGj);
-    });*/
 
   async function importPolygon(boundaryGj: Feature<Polygon>) {
     try {

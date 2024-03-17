@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@picocss/pico": "^2.0.3",
-    "@turf/nearest-point-on-line": "^6.5.0",
+    "maplibre-draw-polygon": "github:dabreegster/maplibre-draw-polygon",
     "svelte-maplibre": "^0.8.1"
   }
 }

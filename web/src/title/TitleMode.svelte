@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Modal, notNull } from "../common";
-  import PolygonToolLayer from "../common/draw_polygon/PolygonToolLayer.svelte";
+  import { PolygonToolLayer } from "maplibre-draw-polygon";
   import SplitComponent from "../SplitComponent.svelte";
   import {
     importStreetsWithoutSidewalkTagging,

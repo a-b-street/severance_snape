@@ -6,7 +6,7 @@
   import { FillLayer, GeoJSON, MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { Layout, Legend } from "./common";
-  import PolygonToolLayer from "./common/draw_polygon/PolygonToolLayer.svelte";
+  import { PolygonToolLayer } from "maplibre-draw-polygon";
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
