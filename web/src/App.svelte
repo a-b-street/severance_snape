@@ -5,7 +5,7 @@
   import { onMount } from "svelte";
   import { FillLayer, GeoJSON, MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { Layout, Legend } from "./common";
+  import { Geocoder, Layout, Legend } from "./common";
   import { PolygonToolLayer } from "maplibre-draw-polygon";
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
@@ -16,6 +16,7 @@
     mode,
     model,
     sidebarContents,
+    maptilerApiKey,
   } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
 
@@ -102,11 +103,12 @@
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style="https://api.maptiler.com/maps/dataviz/style.json?key=MZEJTanw3WpxRvt7qDfo"
+      style={`https://api.maptiler.com/maps/dataviz/style.json?key=${maptilerApiKey}`}
       standardControls
       hash
       bind:map
     >
+      <Geocoder />
       <div bind:this={mapDiv} />
 
       <PolygonToolLayer />
