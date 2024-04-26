@@ -5,7 +5,8 @@
   import NetworkLayer from "./NetworkLayer.svelte";
   import SplitComponent from "./SplitComponent.svelte";
   import { mode, model } from "./stores";
-  import { makeColorRamp, Popup, SequentialLegend } from "./common";
+  import { makeColorRamp, Popup } from "./common";
+  import { SequentialLegend } from "svelte-utils";
 
   export let showSeverances: boolean;
   export let opacity: number;

@@ -1,11 +1,12 @@
 <script lang="ts">
   import { MapModel } from "backend";
   import { onMount } from "svelte";
-  import { Loading, OverpassSelector } from "../common";
+  import { OverpassSelector } from "../common";
+  import { Loading } from "svelte-utils";
   import { importStreetsWithoutSidewalkTagging, map, model } from "../stores";
 
   let example = "";
-  let msg: string | null = null;
+  let loading = "";
   let useLocalVite = false;
   let exampleAreas: [string, [string, string][]][] = [];
 
@@ -37,11 +38,11 @@
     } catch (err) {
       window.alert(`Couldn't open this file: ${err}`);
     }
-    msg = null;
+    loading = "";
   }
 
   function loadModel(buffer: ArrayBuffer) {
-    msg = "Building map model from OSM input";
+    loading = "Building map model from OSM input";
     console.time("load");
     $model = new MapModel(
       new Uint8Array(buffer),
@@ -58,7 +59,7 @@
     } catch (err) {
       window.alert(`Couldn't import from Overpass: ${err}`);
     }
-    msg = null;
+    loading = "";
   }
 
   async function loadExample(example: string) {
@@ -76,17 +77,17 @@
 
   async function loadFromUrl(url: string) {
     try {
-      msg = `Downloading ${url}`;
+      loading = `Downloading ${url}`;
       let resp = await fetch(url);
       loadModel(await resp.arrayBuffer());
     } catch (err) {
       window.alert(`Couldn't open from URL ${url}: ${err}`);
     }
-    msg = null;
+    loading = "";
   }
 </script>
 
-<Loading {msg} />
+<Loading {loading} />
 
 <div>
   <label>
@@ -118,6 +119,6 @@
 <OverpassSelector
   map={$map}
   on:gotXml={gotXml}
-  on:loading={(e) => (msg = e.detail)}
+  on:loading={(e) => (loading = e.detail)}
   on:error={(e) => window.alert(e.detail)}
 />
