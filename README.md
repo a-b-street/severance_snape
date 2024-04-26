@@ -7,7 +7,7 @@ want to cross. But often, a person might have to walk a few blocks to reach the
 nearest crossing -- and then they might have to go up or down stairs to cross
 on a bridge or a tunnel!
 
-The app itself explains more: <https://dabreegster.github.io/severance_snape>
+The app itself explains more: <https://a-b-street.github.io/severance_snape>
 
 ## Developer guide
 
