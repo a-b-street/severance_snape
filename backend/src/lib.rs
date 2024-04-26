@@ -9,9 +9,9 @@ use geo::{Coord, Line, LineString, Point, Polygon};
 use geojson::{Feature, GeoJson, Geometry};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
+use utils::{Mercator, NodeMap, Tags};
 use wasm_bindgen::prelude::*;
 
-mod common;
 mod heatmap;
 mod isochrone;
 mod route;
@@ -24,10 +24,10 @@ pub struct MapModel {
     roads: Vec<Road>,
     intersections: Vec<Intersection>,
     // All geometry stored in worldspace, including rtrees
-    mercator: common::Mercator,
+    mercator: Mercator,
     // Only snaps to walkable roads
     closest_intersection: RTree<IntersectionLocation>,
-    node_map: common::NodeMap<IntersectionID>,
+    node_map: NodeMap<IntersectionID>,
     ch: FastGraph,
     path_calc: PathCalculator,
     boundary_polygon: Polygon,
@@ -58,7 +58,7 @@ pub struct Road {
     node1: osm_reader::NodeID,
     node2: osm_reader::NodeID,
     linestring: LineString,
-    tags: common::Tags,
+    tags: Tags,
     kind: RoadKind,
 }
 
@@ -194,7 +194,7 @@ impl MapModel {
 }
 
 impl Road {
-    fn to_gj(&self, mercator: &common::Mercator) -> Feature {
+    fn to_gj(&self, mercator: &Mercator) -> Feature {
         let mut f = Feature::from(Geometry::from(&mercator.to_wgs84(&self.linestring)));
         f.set_property("id", self.id.0);
         f.set_property("kind", format!("{:?}", self.kind));

@@ -3,8 +3,8 @@ use fast_paths::{FastGraph, InputGraph};
 use geo::{EuclideanLength, LineString};
 use geojson::{Feature, FeatureCollection};
 use rstar::RTree;
+use utils::NodeMap;
 
-use crate::common::NodeMap;
 use crate::{
     CompareRouteRequest, Intersection, IntersectionID, IntersectionLocation, MapModel, Road,
     RoadKind,
