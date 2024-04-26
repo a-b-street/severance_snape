@@ -8,6 +8,7 @@
   import { Geocoder, Layout, Legend } from "./common";
   import { PolygonToolLayer } from "maplibre-draw-polygon";
   import DebugMode from "./DebugMode.svelte";
+  import IsochroneMode from "./IsochroneMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
   import {
@@ -125,6 +126,8 @@
           <ScoreMode {showSeverances} {opacity} />
         {:else if $mode == "debug"}
           <DebugMode {showSeverances} {opacity} />
+        {:else if $mode == "isochrone"}
+          <IsochroneMode {showSeverances} {opacity} />
         {/if}
       {/if}
     </MapLibre>

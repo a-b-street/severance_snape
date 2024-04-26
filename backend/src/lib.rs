@@ -13,6 +13,7 @@ use wasm_bindgen::prelude::*;
 
 mod common;
 mod heatmap;
+mod isochrone;
 mod route;
 mod scrape;
 
@@ -102,7 +103,7 @@ impl MapModel {
 
     /// Returns a GeoJSON string. Just shows the full ped network
     #[wasm_bindgen()]
-    pub fn render(&mut self) -> Result<String, JsValue> {
+    pub fn render(&self) -> Result<String, JsValue> {
         let mut features = Vec::new();
 
         for r in &self.roads {
@@ -173,6 +174,13 @@ impl MapModel {
         vec![b.min().x, b.min().y, b.max().x, b.max().y]
     }
 
+    #[wasm_bindgen(js_name = isochrone)]
+    pub fn isochrone(&self, input: JsValue) -> Result<String, JsValue> {
+        let req: IsochroneRequest = serde_wasm_bindgen::from_value(input)?;
+        let start = self.mercator.pt_to_mercator(Coord { x: req.x, y: req.y });
+        isochrone::calculate(&self, start).map_err(err_to_js)
+    }
+
     fn find_edge(&self, i1: IntersectionID, i2: IntersectionID) -> &Road {
         // TODO Store lookup table
         for r in &self.intersections[i1.0].roads {
@@ -219,6 +227,12 @@ impl From<Line> for CompareRouteRequest {
             y2: line.end.y,
         }
     }
+}
+
+#[derive(Deserialize)]
+pub struct IsochroneRequest {
+    x: f64,
+    y: f64,
 }
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {

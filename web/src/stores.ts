@@ -8,7 +8,7 @@ export let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
 export let sidebarContents: Writable<HTMLDivElement | null> = writable(null);
 export let mapContents: Writable<HTMLDivElement | null> = writable(null);
 
-export type Mode = "title" | "score" | "route" | "debug";
+export type Mode = "title" | "score" | "route" | "debug" | "isochrone";
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;
   route_length: number;
