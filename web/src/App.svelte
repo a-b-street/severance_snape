@@ -5,7 +5,8 @@
   import { onMount } from "svelte";
   import { FillLayer, GeoJSON, MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { Geocoder, Layout, Legend } from "./common";
+  import { Geocoder, Layout } from "./common";
+  import { Legend } from "svelte-utils";
   import { PolygonToolLayer } from "maplibre-draw-polygon";
   import DebugMode from "./DebugMode.svelte";
   import IsochroneMode from "./IsochroneMode.svelte";
