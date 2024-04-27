@@ -17,7 +17,6 @@
       <button on:click={() => ($mode = "title")}>Change study area</button>
       <button on:click={() => ($mode = "route")}>Route mode</button>
       <button on:click={() => ($mode = "score")}>Score mode</button>
-      <button on:click={() => ($mode = "isochrone")}>Isochrones</button>
     </div>
     <p>Hover to see a segment's properties, and click to open OSM</p>
   </div>

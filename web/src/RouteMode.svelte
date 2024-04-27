@@ -66,7 +66,6 @@
       <button on:click={() => ($mode = "score")}>Score mode</button>
     </div>
     <button on:click={() => ($mode = "debug")}>Debug OSM</button>
-    <button on:click={() => ($mode = "isochrone")}>Isochrones</button>
     <p>
       Move the <b>A</b> and <b>B</b> pins to find a walking route. (Hint: right-click
       to set the first pin somewhere.)

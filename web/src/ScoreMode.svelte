@@ -62,7 +62,6 @@
       <button on:click={() => ($mode = "route")}>Route mode</button>
     </div>
     <button on:click={() => ($mode = "debug")}>Debug OSM</button>
-    <button on:click={() => ($mode = "isochrone")}>Isochrones</button>
     <p>
       The desire lines are coloured based on their detour factor. <b>Click</b> one
       to see the route
