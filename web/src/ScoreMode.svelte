@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { SequentialLegend } from "svelte-utils";
+  import { SequentialLegend, Popup } from "svelte-utils";
   import type { Feature, FeatureCollection, LineString } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
   import { onDestroy, onMount } from "svelte";
   import { GeoJSON, LineLayer, type LayerClickInfo } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
-  import { makeColorRamp, Popup, notNull } from "./common";
+  import { makeColorRamp, notNull } from "./common";
   import NetworkLayer from "./NetworkLayer.svelte";
   import SplitComponent from "./SplitComponent.svelte";
   import { map, mode, model } from "./stores";
