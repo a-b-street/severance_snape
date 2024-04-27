@@ -5,8 +5,8 @@
   import { onMount } from "svelte";
   import { FillLayer, GeoJSON, MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { Geocoder, Layout } from "./common";
-  import { Legend } from "svelte-utils";
+  import { Layout } from "./common";
+  import { Geocoder, Legend } from "svelte-utils";
   import { PolygonToolLayer } from "maplibre-draw-polygon";
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
@@ -109,7 +109,7 @@
       hash
       bind:map
     >
-      <Geocoder />
+      <Geocoder {map} apiKey={maptilerApiKey} />
       <div bind:this={mapDiv} />
 
       <PolygonToolLayer />
