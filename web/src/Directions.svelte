@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Feature } from "geojson";
-  import { notNull } from "./common";
+  import { notNull } from "svelte-utils";
   import type { RouteGJ } from "./stores";
 
   export let route_gj: RouteGJ;

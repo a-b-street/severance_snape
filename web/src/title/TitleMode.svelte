@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { notNull } from "../common";
-  import { Modal } from "svelte-utils";
+  import { notNull, Modal } from "svelte-utils";
   import { PolygonToolLayer } from "maplibre-draw-polygon";
   import SplitComponent from "../SplitComponent.svelte";
   import {

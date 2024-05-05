@@ -1,7 +1,7 @@
 <script lang="ts">
   import { GeoJSON, LineLayer } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { constructMatchExpression, notNull } from "./common";
+  import { constructMatchExpression, notNull } from "svelte-utils";
   import { model } from "./stores";
 
   // TODO Use filter expressions?
