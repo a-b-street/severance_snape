@@ -1,11 +1,10 @@
 <script lang="ts">
   import type { MapMouseEvent } from "maplibre-gl";
-  import { onDestroy, onMount } from "svelte";
-  import { GeoJSON, LineLayer, Marker } from "svelte-maplibre";
+  import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import SplitComponent from "./SplitComponent.svelte";
-  import { map, mode, model, type RouteGJ } from "./stores";
+  import { mode, model, type RouteGJ } from "./stores";
 
   export let showSeverances: boolean;
   export let opacity: number;
@@ -42,15 +41,9 @@
     }
   }
 
-  onMount(() => {
-    $map?.on("contextmenu", onRightClick);
-  });
-  onDestroy(() => {
-    $map?.off("contextmenu", onRightClick);
-  });
-  function onRightClick(e: MapMouseEvent) {
+  function onRightClick(e: CustomEvent<MapMouseEvent>) {
     // Move the first marker, for convenience
-    route_a = e.lngLat;
+    route_a = e.detail.lngLat;
   }
 
   function lerp(pct: number, a: number, b: number): number {
@@ -78,6 +71,8 @@
     {/if}
   </div>
   <div slot="map">
+    <MapEvents on:contextmenu={onRightClick} />
+
     <NetworkLayer {showSeverances} {opacity} />
 
     <Marker bind:lngLat={route_a} draggable><span class="dot">A</span></Marker>

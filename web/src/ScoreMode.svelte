@@ -7,8 +7,12 @@
   } from "svelte-utils";
   import type { Feature, FeatureCollection, LineString } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
-  import { onDestroy, onMount } from "svelte";
-  import { GeoJSON, LineLayer, type LayerClickInfo } from "svelte-maplibre";
+  import {
+    MapEvents,
+    GeoJSON,
+    LineLayer,
+    type LayerClickInfo,
+  } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import NetworkLayer from "./NetworkLayer.svelte";
   import SplitComponent from "./SplitComponent.svelte";
@@ -39,16 +43,10 @@
     }
   }
 
-  onMount(() => {
-    $map?.on("click", onClick);
-  });
-  onDestroy(() => {
-    $map?.off("click", onClick);
-  });
-  function onClick(e: MapMouseEvent) {
+  function onClick(e: CustomEvent<MapMouseEvent>) {
     // If we click off a severance line, clear things
     if (
-      $map!.queryRenderedFeatures(e.point, {
+      $map!.queryRenderedFeatures(e.detail.point, {
         layers: ["scores"],
       }).length > 0
     ) {
@@ -73,6 +71,8 @@
     <SequentialLegend {colorScale} {limits} />
   </div>
   <div slot="map">
+    <MapEvents on:click={onClick} />
+
     <NetworkLayer {showSeverances} {opacity} />
 
     <GeoJSON data={JSON.parse(notNull($model).makeHeatmap())}>
