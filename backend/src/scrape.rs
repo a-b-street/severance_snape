@@ -7,9 +7,11 @@ pub fn scrape_osm(
     input_bytes: &[u8],
     import_streets_without_sidewalk_tagging: bool,
 ) -> Result<MapModel> {
-    let graph = utils::osm2graph::Graph::new(input_bytes, |tags| {
-        classify(tags, import_streets_without_sidewalk_tagging).is_some()
-    })?;
+    let graph = utils::osm2graph::Graph::new(
+        input_bytes,
+        |tags| classify(tags, import_streets_without_sidewalk_tagging).is_some(),
+        &mut utils::osm2graph::NullReader,
+    )?;
 
     // Copy all the fields
     let intersections = graph
