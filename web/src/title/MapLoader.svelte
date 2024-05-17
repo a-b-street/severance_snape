@@ -1,7 +1,8 @@
 <script lang="ts">
   import { MapModel } from "backend";
   import { onMount } from "svelte";
-  import { Loading, OverpassSelector } from "svelte-utils";
+  import { Loading } from "svelte-utils";
+  import { OverpassSelector } from "svelte-utils/overpass";
   import { importStreetsWithoutSidewalkTagging, map, model } from "../stores";
 
   let example = "";

@@ -5,21 +5,19 @@
   import { onMount } from "svelte";
   import { FillLayer, GeoJSON, MapLibre } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { Layout } from "./common";
-  import { Geocoder, Legend } from "svelte-utils";
+  import { Legend } from "svelte-utils";
+  import { Geocoder } from "svelte-utils/map";
   import { PolygonToolLayer } from "maplibre-draw-polygon";
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
-  import {
-    mapContents,
-    map as mapStore,
-    mode,
-    model,
-    sidebarContents,
-    maptilerApiKey,
-  } from "./stores";
+  import { map as mapStore, mode, model, maptilerApiKey } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
+  import {
+    Layout,
+    mapContents,
+    sidebarContents,
+  } from "svelte-utils/two_column_layout";
 
   let wasmReady = false;
   onMount(async () => {

@@ -1,10 +1,6 @@
 <script lang="ts">
-  import {
-    SequentialLegend,
-    Popup,
-    makeColorRamp,
-    notNull,
-  } from "svelte-utils";
+  import { SequentialLegend, notNull } from "svelte-utils";
+  import { Popup, makeColorRamp } from "svelte-utils/map";
   import type { Feature, FeatureCollection, LineString } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
   import {
@@ -15,7 +11,7 @@
   } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import NetworkLayer from "./NetworkLayer.svelte";
-  import SplitComponent from "./SplitComponent.svelte";
+  import { SplitComponent } from "svelte-utils/two_column_layout";
   import { map, mode, model } from "./stores";
 
   export let showSeverances: boolean;

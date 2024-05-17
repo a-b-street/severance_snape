@@ -3,7 +3,7 @@
   import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
-  import SplitComponent from "./SplitComponent.svelte";
+  import { SplitComponent } from "svelte-utils/two_column_layout";
   import { mode, model, type RouteGJ } from "./stores";
 
   export let showSeverances: boolean;

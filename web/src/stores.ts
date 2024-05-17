@@ -5,9 +5,6 @@ import { writable, type Writable } from "svelte/store";
 
 export let maptilerApiKey = "MZEJTanw3WpxRvt7qDfo";
 
-export let sidebarContents: Writable<HTMLDivElement | null> = writable(null);
-export let mapContents: Writable<HTMLDivElement | null> = writable(null);
-
 export type Mode = "title" | "score" | "route" | "debug";
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;

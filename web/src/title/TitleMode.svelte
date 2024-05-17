@@ -1,7 +1,7 @@
 <script lang="ts">
   import { notNull, Modal } from "svelte-utils";
   import { PolygonToolLayer } from "maplibre-draw-polygon";
-  import SplitComponent from "../SplitComponent.svelte";
+  import { SplitComponent } from "svelte-utils/two_column_layout";
   import {
     importStreetsWithoutSidewalkTagging,
     map,

@@ -1,13 +1,9 @@
 <script lang="ts">
   import { GeoJSON, hoverStateFilter, LineLayer } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import SplitComponent from "./SplitComponent.svelte";
-  import {
-    PropertiesTable,
-    Popup,
-    constructMatchExpression,
-    notNull,
-  } from "svelte-utils";
+  import { SplitComponent } from "svelte-utils/two_column_layout";
+  import { PropertiesTable, notNull } from "svelte-utils";
+  import { Popup, constructMatchExpression } from "svelte-utils/map";
   import { mode, model } from "./stores";
 
   export let showSeverances: boolean;
