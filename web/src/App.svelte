@@ -18,6 +18,7 @@
     model,
     maptilerApiKey,
     showAbout,
+    routeMode,
   } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
   import {
@@ -57,7 +58,7 @@
     }
     console.log("New map model loaded");
     zoomToFit();
-    $mode = "route";
+    $mode = routeMode();
   }
   $: gotModel($model);
 
@@ -90,7 +91,7 @@
     <h1>Severance Snape</h1>
     <div bind:this={sidebarDiv} />
 
-    {#if $mode != "title"}
+    {#if $mode.kind != "title"}
       <hr />
       <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
@@ -136,18 +137,23 @@
       <div bind:this={mapDiv} />
 
       <PolygonToolLayer />
-      {#if $mode == "title"}
+      {#if $mode.kind == "title"}
         <TitleMode {wasmReady} />
       {/if}
       {#if $model}
         <GeoJSON data={JSON.parse($model.getInvertedBoundary())}>
           <FillLayer paint={{ "fill-color": "black", "fill-opacity": 0.3 }} />
         </GeoJSON>
-        {#if $mode == "route"}
-          <RouteMode {showSeverances} {opacity} />
-        {:else if $mode == "score"}
+        {#if $mode.kind == "route"}
+          <RouteMode
+            {showSeverances}
+            {opacity}
+            route_a={$mode.route_a}
+            route_b={$mode.route_b}
+          />
+        {:else if $mode.kind == "score"}
           <ScoreMode {showSeverances} {opacity} />
-        {:else if $mode == "debug"}
+        {:else if $mode.kind == "debug"}
           <DebugMode {showSeverances} {opacity} />
         {/if}
       {/if}

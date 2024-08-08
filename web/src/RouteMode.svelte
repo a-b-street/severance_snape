@@ -7,19 +7,10 @@
   import { model, type RouteGJ } from "./stores";
   import NavBar from "./NavBar.svelte";
 
+  export let route_a: [number, number];
+  export let route_b: [number, number];
   export let showSeverances: boolean;
   export let opacity: number;
-
-  // TODO Maybe need to do this when model changes
-  let bbox: number[] = Array.from($model!.getBounds());
-  let route_a = {
-    lng: lerp(0.4, bbox[0], bbox[2]),
-    lat: lerp(0.4, bbox[1], bbox[3]),
-  };
-  let route_b = {
-    lng: lerp(0.6, bbox[0], bbox[2]),
-    lat: lerp(0.6, bbox[1], bbox[3]),
-  };
 
   // TODO or empty
   let route_gj: RouteGJ | null = null;
@@ -29,10 +20,10 @@
     try {
       route_gj = JSON.parse(
         $model!.compareRoute({
-          x1: route_a.lng,
-          y1: route_a.lat,
-          x2: route_b.lng,
-          y2: route_b.lat,
+          x1: route_a[0],
+          y1: route_a[1],
+          x2: route_b[0],
+          y2: route_b[1],
         }),
       );
       route_err = "";
@@ -44,11 +35,7 @@
 
   function onRightClick(e: CustomEvent<MapMouseEvent>) {
     // Move the first marker, for convenience
-    route_a = e.detail.lngLat;
-  }
-
-  function lerp(pct: number, a: number, b: number): number {
-    return a + pct * (b - a);
+    route_a = e.detail.lngLat.toArray();
   }
 </script>
 

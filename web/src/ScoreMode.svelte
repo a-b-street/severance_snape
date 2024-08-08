@@ -12,30 +12,32 @@
   import { colorScale, limits } from "./colors";
   import NetworkLayer from "./NetworkLayer.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import { map, model } from "./stores";
+  import { map, model, mode } from "./stores";
   import NavBar from "./NavBar.svelte";
 
   export let showSeverances: boolean;
   export let opacity: number;
 
+  let desire_line: [number, number][] | null = null;
   let route_gj: FeatureCollection | null = null;
 
   // TODO hack... need to toggle off interactiveness of network layer, so just copy it?
 
   function showRoute(e: CustomEvent<LayerClickInfo>) {
     try {
-      let linestring = (e.detail.features[0] as Feature<LineString>).geometry
-        .coordinates;
+      desire_line = (e.detail.features[0] as Feature<LineString>).geometry
+        .coordinates as [number, number][];
       route_gj = JSON.parse(
         $model!.compareRoute({
-          x1: linestring[0][0],
-          y1: linestring[0][1],
-          x2: linestring[1][0],
-          y2: linestring[1][1],
+          x1: desire_line[0][0],
+          y1: desire_line[0][1],
+          x2: desire_line[1][0],
+          y2: desire_line[1][1],
         }),
       );
     } catch (err) {
       window.alert(`No route: ${err}`);
+      desire_line = null;
       route_gj = null;
     }
   }
@@ -49,7 +51,18 @@
     ) {
       return;
     }
+    desire_line = null;
     route_gj = null;
+  }
+
+  function gotoRouteMode() {
+    if (desire_line) {
+      $mode = {
+        kind: "route",
+        route_a: desire_line[0],
+        route_b: desire_line[1],
+      };
+    }
   }
 </script>
 
@@ -62,6 +75,9 @@
       to see the route
     </p>
     <SequentialLegend {colorScale} {limits} />
+    <button on:click={gotoRouteMode} disabled={desire_line == null}
+      >See this route in detail</button
+    >
   </div>
   <div slot="map">
     <MapEvents on:click={onClick} />
