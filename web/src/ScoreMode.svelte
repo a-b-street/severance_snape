@@ -18,21 +18,24 @@
   export let showSeverances: boolean;
   export let opacity: number;
 
-  let desire_line: [number, number][] | null = null;
+  let desire_line: Feature<LineString, { score: number }> | null = null;
   let route_gj: FeatureCollection | null = null;
 
   // TODO hack... need to toggle off interactiveness of network layer, so just copy it?
 
   function showRoute(e: CustomEvent<LayerClickInfo>) {
     try {
-      desire_line = (e.detail.features[0] as Feature<LineString>).geometry
-        .coordinates as [number, number][];
+      desire_line = e.detail.features[0] as Feature<
+        LineString,
+        { score: number }
+      >;
+      let linestring = desire_line.geometry.coordinates as [number, number][];
       route_gj = JSON.parse(
         $model!.compareRoute({
-          x1: desire_line[0][0],
-          y1: desire_line[0][1],
-          x2: desire_line[1][0],
-          y2: desire_line[1][1],
+          x1: linestring[0][0],
+          y1: linestring[0][1],
+          x2: linestring[1][0],
+          y2: linestring[1][1],
         }),
       );
     } catch (err) {
@@ -59,8 +62,8 @@
     if (desire_line) {
       $mode = {
         kind: "route",
-        route_a: desire_line[0],
-        route_b: desire_line[1],
+        route_a: desire_line.geometry.coordinates[0] as [number, number],
+        route_b: desire_line.geometry.coordinates[1] as [number, number],
       };
     }
   }
@@ -75,9 +78,18 @@
       to see the route
     </p>
     <SequentialLegend {colorScale} {limits} />
+
+    <hr />
+
     <button on:click={gotoRouteMode} disabled={desire_line == null}
       >See this route in detail</button
     >
+    {#if desire_line}
+      <p>
+        Detour factor: <b>{desire_line.properties.score.toFixed(1)}x</b>
+        longer than straight line
+      </p>
+    {/if}
   </div>
   <div slot="map">
     <MapEvents on:click={onClick} />
