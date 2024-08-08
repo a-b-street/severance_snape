@@ -22,6 +22,9 @@ export let showAbout: Writable<boolean> = writable(true);
 export let importStreetsWithoutSidewalkTagging: Writable<boolean> =
   writable(true);
 
+export let minScore = writable(0);
+export let maxScore = writable(100);
+
 export function routeMode(): Mode {
   let bbox: number[] = Array.from(get(model)!.getBounds());
   return {

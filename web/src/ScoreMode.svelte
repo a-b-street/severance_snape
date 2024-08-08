@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SequentialLegend, notNull } from "svelte-utils";
+  import { SequentialLegend } from "svelte-utils";
   import { Popup, makeColorRamp } from "svelte-utils/map";
   import type { Feature, FeatureCollection, LineString } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
@@ -12,14 +12,30 @@
   import { colorScale, limits } from "./colors";
   import NetworkLayer from "./NetworkLayer.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import { map, model, mode } from "./stores";
+  import { map, model, mode, minScore, maxScore } from "./stores";
   import NavBar from "./NavBar.svelte";
 
   export let showSeverances: boolean;
   export let opacity: number;
 
+  let scoreGj: FeatureCollection<LineString, { score: number }> = JSON.parse(
+    $model!.makeHeatmap(),
+  );
+  let highestScore = Math.round(
+    Math.max(...scoreGj.features.map((f) => f.properties.score)),
+  );
+  if ($maxScore > highestScore) {
+    $minScore = 0;
+    $maxScore = highestScore;
+  }
+
   let desire_line: Feature<LineString, { score: number }> | null = null;
   let route_gj: FeatureCollection | null = null;
+
+  $: if ($minScore >= $maxScore) {
+    $minScore = Math.max(0, $maxScore - 1);
+    $maxScore = Math.min(highestScore, $minScore + 1);
+  }
 
   // TODO hack... need to toggle off interactiveness of network layer, so just copy it?
 
@@ -79,6 +95,15 @@
     </p>
     <SequentialLegend {colorScale} {limits} />
 
+    <fieldset>
+      <label
+        >Show desire lines with scores {$minScore}-{$maxScore}:
+        <input type="range" bind:value={$minScore} min="0" max={highestScore} />
+        to
+        <input type="range" bind:value={$maxScore} min="0" max={highestScore} />
+      </label>
+    </fieldset>
+
     <hr />
 
     <button on:click={gotoRouteMode} disabled={desire_line == null}
@@ -96,9 +121,14 @@
 
     <NetworkLayer {showSeverances} {opacity} />
 
-    <GeoJSON data={JSON.parse(notNull($model).makeHeatmap())}>
+    <GeoJSON data={scoreGj}>
       <LineLayer
         id="scores"
+        filter={[
+          "all",
+          [">=", ["get", "score"], $minScore],
+          ["<=", ["get", "score"], $maxScore],
+        ]}
         paint={{
           "line-width": 8,
           "line-color": makeColorRamp(["get", "score"], limits, colorScale),
