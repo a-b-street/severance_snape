@@ -11,8 +11,9 @@
   } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import NetworkLayer from "./NetworkLayer.svelte";
-  import { SplitComponent } from "svelte-utils/two_column_layout";
-  import { map, mode, model } from "./stores";
+  import { SplitComponent } from "svelte-utils/top_bar_layout";
+  import { map, model } from "./stores";
+  import NavBar from "./NavBar.svelte";
 
   export let showSeverances: boolean;
   export let opacity: number;
@@ -53,13 +54,9 @@
 </script>
 
 <SplitComponent>
+  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Score mode</h2>
-    <div>
-      <button on:click={() => ($mode = "title")}>Change study area</button>
-      <button on:click={() => ($mode = "route")}>Route mode</button>
-    </div>
-    <button on:click={() => ($mode = "debug")}>Debug OSM</button>
     <p>
       The desire lines are coloured based on their detour factor. <b>Click</b> one
       to see the route

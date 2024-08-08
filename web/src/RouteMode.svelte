@@ -3,8 +3,9 @@
   import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
-  import { SplitComponent } from "svelte-utils/two_column_layout";
-  import { mode, model, type RouteGJ } from "./stores";
+  import { SplitComponent } from "svelte-utils/top_bar_layout";
+  import { model, type RouteGJ } from "./stores";
+  import NavBar from "./NavBar.svelte";
 
   export let showSeverances: boolean;
   export let opacity: number;
@@ -52,13 +53,9 @@
 </script>
 
 <SplitComponent>
+  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Route mode</h2>
-    <div>
-      <button on:click={() => ($mode = "title")}>Change study area</button>
-      <button on:click={() => ($mode = "score")}>Score mode</button>
-    </div>
-    <button on:click={() => ($mode = "debug")}>Debug OSM</button>
     <p>
       Move the <b>A</b> and <b>B</b> pins to find a walking route. (Hint: right-click
       to set the first pin somewhere.)

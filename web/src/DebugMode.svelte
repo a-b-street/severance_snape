@@ -1,23 +1,20 @@
 <script lang="ts">
   import { GeoJSON, hoverStateFilter, LineLayer } from "svelte-maplibre";
   import { kindToColor } from "./colors";
-  import { SplitComponent } from "svelte-utils/two_column_layout";
+  import { SplitComponent } from "svelte-utils/top_bar_layout";
   import { PropertiesTable, notNull } from "svelte-utils";
   import { Popup, constructMatchExpression } from "svelte-utils/map";
-  import { mode, model } from "./stores";
+  import { model } from "./stores";
+  import NavBar from "./NavBar.svelte";
 
   export let showSeverances: boolean;
   export let opacity: number;
 </script>
 
 <SplitComponent>
+  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Debug mode</h2>
-    <div>
-      <button on:click={() => ($mode = "title")}>Change study area</button>
-      <button on:click={() => ($mode = "route")}>Route mode</button>
-      <button on:click={() => ($mode = "score")}>Score mode</button>
-    </div>
     <p>Hover to see a segment's properties, and click to open OSM</p>
   </div>
   <div slot="map">

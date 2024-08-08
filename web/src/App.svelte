@@ -1,5 +1,6 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
+  import logoDark from "../assets/logo_dark.svg?url";
   import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
@@ -11,13 +12,21 @@
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
-  import { map as mapStore, mode, model, maptilerApiKey } from "./stores";
+  import {
+    map as mapStore,
+    mode,
+    model,
+    maptilerApiKey,
+    showAbout,
+  } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
   import {
     Layout,
     mapContents,
     sidebarContents,
-  } from "svelte-utils/two_column_layout";
+    topContents,
+  } from "svelte-utils/top_bar_layout";
+  import About from "./About.svelte";
 
   let wasmReady = false;
   onMount(async () => {
@@ -52,8 +61,13 @@
   }
   $: gotModel($model);
 
+  let topDiv: HTMLSpanElement;
   let sidebarDiv: HTMLDivElement;
   let mapDiv: HTMLDivElement;
+  $: if (topDiv && $topContents) {
+    topDiv.innerHTML = "";
+    topDiv.appendChild($topContents);
+  }
   $: if (sidebarDiv && $sidebarContents) {
     sidebarDiv.innerHTML = "";
     sidebarDiv.appendChild($sidebarContents);
@@ -64,7 +78,14 @@
   }
 </script>
 
+<About />
 <Layout>
+  <div slot="top" style="display: flex">
+    <button class="outline" on:click={() => ($showAbout = true)}>
+      <img src={logoDark} style="height: 6vh;" alt="A/B Street logo" />
+    </button>
+    <span bind:this={topDiv} style="width: 100%" />
+  </div>
   <div slot="left">
     <h1>Severance Snape</h1>
     <div bind:this={sidebarDiv} />
@@ -106,6 +127,10 @@
       standardControls
       hash
       bind:map
+      on:error={(e) => {
+        // @ts-expect-error ErrorEvent isn't exported
+        console.log(e.detail.error);
+      }}
     >
       <Geocoder {map} apiKey={maptilerApiKey} />
       <div bind:this={mapDiv} />
