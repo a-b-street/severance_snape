@@ -13,6 +13,7 @@
 <GeoJSON data={JSON.parse(notNull($model).render())}>
   <LineLayer
     id="network"
+    beforeId="Road labels"
     paint={{
       "line-width": 5,
       "line-color": constructMatchExpression(

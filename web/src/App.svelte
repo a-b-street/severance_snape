@@ -124,7 +124,7 @@
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style={`https://api.maptiler.com/maps/dataviz/style.json?key=${maptilerApiKey}`}
+      style={`https://api.maptiler.com/maps/landscape/style.json?key=${maptilerApiKey}`}
       standardControls
       hash
       bind:map
