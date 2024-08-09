@@ -14,6 +14,7 @@
   import { map, model, mode, minScore, maxScore } from "./stores";
   import NavBar from "./NavBar.svelte";
 
+  // TODO Cache
   let scoreGj: FeatureCollection<LineString, { score: number }> = JSON.parse(
     $model!.makeHeatmap(),
   );

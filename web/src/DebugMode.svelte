@@ -22,7 +22,6 @@
   <div slot="map">
     <GeoJSON data={JSON.parse(notNull($model).render())} generateId>
       <LineLayer
-        id="network"
         paint={{
           "line-width": hoverStateFilter(5, 7),
           "line-color": constructMatchExpression(
