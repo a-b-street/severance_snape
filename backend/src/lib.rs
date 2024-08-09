@@ -137,18 +137,21 @@ impl MapModel {
     }
 
     #[wasm_bindgen()]
-    pub fn areaify(&self) -> Result<String, JsValue> {
-        let mut features = Vec::new();
+    pub fn areaify(&self) -> Result<Vec<String>, JsValue> {
+        let mut features1 = Vec::new();
+        let mut features2 = Vec::new();
 
         for r in &self.graph.roads {
             if self.road_kinds[r.id.0] == Some(RoadKind::Severance) {
-                features.push(Feature::from(Geometry::from(&self.graph.mercator.to_wgs84(&r.linestring))));
+                features1.push(Feature::from(Geometry::from(&self.graph.mercator.to_wgs84(&r.linestring))));
+            } else {
+                features2.push(Feature::from(Geometry::from(&self.graph.mercator.to_wgs84(&r.linestring))));
             }
         }
 
-        let gj = GeoJson::from(features);
-        let out = serde_json::to_string(&gj).map_err(err_to_js)?;
-        Ok(out)
+        let out1 = serde_json::to_string(&GeoJson::from(features1)).map_err(err_to_js)?;
+        let out2 = serde_json::to_string(&GeoJson::from(features2)).map_err(err_to_js)?;
+        Ok(vec![out1, out2])
     }
 
     #[wasm_bindgen(js_name = findConnectedComponents)]

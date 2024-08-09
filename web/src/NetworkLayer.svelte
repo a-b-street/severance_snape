@@ -15,12 +15,18 @@
 <GeoJSON data={JSON.parse(notNull($model).render())}>
   <LineLayer
     id="network"
-    beforeId={offlineMode ? "roads_labels_major" : "Road labels"}
     layout={{
       visibility: show ? "visible" : "none",
     }}
     paint={{
-      "line-width": 5,
+      "line-width": constructMatchExpression(
+        ["get", "kind"],
+        {
+          Severance: 5,
+          Crossing: 5,
+        },
+        1,
+      ),
       "line-color": constructMatchExpression(
         ["get", "kind"],
         kindToColor,

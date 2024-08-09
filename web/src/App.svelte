@@ -113,6 +113,18 @@
     mapDiv.innerHTML = "";
     mapDiv.appendChild($mapContents);
   }
+
+  let emptyStyle = {
+    version: 8,
+    sources: {},
+    layers: [
+      {
+        id: "background",
+        type: "background",
+        paint: { "background-color": "white" },
+      },
+    ],
+  } as const;
 </script>
 
 <About />
@@ -162,9 +174,7 @@
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style={offlineMode
-        ? "http://localhost:5173/offline/light_style.json"
-        : `https://api.maptiler.com/maps/landscape/style.json?key=${maptilerApiKey}`}
+      style={emptyStyle}
       standardControls
       hash
       bind:map

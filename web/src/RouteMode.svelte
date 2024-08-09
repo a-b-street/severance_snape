@@ -49,6 +49,12 @@
   function lerp(pct: number, a: number, b: number): number {
     return a + pct * (b - a);
   }
+
+  function areaify() {
+    let [sev, rest] = $model.areaify();
+    downloadGeneratedFile("severances.geojson", sev);
+    downloadGeneratedFile("rest.geojson", rest);
+  }
 </script>
 
 <SplitComponent>
@@ -56,10 +62,7 @@
   <div slot="sidebar">
     <h2>Route mode</h2>
 
-    <button
-      on:click={() => downloadGeneratedFile("areas.geojson", $model.areaify())}
-      >Areaify</button
-    >
+    <button on:click={areaify}>Areaify</button>
 
     <p>
       Move the <b>A</b> and <b>B</b> pins to find a route. (Hint: right-click to
