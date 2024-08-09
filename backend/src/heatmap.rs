@@ -26,6 +26,7 @@ pub fn along_severances(map: &mut MapModel) -> FeatureCollection {
 
 // For every intersection involving a footway, look for any other nearby intersection and see how
 // hard it is to walk there.
+#[allow(unused)]
 pub fn nearby_footway_intersections(map: &mut MapModel, dist_meters: f64) -> FeatureCollection {
     // Look for intersections we want to connect
     let mut footway_intersections = HashSet::new();

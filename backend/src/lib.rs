@@ -12,7 +12,10 @@ use serde::{Deserialize, Serialize};
 use utils::{Mercator, NodeMap, Tags};
 use wasm_bindgen::prelude::*;
 
+use crate::profiles::Profile;
+
 mod heatmap;
+mod profiles;
 mod route;
 mod scrape;
 
@@ -85,19 +88,17 @@ type IntersectionLocation = GeomWithData<[f64; 2], usize>;
 
 #[wasm_bindgen]
 impl MapModel {
-    /// Call with bytes of an osm.pbf or osm.xml string
+    /// Call with bytes of an osm.pbf or osm.xml string and a profile name
     #[wasm_bindgen(constructor)]
-    pub fn new(
-        input_bytes: &[u8],
-        import_streets_without_sidewalk_tagging: bool,
-    ) -> Result<MapModel, JsValue> {
+    pub fn new(input_bytes: &[u8], profile: JsValue) -> Result<MapModel, JsValue> {
         // Panics shouldn't happen, but if they do, console.log them.
         console_error_panic_hook::set_once();
         START.call_once(|| {
             console_log::init_with_level(log::Level::Info).unwrap();
         });
 
-        scrape::scrape_osm(input_bytes, import_streets_without_sidewalk_tagging).map_err(err_to_js)
+        let profile: Profile = serde_wasm_bindgen::from_value(profile)?;
+        scrape::scrape_osm(input_bytes, profile).map_err(err_to_js)
     }
 
     /// Returns a GeoJSON string. Just shows the full ped network

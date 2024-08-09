@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import { Loading } from "svelte-utils";
   import { OverpassSelector } from "svelte-utils/overpass";
-  import { importStreetsWithoutSidewalkTagging, map, model } from "../stores";
+  import { profile, map, model } from "../stores";
 
   let example = "";
   let loading = "";
@@ -44,10 +44,7 @@
   function loadModel(buffer: ArrayBuffer) {
     loading = "Building map model from OSM input";
     console.time("load");
-    $model = new MapModel(
-      new Uint8Array(buffer),
-      $importStreetsWithoutSidewalkTagging,
-    );
+    $model = new MapModel(new Uint8Array(buffer), $profile);
     console.timeEnd("load");
   }
 
