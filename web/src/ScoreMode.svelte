@@ -166,7 +166,6 @@
       <GeoJSON data={route_gj}>
         <LineLayer
           id="route"
-          beforeId="network"
           paint={{
             "line-width": 20,
             "line-color": "cyan",

@@ -121,7 +121,7 @@
       {
         id: "background",
         type: "background",
-        paint: { "background-color": "white" },
+        paint: { "background-color": "#e4e4e4" },
       },
     ],
   } as const;

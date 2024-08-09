@@ -14,6 +14,17 @@
 
 <GeoJSON data={JSON.parse(notNull($model).render())}>
   <LineLayer
+    layout={{
+      visibility: show ? "visible" : "none",
+    }}
+    filter={["==", ["get", "kind"], "Severance"]}
+    paint={{
+      "line-width": 12,
+      "line-color": "black",
+    }}
+  />
+
+  <LineLayer
     id="network"
     layout={{
       visibility: show ? "visible" : "none",
@@ -22,15 +33,17 @@
       "line-width": constructMatchExpression(
         ["get", "kind"],
         {
-          Severance: 5,
+          Severance: 10,
           Crossing: 5,
         },
         1,
       ),
       "line-color": constructMatchExpression(
         ["get", "kind"],
-        kindToColor,
-        "yellow",
+        {
+          Crossing: "green",
+        },
+        "white",
       ),
       "line-opacity": showSeverances
         ? opacity / 100
