@@ -5,6 +5,7 @@
   import { constructMatchExpression } from "svelte-utils/map";
   import { model } from "./stores";
 
+  export let show: boolean;
   // TODO Use filter expressions?
   export let showSeverances: boolean;
   export let opacity: number;
@@ -14,6 +15,9 @@
   <LineLayer
     id="network"
     beforeId="Road labels"
+    layout={{
+      visibility: show ? "visible" : "none",
+    }}
     paint={{
       "line-width": 5,
       "line-color": constructMatchExpression(

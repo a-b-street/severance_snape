@@ -7,6 +7,8 @@
   import { model } from "./stores";
   import NavBar from "./NavBar.svelte";
 
+  // TODO Could try to reuse NetworkLayer and add in the interactivity
+
   export let showSeverances: boolean;
   export let opacity: number;
 </script>

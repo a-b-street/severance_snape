@@ -2,15 +2,12 @@
   import type { MapMouseEvent } from "maplibre-gl";
   import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
-  import NetworkLayer from "./NetworkLayer.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
   import { model, type RouteGJ } from "./stores";
   import NavBar from "./NavBar.svelte";
 
   export let route_a: [number, number];
   export let route_b: [number, number];
-  export let showSeverances: boolean;
-  export let opacity: number;
 
   // TODO or empty
   let route_gj: RouteGJ | null = null;
@@ -56,8 +53,6 @@
   </div>
   <div slot="map">
     <MapEvents on:contextmenu={onRightClick} />
-
-    <NetworkLayer {showSeverances} {opacity} />
 
     <Marker bind:lngLat={route_a} draggable><span class="dot">A</span></Marker>
     <Marker bind:lngLat={route_b} draggable><span class="dot">B</span></Marker>

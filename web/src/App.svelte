@@ -12,6 +12,7 @@
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
+  import NetworkLayer from "./NetworkLayer.svelte";
   import {
     map as mapStore,
     mode,
@@ -144,15 +145,13 @@
         <GeoJSON data={JSON.parse($model.getInvertedBoundary())}>
           <FillLayer paint={{ "fill-color": "black", "fill-opacity": 0.3 }} />
         </GeoJSON>
+
+        <NetworkLayer show={$mode.kind != "debug"} {showSeverances} {opacity} />
+
         {#if $mode.kind == "route"}
-          <RouteMode
-            {showSeverances}
-            {opacity}
-            route_a={$mode.route_a}
-            route_b={$mode.route_b}
-          />
+          <RouteMode route_a={$mode.route_a} route_b={$mode.route_b} />
         {:else if $mode.kind == "score"}
-          <ScoreMode {showSeverances} {opacity} />
+          <ScoreMode />
         {:else if $mode.kind == "debug"}
           <DebugMode {showSeverances} {opacity} />
         {/if}

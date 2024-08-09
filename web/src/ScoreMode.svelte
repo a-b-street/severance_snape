@@ -10,13 +10,9 @@
     type LayerClickInfo,
   } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
-  import NetworkLayer from "./NetworkLayer.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
   import { map, model, mode, minScore, maxScore } from "./stores";
   import NavBar from "./NavBar.svelte";
-
-  export let showSeverances: boolean;
-  export let opacity: number;
 
   let scoreGj: FeatureCollection<LineString, { score: number }> = JSON.parse(
     $model!.makeHeatmap(),
@@ -118,8 +114,6 @@
   </div>
   <div slot="map">
     <MapEvents on:click={onClick} />
-
-    <NetworkLayer {showSeverances} {opacity} />
 
     <GeoJSON data={scoreGj}>
       <LineLayer
