@@ -136,6 +136,21 @@ impl MapModel {
         Ok(out)
     }
 
+    #[wasm_bindgen()]
+    pub fn areaify(&self) -> Result<String, JsValue> {
+        let mut features = Vec::new();
+
+        for r in &self.graph.roads {
+            if self.road_kinds[r.id.0] == Some(RoadKind::Severance) {
+                features.push(Feature::from(Geometry::from(&self.graph.mercator.to_wgs84(&r.linestring))));
+            }
+        }
+
+        let gj = GeoJson::from(features);
+        let out = serde_json::to_string(&gj).map_err(err_to_js)?;
+        Ok(out)
+    }
+
     #[wasm_bindgen(js_name = findConnectedComponents)]
     pub fn find_connected_components(&self) -> Result<String, JsValue> {
         let out = serde_json::to_string(&disconnected::find_connected_components(self))

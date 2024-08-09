@@ -7,6 +7,7 @@
   import NavBar from "./NavBar.svelte";
   import { onMount } from "svelte";
   import PickTravelMode from "./PickTravelMode.svelte";
+  import { downloadGeneratedFile } from "svelte-utils";
 
   // TODO or empty
   let route_gj: RouteGJ | null = null;
@@ -54,6 +55,12 @@
   <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Route mode</h2>
+
+    <button
+      on:click={() => downloadGeneratedFile("areas.geojson", $model.areaify())}
+      >Areaify</button
+    >
+
     <p>
       Move the <b>A</b> and <b>B</b> pins to find a route. (Hint: right-click to
       set the first pin somewhere.)
