@@ -145,3 +145,35 @@ fn usa(tags: &Tags) -> Option<RoadKind> {
     // TODO
     Some(RoadKind::WithTraffic)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_usa() {
+        // https://www.openstreetmap.org/way/1120402115
+        // TODO Maybe this should be None? It really does have crossings, so not sure
+        // It's similar to https://www.openstreetmap.org/way/571968303, except by speed and lane
+        // count
+        assert_eq!(
+            Profile::USA.classify(&tags(vec!["highway=tertiary", "sidewalk=no",])),
+            Some(RoadKind::Severance)
+        );
+
+        // https://www.openstreetmap.org/way/41945235
+        assert_eq!(
+            Profile::USA.classify(&tags(vec!["highway=secondary", "maxspeed=40 mph",])),
+            Some(RoadKind::Severance)
+        );
+    }
+
+    fn tags(kv: Vec<&str>) -> Tags {
+        let mut tags = Tags::empty();
+        for pair in kv {
+            let parts = pair.split('=').collect::<Vec<_>>();
+            tags.insert(parts[0], parts[1]);
+        }
+        tags
+    }
+}
