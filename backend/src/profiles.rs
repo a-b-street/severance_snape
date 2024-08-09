@@ -3,10 +3,11 @@ use utils::Tags;
 
 use crate::RoadKind;
 
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Deserialize)]
 pub enum Profile {
     SeparateWays,
     SidewalksOnHighways,
+    USA,
 }
 
 impl Profile {
@@ -37,6 +38,10 @@ impl Profile {
 
         if tags.is("highway", "crossing") || tags.has("crossing") {
             return Some(RoadKind::Crossing);
+        }
+
+        if self == Profile::USA {
+            return usa(tags);
         }
 
         // Big roads are always severances.
@@ -94,6 +99,7 @@ impl Profile {
             return match self {
                 Profile::SeparateWays => None,
                 Profile::SidewalksOnHighways => Some(RoadKind::WithTraffic),
+                Profile::USA => unreachable!(),
             };
         }
 
@@ -104,4 +110,38 @@ impl Profile {
         // TODO wait, why's this the fallback case?
         Some(RoadKind::Severance)
     }
+}
+
+// Footway cases already handled
+fn usa(tags: &Tags) -> Option<RoadKind> {
+    if tags.is_any(
+        "highway",
+        vec![
+            "motorway",
+            "motorway_link",
+            "trunk",
+            "trunk_link",
+            "primary",
+            "primary_link",
+            "secondary",
+            "secondary_link",
+            "tertiary",
+            "tertiary_link",
+        ],
+    ) {
+        return Some(RoadKind::Severance);
+    }
+
+    // Totally exclude roads that claim to have a separately mapped sidewalk; they're just noise.
+    // I'm assuming there isn't a silly mix like "sidewalk:left = separate, sidewalk:right = yes".
+    if tags.is("sidewalk", "separate")
+        || tags.is("sidewalk:left", "separate")
+        || tags.is("sidewalk:right", "separate")
+        || tags.is("sidewalk:both", "separate")
+    {
+        return None;
+    }
+
+    // TODO
+    Some(RoadKind::WithTraffic)
 }

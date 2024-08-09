@@ -19,7 +19,7 @@ export let mode: Writable<Mode> = writable({ kind: "title" });
 export let model: Writable<MapModel | null> = writable(null);
 export let map: Writable<Map | null> = writable(null);
 export let showAbout: Writable<boolean> = writable(true);
-export let profile = writable("SidewalksOnHighways");
+export let profile = writable("USA");
 
 export let minScore = writable(0);
 export let maxScore = writable(100);
