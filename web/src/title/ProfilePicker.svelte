@@ -37,6 +37,12 @@
         <u>SidewalksOnHighways</u>: When a road in OSM doesn't explicitly
         specify sidewalks, assume they exist
       </label>
+
+      <label>
+        <input type="radio" value="USA" bind:group={$profile} />
+        <u>USA</u>: An attempt to simplify the classification rules, tuned for
+        some USA examples. Mostly uses the <i>highway</i> tag.
+      </label>
     </fieldset>
 
     <button on:click={() => (show = false)}>Done</button>
