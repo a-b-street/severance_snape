@@ -9,7 +9,8 @@ export type Mode =
   | { kind: "title" }
   | { kind: "score" }
   | { kind: "route"; route_a: [number, number]; route_b: [number, number] }
-  | { kind: "debug" };
+  | { kind: "debug" }
+  | { kind: "osm-separate-sidewalks" };
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;
   route_length: number;

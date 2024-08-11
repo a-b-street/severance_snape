@@ -97,7 +97,7 @@ fn calculate(map: &mut MapModel, requests: Vec<CompareRouteRequest>) -> FeatureC
 }
 
 // TODO canvas_geometry needs this too
-fn make_perpendicular_offsets(
+pub fn make_perpendicular_offsets(
     linestring: &LineString,
     walk_every_m: f64,
     project_away_m: f64,

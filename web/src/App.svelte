@@ -12,6 +12,7 @@
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
+  import OsmSeparateSidewalksMode from "./OsmSeparateSidewalksMode.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import {
     map as mapStore,
@@ -96,31 +97,33 @@
       <hr />
       <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
-      <Legend
-        rows={[
-          ["Footway (ground, outdoors)", kindToColor.Footway],
-          ["Indoors footway", kindToColor.Indoors],
-          ["Footway not on the ground", kindToColor.BridgeOrTunnel],
-          [
-            "Street with vehicle traffic (maybe with a sidewalk, maybe not)",
-            kindToColor.WithTraffic,
-          ],
-          ["Crossing", kindToColor.Crossing],
-          ["Severance", kindToColor.Severance],
-        ]}
-      />
-      <div>
-        <label>
-          <input type="checkbox" bind:checked={showSeverances} />
-          Show severances
-        </label>
-      </div>
-      <div>
-        <label>
-          Network opacity:
-          <input type="range" min="0" max="100" bind:value={opacity} />
-        </label>
-      </div>
+      {#if $mode.kind != "osm-separate-sidewalks"}
+        <Legend
+          rows={[
+            ["Footway (ground, outdoors)", kindToColor.Footway],
+            ["Indoors footway", kindToColor.Indoors],
+            ["Footway not on the ground", kindToColor.BridgeOrTunnel],
+            [
+              "Street with vehicle traffic (maybe with a sidewalk, maybe not)",
+              kindToColor.WithTraffic,
+            ],
+            ["Crossing", kindToColor.Crossing],
+            ["Severance", kindToColor.Severance],
+          ]}
+        />
+        <div>
+          <label>
+            <input type="checkbox" bind:checked={showSeverances} />
+            Show severances
+          </label>
+        </div>
+        <div>
+          <label>
+            Network opacity:
+            <input type="range" min="0" max="100" bind:value={opacity} />
+          </label>
+        </div>
+      {/if}
     {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
@@ -146,7 +149,11 @@
           <FillLayer paint={{ "fill-color": "black", "fill-opacity": 0.3 }} />
         </GeoJSON>
 
-        <NetworkLayer show={$mode.kind != "debug"} {showSeverances} {opacity} />
+        <NetworkLayer
+          show={$mode.kind != "debug" && $mode.kind != "osm-separate-sidewalks"}
+          {showSeverances}
+          {opacity}
+        />
 
         {#if $mode.kind == "route"}
           <RouteMode route_a={$mode.route_a} route_b={$mode.route_b} />
@@ -154,6 +161,8 @@
           <ScoreMode />
         {:else if $mode.kind == "debug"}
           <DebugMode {showSeverances} {opacity} />
+        {:else if $mode.kind == "osm-separate-sidewalks"}
+          <OsmSeparateSidewalksMode />
         {/if}
       {/if}
     </MapLibre>

@@ -14,6 +14,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::profiles::Profile;
 
+mod fix_osm;
 mod heatmap;
 mod profiles;
 mod route;
@@ -172,6 +173,13 @@ impl MapModel {
     pub fn get_bounds(&self) -> Vec<f64> {
         let b = &self.mercator.wgs84_bounds;
         vec![b.min().x, b.min().y, b.max().x, b.max().y]
+    }
+
+    #[wasm_bindgen(js_name = findSeparateSidewalks)]
+    pub fn find_separate_sidewalks(&self) -> Result<String, JsValue> {
+        let out =
+            serde_json::to_string(&fix_osm::find_separate_sidewalks(self)).map_err(err_to_js)?;
+        Ok(out)
     }
 
     fn find_edge(&self, i1: IntersectionID, i2: IntersectionID) -> &Road {
