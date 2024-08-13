@@ -10,6 +10,7 @@ export type Mode =
   | { kind: "score" }
   | { kind: "route"; route_a: [number, number]; route_b: [number, number] }
   | { kind: "debug" }
+  | { kind: "disconnected" }
   | { kind: "osm-separate-sidewalks" };
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;

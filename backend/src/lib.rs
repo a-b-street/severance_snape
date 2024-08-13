@@ -14,6 +14,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::profiles::Profile;
 
+mod disconnected;
 mod fix_osm;
 mod heatmap;
 mod profiles;
@@ -179,6 +180,13 @@ impl MapModel {
     pub fn find_separate_sidewalks(&self) -> Result<String, JsValue> {
         let out =
             serde_json::to_string(&fix_osm::find_separate_sidewalks(self)).map_err(err_to_js)?;
+        Ok(out)
+    }
+
+    #[wasm_bindgen(js_name = findConnectedComponents)]
+    pub fn find_connected_components(&self) -> Result<String, JsValue> {
+        let out = serde_json::to_string(&disconnected::find_connected_components(self))
+            .map_err(err_to_js)?;
         Ok(out)
     }
 

@@ -23,6 +23,7 @@
     routeMode,
   } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
+  import DisconnectionsMode from "./DisconnectionsMode.svelte";
   import {
     Layout,
     mapContents,
@@ -150,7 +151,9 @@
         </GeoJSON>
 
         <NetworkLayer
-          show={$mode.kind != "debug" && $mode.kind != "osm-separate-sidewalks"}
+          show={$mode.kind != "debug" &&
+            $mode.kind != "osm-separate-sidewalks" &&
+            $mode.kind != "disconnected"}
           {showSeverances}
           {opacity}
         />
@@ -163,6 +166,8 @@
           <DebugMode {showSeverances} {opacity} />
         {:else if $mode.kind == "osm-separate-sidewalks"}
           <OsmSeparateSidewalksMode />
+        {:else if $mode.kind == "disconnected"}
+          <DisconnectionsMode />
         {/if}
       {/if}
     </MapLibre>
