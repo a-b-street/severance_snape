@@ -144,7 +144,6 @@
       <Geocoder {map} apiKey={maptilerApiKey} />
       <div bind:this={mapDiv} />
 
-      <PolygonToolLayer />
       {#if $mode.kind == "title"}
         <TitleMode {wasmReady} />
       {/if}
