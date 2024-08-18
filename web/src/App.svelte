@@ -20,7 +20,6 @@
     model,
     maptilerApiKey,
     showAbout,
-    routeMode,
   } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
   import DisconnectionsMode from "./DisconnectionsMode.svelte";
@@ -61,7 +60,7 @@
     }
     console.log("New map model loaded");
     zoomToFit();
-    $mode = routeMode();
+    $mode = { kind: "route" };
   }
   $: gotModel($model);
 
@@ -159,7 +158,7 @@
         />
 
         {#if $mode.kind == "route"}
-          <RouteMode route_a={$mode.route_a} route_b={$mode.route_b} />
+          <RouteMode />
         {:else if $mode.kind == "score"}
           <ScoreMode />
         {:else if $mode.kind == "debug"}

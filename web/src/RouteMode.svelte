@@ -3,24 +3,32 @@
   import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import { model, type RouteGJ } from "./stores";
+  import { model, type RouteGJ, routeA, routeB } from "./stores";
   import NavBar from "./NavBar.svelte";
-
-  export let route_a: [number, number];
-  export let route_b: [number, number];
+  import { onMount } from "svelte";
 
   // TODO or empty
   let route_gj: RouteGJ | null = null;
   let route_err = "";
 
-  $: if (route_a && route_b) {
+  onMount(() => {
+    if ($routeA) {
+      return;
+    }
+
+    let bbox: number[] = Array.from($model!.getBounds());
+    $routeA = [lerp(0.4, bbox[0], bbox[2]), lerp(0.4, bbox[1], bbox[3])];
+    $routeB = [lerp(0.6, bbox[0], bbox[2]), lerp(0.6, bbox[1], bbox[3])];
+  });
+
+  $: if ($routeA && $routeB) {
     try {
       route_gj = JSON.parse(
         $model!.compareRoute({
-          x1: route_a[0],
-          y1: route_a[1],
-          x2: route_b[0],
-          y2: route_b[1],
+          x1: $routeA[0],
+          y1: $routeA[1],
+          x2: $routeB[0],
+          y2: $routeB[1],
         }),
       );
       route_err = "";
@@ -32,7 +40,11 @@
 
   function onRightClick(e: CustomEvent<MapMouseEvent>) {
     // Move the first marker, for convenience
-    route_a = e.detail.lngLat.toArray();
+    $routeA = e.detail.lngLat.toArray();
+  }
+
+  function lerp(pct: number, a: number, b: number): number {
+    return a + pct * (b - a);
   }
 </script>
 
@@ -54,8 +66,12 @@
   <div slot="map">
     <MapEvents on:contextmenu={onRightClick} />
 
-    <Marker bind:lngLat={route_a} draggable><span class="dot">A</span></Marker>
-    <Marker bind:lngLat={route_b} draggable><span class="dot">B</span></Marker>
+    {#if $routeA && $routeB}
+      <Marker bind:lngLat={$routeA} draggable><span class="dot">A</span></Marker
+      >
+      <Marker bind:lngLat={$routeB} draggable><span class="dot">B</span></Marker
+      >
+    {/if}
     {#if route_gj}
       <GeoJSON data={route_gj}>
         <LineLayer

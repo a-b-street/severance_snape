@@ -1,11 +1,13 @@
 <script lang="ts">
-  import { mode, routeMode } from "./stores";
+  import { mode, routeA, routeB } from "./stores";
 
   function titleMode() {
     let url = new URL(window.location.href);
     url.searchParams.delete("study_area");
     window.history.replaceState(null, "", url.toString());
 
+    $routeA = null;
+    $routeB = null;
     $mode = { kind: "title" };
   }
 </script>
@@ -25,7 +27,7 @@
 
     <li>
       <button
-        on:click={() => ($mode = routeMode())}
+        on:click={() => ($mode = { kind: "route" })}
         disabled={$mode.kind == "route"}>Route</button
       >
     </li>

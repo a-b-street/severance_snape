@@ -11,7 +11,16 @@
   } from "svelte-maplibre";
   import { colorScale, limits } from "./colors";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import { map, model, mode, minScore, maxScore } from "./stores";
+  import {
+    map,
+    model,
+    mode,
+    minScore,
+    maxScore,
+    routeA,
+    routeB,
+    type Position,
+  } from "./stores";
   import NavBar from "./NavBar.svelte";
 
   // TODO Cache
@@ -42,7 +51,7 @@
         LineString,
         { score: number }
       >;
-      let linestring = desire_line.geometry.coordinates as [number, number][];
+      let linestring = desire_line.geometry.coordinates as Position[];
       route_gj = JSON.parse(
         $model!.compareRoute({
           x1: linestring[0][0],
@@ -73,10 +82,10 @@
 
   function gotoRouteMode() {
     if (desire_line) {
+      $routeA = desire_line.geometry.coordinates[0] as Position;
+      $routeB = desire_line.geometry.coordinates[1] as Position;
       $mode = {
         kind: "route",
-        route_a: desire_line.geometry.coordinates[0] as [number, number],
-        route_b: desire_line.geometry.coordinates[1] as [number, number],
       };
     }
   }
