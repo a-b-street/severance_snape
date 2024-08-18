@@ -5,6 +5,8 @@
   import { Popup } from "svelte-utils/map";
   import { model } from "./stores";
   import NavBar from "./NavBar.svelte";
+
+  let duplicateSidewalks = true;
 </script>
 
 <SplitComponent>
@@ -16,10 +18,17 @@
       OSM, then (if appropriate) add <b>sidewalk=separate</b> (or a <b>:left</b>
       / <b>:right</b> variant).
     </p>
+
+    <label>
+      <input type="checkbox" bind:checked={duplicateSidewalks} />
+      Only show roads with a <b>sidewalk=left,right,both</b> tag
+    </label>
   </div>
   <div slot="map">
     <GeoJSON
-      data={JSON.parse(notNull($model).findSeparateSidewalks())}
+      data={JSON.parse(
+        notNull($model).findSeparateSidewalks(duplicateSidewalks),
+      )}
       generateId
     >
       <LineLayer

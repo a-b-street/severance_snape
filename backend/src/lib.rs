@@ -177,9 +177,9 @@ impl MapModel {
     }
 
     #[wasm_bindgen(js_name = findSeparateSidewalks)]
-    pub fn find_separate_sidewalks(&self) -> Result<String, JsValue> {
-        let out =
-            serde_json::to_string(&fix_osm::find_separate_sidewalks(self)).map_err(err_to_js)?;
+    pub fn find_separate_sidewalks(&self, duplicates_only: bool) -> Result<String, JsValue> {
+        let out = serde_json::to_string(&fix_osm::find_separate_sidewalks(self, duplicates_only))
+            .map_err(err_to_js)?;
         Ok(out)
     }
 

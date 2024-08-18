@@ -4,7 +4,7 @@ use rstar::{RTree, RTreeObject};
 
 use crate::MapModel;
 
-pub fn find_separate_sidewalks(map: &MapModel) -> GeoJson {
+pub fn find_separate_sidewalks(map: &MapModel, duplicates_only: bool) -> GeoJson {
     let footways = RTree::bulk_load(
         map.roads
             .iter()
@@ -21,6 +21,10 @@ pub fn find_separate_sidewalks(map: &MapModel) -> GeoJson {
             || r.tags.is("sidewalk:right", "separate")
             || r.tags.is("sidewalk:both", "separate")
         {
+            continue;
+        }
+
+        if duplicates_only && !r.tags.is_any("sidewalk", vec!["left", "right", "both"]) {
             continue;
         }
 
