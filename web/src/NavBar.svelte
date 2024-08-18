@@ -1,13 +1,19 @@
 <script lang="ts">
   import { mode, routeMode } from "./stores";
+
+  function titleMode() {
+    let url = new URL(window.location.href);
+    url.searchParams.delete("study_area");
+    window.history.replaceState(null, "", url.toString());
+
+    $mode = { kind: "title" };
+  }
 </script>
 
 <nav>
   <ul>
     <li>
-      <button on:click={() => ($mode = { kind: "title" })}
-        >Change study area</button
-      >
+      <button on:click={titleMode}>Change study area</button>
     </li>
 
     <li>
