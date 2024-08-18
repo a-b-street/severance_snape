@@ -39,6 +39,7 @@ export function urlState<T>(params: {
 }
 
 // Generates a `parse` function that insists the input belongs to the set of values
+// TODO More specific return type
 export function enumUrl(values: string[]): (param: string) => string {
   return (param) => {
     if (values.includes(param)) {

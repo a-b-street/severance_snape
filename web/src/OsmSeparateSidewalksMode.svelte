@@ -3,10 +3,8 @@
   import { SplitComponent } from "svelte-utils/top_bar_layout";
   import { PropertiesTable, notNull } from "svelte-utils";
   import { Popup } from "svelte-utils/map";
-  import { model } from "./stores";
+  import { model, duplicateSidewalks } from "./stores";
   import NavBar from "./NavBar.svelte";
-
-  let duplicateSidewalks = true;
 </script>
 
 <SplitComponent>
@@ -20,14 +18,14 @@
     </p>
 
     <label>
-      <input type="checkbox" bind:checked={duplicateSidewalks} />
+      <input type="checkbox" bind:checked={$duplicateSidewalks} />
       Only show roads with a <b>sidewalk=left,right,both</b> tag
     </label>
   </div>
   <div slot="map">
     <GeoJSON
       data={JSON.parse(
-        notNull($model).findSeparateSidewalks(duplicateSidewalks),
+        notNull($model).findSeparateSidewalks($duplicateSidewalks),
       )}
       generateId
     >

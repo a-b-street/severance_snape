@@ -37,6 +37,7 @@
     wasmReady = true;
   });
 
+  let fitBoundsAtStart = !window.location.hash;
   let map: Map;
   $: if (map) {
     mapStore.set(map);
@@ -59,7 +60,10 @@
       return;
     }
     console.log("New map model loaded");
-    zoomToFit();
+    if (fitBoundsAtStart) {
+      zoomToFit();
+    }
+    fitBoundsAtStart = true;
     $mode = { kind: "route" };
   }
   $: gotModel($model);
