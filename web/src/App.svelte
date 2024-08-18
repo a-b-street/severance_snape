@@ -88,7 +88,7 @@
     <button class="outline" on:click={() => ($showAbout = true)}>
       <img src={logoDark} style="height: 6vh;" alt="A/B Street logo" />
     </button>
-    <span bind:this={topDiv} style="width: 100%" />
+    <span bind:this={topDiv} style="margin-left: 4px; width: 100%" />
   </div>
   <div slot="left">
     <h1>Severance Snape</h1>

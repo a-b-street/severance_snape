@@ -64,8 +64,8 @@
 
     <p>Component sizes:</p>
     <ul>
-      {#each gj.components as size}
-        <li>{size}</li>
+      {#each gj.components as size, idx}
+        <li style:color={colors[idx % colors.length]}>{size}</li>
       {/each}
     </ul>
   </div>
