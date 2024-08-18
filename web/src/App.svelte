@@ -8,7 +8,6 @@
   import { kindToColor } from "./colors";
   import { Legend } from "svelte-utils";
   import { Geocoder } from "svelte-utils/map";
-  import { PolygonToolLayer } from "maplibre-draw-polygon";
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
@@ -20,6 +19,7 @@
     model,
     maptilerApiKey,
     showAbout,
+    type Mode,
   } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
   import DisconnectionsMode from "./DisconnectionsMode.svelte";
@@ -38,6 +38,8 @@
   });
 
   let fitBoundsAtStart = !window.location.hash;
+  let restoreMode = parseMode();
+
   let map: Map;
   $: if (map) {
     mapStore.set(map);
@@ -45,6 +47,24 @@
 
   let opacity = 100;
   let showSeverances = true;
+
+  // We always have to go through TitleMode to load the study area, so we have to restore the Mode a little carefully
+  function parseMode(): Mode {
+    let value = new URLSearchParams(window.location.search).get("mode") || "";
+    // Exclude title from this list; don't stay here
+    if (
+      [
+        "score",
+        "route",
+        "debug",
+        "disconnected",
+        "osm-separate-sidewalks",
+      ].includes(value)
+    ) {
+      return { kind: value } as Mode;
+    }
+    return { kind: "route" };
+  }
 
   function zoomToFit() {
     if (map && $model) {
@@ -59,12 +79,13 @@
     if (!$model) {
       return;
     }
-    console.log("New map model loaded");
+    console.log(`New map model loaded. Starting in ${restoreMode.kind}`);
     if (fitBoundsAtStart) {
       zoomToFit();
     }
     fitBoundsAtStart = true;
-    $mode = { kind: "route" };
+    $mode = restoreMode;
+    restoreMode = { kind: "route" };
   }
   $: gotModel($model);
 

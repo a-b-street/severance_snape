@@ -19,9 +19,23 @@ export interface RouteGJ extends FeatureCollection {
   route_length: number;
 }
 
-export let mode: Writable<Mode> = writable({ kind: "title" });
 export let model: Writable<MapModel | null> = writable(null);
 export let map: Writable<Map | null> = writable(null);
+
+// Don't use urlState, because we have to manually go through title mode first
+export let mode: Writable<Mode> = writable({ kind: "title" });
+// TODO How do we avoid leaking this?
+mode.subscribe((state) => {
+  // There's a race condition with App doing parseMode. Don't set title mode.
+  if (state.kind == "title") {
+    return;
+  }
+
+  let url = new URL(window.location.href);
+  url.searchParams.set("mode", state.kind);
+  window.history.replaceState(null, "", url.toString());
+});
+
 // TODO Hide if restoring from a URL, or use a local storage bit?
 export let showAbout: Writable<boolean> = writable(true);
 export let profile = urlState({
@@ -58,7 +72,7 @@ export let maxScore: Writable<number> = urlState({
 export let duplicateSidewalks: Writable<boolean> = urlState({
   name: "duplicateSidewalks",
   defaultValue: true,
-  stringify: (x) => x ? "1" : "0",
+  stringify: (x) => (x ? "1" : "0"),
   parse: (x) => x == "1",
 });
 
