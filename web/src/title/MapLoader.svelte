@@ -5,6 +5,7 @@
   import { OverpassSelector } from "svelte-utils/overpass";
   import { profile, map, model } from "../stores";
 
+  let setupDone = false;
   let example = "";
   let loading = "";
   let useLocalVite = false;
@@ -28,6 +29,14 @@
       // For quicker dev
       //example = "kowloon";
     } catch (err) {}
+
+    // Auto-restore from URL
+    let param = new URLSearchParams(window.location.search).get("study_area");
+    if (param) {
+      // No need to validate -- if it doesn't exist, error handling will show it later anyway
+      example = param;
+    }
+    setupDone = true;
   });
 
   let fileInput: HTMLInputElement;
@@ -59,18 +68,29 @@
     loading = "";
   }
 
-  async function loadExample(example: string) {
-    if (example != "") {
-      if (useLocalVite) {
-        await loadFromUrl(`/osm/${example}.pbf`);
-      } else {
-        await loadFromUrl(
-          `https://assets.od2net.org/severance_pbfs/${example}.pbf`,
-        );
-      }
+  async function loadExample(example: string, setupDone: boolean) {
+    if (!setupDone) {
+      return;
+    }
+    let url = new URL(window.location.href);
+
+    if (example == "") {
+      url.searchParams.delete("study_area");
+      window.history.replaceState(null, "", url.toString());
+      return;
+    }
+
+    url.searchParams.set("study_area", example);
+    window.history.replaceState(null, "", url.toString());
+    if (useLocalVite) {
+      await loadFromUrl(`/osm/${example}.pbf`);
+    } else {
+      await loadFromUrl(
+        `https://assets.od2net.org/severance_pbfs/${example}.pbf`,
+      );
     }
   }
-  $: loadExample(example);
+  $: loadExample(example, setupDone);
 
   async function loadFromUrl(url: string) {
     try {

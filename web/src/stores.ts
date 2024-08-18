@@ -21,6 +21,7 @@ export interface RouteGJ extends FeatureCollection {
 export let mode: Writable<Mode> = writable({ kind: "title" });
 export let model: Writable<MapModel | null> = writable(null);
 export let map: Writable<Map | null> = writable(null);
+// TODO Hide if restoring from a URL, or use a local storage bit?
 export let showAbout: Writable<boolean> = writable(true);
 export let profile = urlState({
   name: "profile",
