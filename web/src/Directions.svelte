@@ -30,15 +30,16 @@
   }
 </script>
 
+<p>
+  Detour factor: <b
+    >{(route_gj.route_length / route_gj.direct_length).toFixed(1)}x</b
+  > longer than straight line
+</p>
+<p>{levelChanges(route_gj)} changes in level</p>
+
 <details>
   <summary>Route directions</summary>
 
-  <p>
-    Detour factor: <b
-      >{(route_gj.route_length / route_gj.direct_length).toFixed(1)}x</b
-    > longer than straight line
-  </p>
-  <p>{levelChanges(route_gj)} changes in level</p>
   <ol>
     {#each route_gj.features as f}
       <li>
