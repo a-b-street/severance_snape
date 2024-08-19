@@ -30,6 +30,15 @@
     topContents,
   } from "svelte-utils/top_bar_layout";
   import About from "./About.svelte";
+  // TODO Indirect dependencies
+  import * as pmtiles from "pmtiles";
+  import maplibregl from "maplibre-gl";
+
+  let offlineMode = false;
+  if (offlineMode) {
+    let protocol = new pmtiles.Protocol();
+    maplibregl.addProtocol("pmtiles", protocol.tile);
+  }
 
   let wasmReady = false;
   onMount(async () => {
@@ -153,7 +162,9 @@
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style={`https://api.maptiler.com/maps/landscape/style.json?key=${maptilerApiKey}`}
+      style={offlineMode
+        ? "http://localhost:5173/offline/light_style.json"
+        : `https://api.maptiler.com/maps/landscape/style.json?key=${maptilerApiKey}`}
       standardControls
       hash
       bind:map
@@ -162,7 +173,9 @@
         console.log(e.detail.error);
       }}
     >
-      <Geocoder {map} apiKey={maptilerApiKey} />
+      {#if !offlineMode}
+        <Geocoder {map} apiKey={maptilerApiKey} />
+      {/if}
       <div bind:this={mapDiv} />
 
       {#if $mode.kind == "title"}
@@ -174,6 +187,7 @@
         </GeoJSON>
 
         <NetworkLayer
+          {offlineMode}
           show={$mode.kind != "debug" &&
             $mode.kind != "osm-separate-sidewalks" &&
             $mode.kind != "disconnected"}

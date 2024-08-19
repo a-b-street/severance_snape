@@ -9,12 +9,13 @@
   // TODO Use filter expressions?
   export let showSeverances: boolean;
   export let opacity: number;
+  export let offlineMode: boolean;
 </script>
 
 <GeoJSON data={JSON.parse(notNull($model).render())}>
   <LineLayer
     id="network"
-    beforeId="Road labels"
+    beforeId={offlineMode ? "roads_labels_major" : "Road labels"}
     layout={{
       visibility: show ? "visible" : "none",
     }}
