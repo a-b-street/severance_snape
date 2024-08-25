@@ -7,6 +7,7 @@ use std::sync::Once;
 use fast_paths::{FastGraph, PathCalculator};
 use geo::{Coord, Line, LineString, Point, Polygon};
 use geojson::{Feature, GeoJson, Geometry};
+use graph::{Graph, Timer};
 use rstar::{primitives::GeomWithData, RTree};
 use serde::{Deserialize, Serialize};
 use utils::{Mercator, NodeMap, Tags};
@@ -25,6 +26,8 @@ static START: Once = Once::new();
 
 #[wasm_bindgen]
 pub struct MapModel {
+    graph: Graph,
+
     roads: Vec<Road>,
     intersections: Vec<Intersection>,
     // All geometry stored in worldspace, including rtrees
@@ -92,7 +95,7 @@ type IntersectionLocation = GeomWithData<[f64; 2], usize>;
 impl MapModel {
     /// Call with bytes of an osm.pbf or osm.xml string and a profile name
     #[wasm_bindgen(constructor)]
-    pub fn new(input_bytes: &[u8], profile: JsValue) -> Result<MapModel, JsValue> {
+    pub async fn new(input_bytes: &[u8], profile: JsValue) -> Result<MapModel, JsValue> {
         // Panics shouldn't happen, but if they do, console.log them.
         console_error_panic_hook::set_once();
         START.call_once(|| {
@@ -100,7 +103,17 @@ impl MapModel {
         });
 
         let profile: Profile = serde_wasm_bindgen::from_value(profile)?;
-        scrape::scrape_osm(input_bytes, profile).map_err(err_to_js)
+
+        let graph = Graph::new(
+            input_bytes,
+            graph::GtfsSource::None,
+            &mut utils::osm2graph::NullReader,
+            &mut Timer::new("build graph", None),
+        )
+        .await
+        .map_err(err_to_js)?;
+
+        scrape::scrape_osm(input_bytes, profile, graph).map_err(err_to_js)
     }
 
     /// Returns a GeoJSON string. Just shows the full ped network

@@ -1,8 +1,9 @@
 use anyhow::Result;
+use graph::Graph;
 
 use crate::{Intersection, IntersectionID, MapModel, Profile, Road, RoadID};
 
-pub fn scrape_osm(input_bytes: &[u8], profile: Profile) -> Result<MapModel> {
+pub fn scrape_osm(input_bytes: &[u8], profile: Profile, other_graph: Graph) -> Result<MapModel> {
     let graph = utils::osm2graph::Graph::new(
         input_bytes,
         |tags| profile.classify(tags).is_some(),
@@ -42,6 +43,7 @@ pub fn scrape_osm(input_bytes: &[u8], profile: Profile) -> Result<MapModel> {
     let path_calc = fast_paths::create_calculator(&ch);
 
     Ok(MapModel {
+        graph: other_graph,
         roads,
         intersections,
         mercator: graph.mercator,

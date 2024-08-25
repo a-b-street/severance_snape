@@ -42,7 +42,7 @@
   let fileInput: HTMLInputElement;
   async function loadFile(e: Event) {
     try {
-      loadModel(await fileInput.files![0].arrayBuffer());
+      await loadModel(await fileInput.files![0].arrayBuffer());
       example = "";
     } catch (err) {
       window.alert(`Couldn't open this file: ${err}`);
@@ -50,17 +50,17 @@
     loading = "";
   }
 
-  function loadModel(buffer: ArrayBuffer) {
+  async function loadModel(buffer: ArrayBuffer) {
     loading = "Building map model from OSM input";
     console.time("load");
-    $model = new MapModel(new Uint8Array(buffer), $profile);
+    $model = await new MapModel(new Uint8Array(buffer), $profile);
     console.timeEnd("load");
   }
 
-  function gotXml(e: CustomEvent<string>) {
+  async function gotXml(e: CustomEvent<string>) {
     try {
       // TODO Can we avoid turning into bytes?
-      loadModel(new TextEncoder().encode(e.detail));
+      await loadModel(new TextEncoder().encode(e.detail));
       example = "";
     } catch (err) {
       window.alert(`Couldn't import from Overpass: ${err}`);
@@ -96,7 +96,7 @@
     try {
       loading = `Downloading ${url}`;
       let resp = await fetch(url);
-      loadModel(await resp.arrayBuffer());
+      await loadModel(await resp.arrayBuffer());
     } catch (err) {
       window.alert(`Couldn't open from URL ${url}: ${err}`);
     }
