@@ -5,7 +5,7 @@ use geojson::FeatureCollection;
 use graph::IntersectionID;
 use rstar::{primitives::GeomWithData, RTree};
 
-use crate::{CompareRouteRequest, MapModel, RoadKind};
+use crate::{MapModel, RoadKind};
 
 // Walk along severances. Every X meters, try to cross from one side to the other.
 //
@@ -17,7 +17,7 @@ pub fn along_severances(map: &MapModel) -> FeatureCollection {
     for r in &map.graph.roads {
         if map.road_kinds[r.id.0] == Some(RoadKind::Severance) {
             for line in make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
-                requests.push(line.into());
+                requests.push((line.start, line.end));
             }
         }
     }
@@ -50,26 +50,21 @@ pub fn nearby_footway_intersections(map: &MapModel, dist_meters: f64) -> Feature
     // For every intersection, try to go to every nearby intersection
     let mut requests = Vec::new();
     for i1 in &footway_intersections {
-        let i1_pt = map.graph.intersections[i1.0].point;
+        let i1_pt: Coord = map.graph.intersections[i1.0].point.into();
         for i2 in rtree.locate_within_distance(i1_pt.into(), dist_meters) {
             // TODO Skip trivial things connected by a road
-            let i2_pt = map.graph.intersections[i2.data.0].point;
-            requests.push(CompareRouteRequest {
-                x1: i1_pt.x(),
-                y1: i1_pt.y(),
-                x2: i2_pt.x(),
-                y2: i2_pt.y(),
-            });
+            let i2_pt = map.graph.intersections[i2.data.0].point.into();
+            requests.push((i1_pt, i2_pt));
         }
     }
     calculate(map, requests)
 }
 
-fn calculate(map: &MapModel, requests: Vec<CompareRouteRequest>) -> FeatureCollection {
+fn calculate(map: &MapModel, requests: Vec<(Coord, Coord)>) -> FeatureCollection {
     let mut samples = Vec::new();
     let mut max_score = 0.0_f64;
-    for req in requests {
-        if let Ok((mut f, fc)) = crate::route::do_route(map, req) {
+    for (start, end) in requests {
+        if let Ok((mut f, fc)) = crate::route::do_route(map, start, end) {
             let direct = fc
                 .foreign_members
                 .as_ref()
