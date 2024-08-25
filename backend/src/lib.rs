@@ -5,7 +5,7 @@ use std::sync::Once;
 
 use geo::{Coord, Line};
 use geojson::GeoJson;
-use graph::{Graph, Timer};
+use graph::{Direction, Graph, Mode, Road, Timer};
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
@@ -50,20 +50,26 @@ impl MapModel {
 
         let profile: Profile = serde_wasm_bindgen::from_value(profile)?;
 
+        let mut road_kinds = Vec::new();
+        let modify_roads = |roads: &mut Vec<Road>| {
+            for r in roads {
+                let kind = profile.classify(&r.osm_tags);
+                road_kinds.push(kind);
+                // Remove some edges from routing
+                if kind == None || kind == Some(RoadKind::Severance) {
+                    r.access[Mode::Foot] = Direction::None;
+                }
+            }
+        };
         let graph = Graph::new(
             input_bytes,
             graph::GtfsSource::None,
             &mut utils::osm2graph::NullReader,
+            modify_roads,
             &mut Timer::new("build graph", None),
         )
         .await
         .map_err(err_to_js)?;
-
-        let road_kinds = graph
-            .roads
-            .iter()
-            .map(|r| profile.classify(&r.osm_tags))
-            .collect();
 
         Ok(MapModel { graph, road_kinds })
     }
