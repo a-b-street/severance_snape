@@ -664,7 +664,7 @@ checksum = "40ecd4077b5ae9fd2e9e169b102c6c330d0605168eb0e8bf79952b256dbefffd"
 [[package]]
 name = "graph"
 version = "0.1.0"
-source = "git+https://github.com/a-b-street/15m#290eb3d843bfeeeb5e27c40b08876f6bd547aede"
+source = "git+https://github.com/a-b-street/15m#d094b01a78fbda56c46fd5358b03e9e0c290e8ab"
 dependencies = [
  "anyhow",
  "chrono",

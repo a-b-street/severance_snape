@@ -4,24 +4,12 @@ use geojson::{Feature, FeatureCollection, Geometry};
 use graph::{Mode, PathStep};
 use serde::Serialize;
 
-use crate::{CompareRouteRequest, MapModel};
+use crate::MapModel;
 
 // Also returns the line of the snapped request (in WGS84)
-pub fn do_route(map: &MapModel, req: CompareRouteRequest) -> Result<(Feature, FeatureCollection)> {
-    let start = map.graph.snap_to_road(
-        Coord {
-            x: req.x1,
-            y: req.y1,
-        },
-        Mode::Foot,
-    );
-    let end = map.graph.snap_to_road(
-        Coord {
-            x: req.x2,
-            y: req.y2,
-        },
-        Mode::Foot,
-    );
+pub fn do_route(map: &MapModel, start: Coord, end: Coord) -> Result<(Feature, FeatureCollection)> {
+    let start = map.graph.snap_to_road(start, Mode::Foot);
+    let end = map.graph.snap_to_road(end, Mode::Foot);
 
     let route = map.graph.router[Mode::Foot].route(&map.graph, start, end)?;
     let route_linestring = route.linestring(&map.graph);

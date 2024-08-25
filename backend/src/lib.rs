@@ -3,7 +3,7 @@ extern crate log;
 
 use std::sync::Once;
 
-use geo::{Coord, Line};
+use geo::Coord;
 use geojson::GeoJson;
 use graph::{Direction, Graph, Mode, Road, Timer};
 use serde::Deserialize;
@@ -95,24 +95,15 @@ impl MapModel {
     #[wasm_bindgen(js_name = compareRoute)]
     pub fn compare_route(&self, input: JsValue) -> Result<String, JsValue> {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
-        let pt1 = self.graph.mercator.pt_to_mercator(Coord {
+        let start = self.graph.mercator.pt_to_mercator(Coord {
             x: req.x1,
             y: req.y1,
         });
-        let pt2 = self.graph.mercator.pt_to_mercator(Coord {
+        let end = self.graph.mercator.pt_to_mercator(Coord {
             x: req.x2,
             y: req.y2,
         });
-        let (_, gj) = route::do_route(
-            self,
-            CompareRouteRequest {
-                x1: pt1.x,
-                y1: pt1.y,
-                x2: pt2.x,
-                y2: pt2.y,
-            },
-        )
-        .map_err(err_to_js)?;
+        let (_, gj) = route::do_route(self, start, end).map_err(err_to_js)?;
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
     }
@@ -161,17 +152,6 @@ pub struct CompareRouteRequest {
     y1: f64,
     x2: f64,
     y2: f64,
-}
-
-impl From<Line> for CompareRouteRequest {
-    fn from(line: Line) -> Self {
-        Self {
-            x1: line.start.x,
-            y1: line.start.y,
-            x2: line.end.x,
-            y2: line.end.y,
-        }
-    }
 }
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
