@@ -1,16 +1,14 @@
 <script lang="ts">
-  import type { Feature } from "geojson";
-  import { notNull } from "svelte-utils";
-  import type { RouteGJ } from "./stores";
+  import type { RouteGJ, Step } from "./stores";
 
   export let route_gj: RouteGJ;
 
   function levelChanges(gj: RouteGJ) {
     let count = 0;
     // No windows(2)?
-    for (let i = 0; i < gj.features.length - 1; i++) {
-      let l1 = route_gj.features[i].properties!.layer ?? "0";
-      let l2 = route_gj.features[i + 1].properties!.layer ?? "0";
+    for (let i = 0; i < gj.directions.length - 1; i++) {
+      let l1 = route_gj.directions[i].layer;
+      let l2 = route_gj.directions[i + 1].layer;
       if (l1 != l2) {
         count++;
       }
@@ -18,14 +16,13 @@
     return count;
   }
 
-  function step(f: Feature) {
-    let props = f.properties!;
-    let level = props.layer ?? "0";
+  function step(x: Step) {
+    let level = parseInt(x.layer);
     let padding = "&nbsp;".repeat(3 * Math.abs(level));
-    if (props.name) {
-      return `${padding}[${level}] ${props.kind} (${props.name})`;
+    if (x.name) {
+      return `${padding}[${level}] ${x.kind} (${x.name})`;
     } else {
-      return `${padding}[${level}] ${props.kind}`;
+      return `${padding}[${level}] ${x.kind}`;
     }
   }
 </script>
@@ -41,9 +38,9 @@
   <summary>Route directions</summary>
 
   <ol>
-    {#each route_gj.features as f}
+    {#each route_gj.directions as x}
       <li>
-        <a href={notNull(f.properties).way} target="_blank">{@html step(f)}</a>
+        <a href={x.way} target="_blank">{@html step(x)}</a>
       </li>
     {/each}
   </ol>

@@ -17,6 +17,14 @@ export type Mode =
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;
   route_length: number;
+  directions: Step[];
+}
+
+export interface Step {
+  name?: string;
+  way: string;
+  kind: string;
+  layer: string;
 }
 
 export let model: Writable<MapModel | null> = writable(null);

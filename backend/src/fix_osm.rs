@@ -6,25 +6,26 @@ use crate::MapModel;
 
 pub fn find_separate_sidewalks(map: &MapModel, duplicates_only: bool) -> GeoJson {
     let footways = RTree::bulk_load(
-        map.roads
+        map.graph
+            .roads
             .iter()
-            .filter(|r| r.tags.is("highway", "footway"))
+            .filter(|r| r.osm_tags.is("highway", "footway"))
             .map(|r| r.linestring.clone())
             .collect(),
     );
 
     let mut features = Vec::new();
-    'ROAD: for r in &map.roads {
-        if r.tags.is("highway", "footway")
-            || r.tags.is("sidewalk", "separate")
-            || r.tags.is("sidewalk:left", "separate")
-            || r.tags.is("sidewalk:right", "separate")
-            || r.tags.is("sidewalk:both", "separate")
+    'ROAD: for r in &map.graph.roads {
+        if r.osm_tags.is("highway", "footway")
+            || r.osm_tags.is("sidewalk", "separate")
+            || r.osm_tags.is("sidewalk:left", "separate")
+            || r.osm_tags.is("sidewalk:right", "separate")
+            || r.osm_tags.is("sidewalk:both", "separate")
         {
             continue;
         }
 
-        if duplicates_only && !r.tags.is_any("sidewalk", vec!["left", "right", "both"]) {
+        if duplicates_only && !r.osm_tags.is_any("sidewalk", vec!["left", "right", "both"]) {
             continue;
         }
 
@@ -32,7 +33,7 @@ pub fn find_separate_sidewalks(map: &MapModel, duplicates_only: bool) -> GeoJson
         for line in crate::heatmap::make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
             for footway in footways.locate_in_envelope_intersecting(&line.envelope()) {
                 if footway.intersects(&line) {
-                    features.push(r.to_gj(&map.mercator));
+                    features.push(r.to_gj(&map.graph.mercator));
                     continue 'ROAD;
                 }
             }
