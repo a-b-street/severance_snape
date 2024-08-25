@@ -138,12 +138,10 @@ dependencies = [
  "anyhow",
  "console_error_panic_hook",
  "console_log",
- "fast_paths",
  "geo",
  "geojson",
  "graph",
  "log",
- "osm-reader",
  "petgraph",
  "rstar",
  "serde",
@@ -666,7 +664,7 @@ checksum = "40ecd4077b5ae9fd2e9e169b102c6c330d0605168eb0e8bf79952b256dbefffd"
 [[package]]
 name = "graph"
 version = "0.1.0"
-source = "git+https://github.com/a-b-street/15m#d9e0d3d36c08b8ce54ed13f684f491a7fce46b5c"
+source = "git+https://github.com/a-b-street/15m#b96adce7217af60b1c420c6b425404115dbd0e6b"
 dependencies = [
  "anyhow",
  "chrono",

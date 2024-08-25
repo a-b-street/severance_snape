@@ -1,16 +1,12 @@
 #[macro_use]
 extern crate log;
 
-use std::fmt;
 use std::sync::Once;
 
-use fast_paths::{FastGraph, PathCalculator};
-use geo::{Coord, Line, LineString, Point, Polygon};
-use geojson::{Feature, GeoJson, Geometry};
+use geo::{Coord, Line};
+use geojson::GeoJson;
 use graph::{Graph, Timer};
-use rstar::{primitives::GeomWithData, RTree};
-use serde::{Deserialize, Serialize};
-use utils::{Mercator, NodeMap, Tags};
+use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
 use crate::profiles::Profile;
@@ -20,56 +16,17 @@ mod fix_osm;
 mod heatmap;
 mod profiles;
 mod route;
-mod scrape;
 
 static START: Once = Once::new();
 
 #[wasm_bindgen]
 pub struct MapModel {
     graph: Graph,
-
-    roads: Vec<Road>,
-    intersections: Vec<Intersection>,
-    // All geometry stored in worldspace, including rtrees
-    mercator: Mercator,
-    // Only snaps to walkable roads
-    closest_intersection: RTree<IntersectionLocation>,
-    node_map: NodeMap<IntersectionID>,
-    ch: FastGraph,
-    path_calc: PathCalculator,
-    boundary_polygon: Polygon,
+    // Indexed by RoadID. None means the road should be totally ignored from the walking analysis
+    road_kinds: Vec<Option<RoadKind>>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord)]
-pub struct RoadID(pub usize);
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, PartialOrd, Ord, Serialize)]
-pub struct IntersectionID(pub usize);
-
-impl fmt::Display for RoadID {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Road #{}", self.0)
-    }
-}
-
-impl fmt::Display for IntersectionID {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Intersection #{}", self.0)
-    }
-}
-
-pub struct Road {
-    id: RoadID,
-    src_i: IntersectionID,
-    dst_i: IntersectionID,
-    way: osm_reader::WayID,
-    node1: osm_reader::NodeID,
-    node2: osm_reader::NodeID,
-    linestring: LineString,
-    tags: Tags,
-    kind: RoadKind,
-}
-
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RoadKind {
     Footway,
     Indoors,
@@ -79,17 +36,6 @@ pub enum RoadKind {
     Severance,
     // TODO other types of road?
 }
-
-pub struct Intersection {
-    id: IntersectionID,
-    #[allow(dead_code)]
-    node: osm_reader::NodeID,
-    point: Point,
-    roads: Vec<RoadID>,
-}
-
-// fast_paths ID representing the OSM node ID as the data
-type IntersectionLocation = GeomWithData<[f64; 2], usize>;
 
 #[wasm_bindgen]
 impl MapModel {
@@ -113,7 +59,13 @@ impl MapModel {
         .await
         .map_err(err_to_js)?;
 
-        scrape::scrape_osm(input_bytes, profile, graph).map_err(err_to_js)
+        let road_kinds = graph
+            .roads
+            .iter()
+            .map(|r| profile.classify(&r.osm_tags))
+            .collect();
+
+        Ok(MapModel { graph, road_kinds })
     }
 
     /// Returns a GeoJSON string. Just shows the full ped network
@@ -121,8 +73,12 @@ impl MapModel {
     pub fn render(&self) -> Result<String, JsValue> {
         let mut features = Vec::new();
 
-        for r in &self.roads {
-            features.push(r.to_gj(&self.mercator));
+        for r in &self.graph.roads {
+            if let Some(kind) = self.road_kinds[r.id.0] {
+                let mut f = r.to_gj(&self.graph.mercator);
+                f.set_property("kind", format!("{:?}", kind));
+                features.push(f);
+            }
         }
 
         let gj = GeoJson::from(features);
@@ -131,13 +87,13 @@ impl MapModel {
     }
 
     #[wasm_bindgen(js_name = compareRoute)]
-    pub fn compare_route(&mut self, input: JsValue) -> Result<String, JsValue> {
+    pub fn compare_route(&self, input: JsValue) -> Result<String, JsValue> {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
-        let pt1 = self.mercator.pt_to_mercator(Coord {
+        let pt1 = self.graph.mercator.pt_to_mercator(Coord {
             x: req.x1,
             y: req.y1,
         });
-        let pt2 = self.mercator.pt_to_mercator(Coord {
+        let pt2 = self.graph.mercator.pt_to_mercator(Coord {
             x: req.x2,
             y: req.y2,
         });
@@ -156,7 +112,7 @@ impl MapModel {
     }
 
     #[wasm_bindgen(js_name = makeHeatmap)]
-    pub fn make_heatmap(&mut self) -> Result<String, JsValue> {
+    pub fn make_heatmap(&self) -> Result<String, JsValue> {
         let samples = heatmap::along_severances(self);
         // TODO unit here is weird or wrong or something
         //let samples = heatmap::nearby_footway_intersections(self, 500.0);
@@ -167,25 +123,12 @@ impl MapModel {
     /// Return a polygon covering the world, minus a hole for the boundary, in WGS84
     #[wasm_bindgen(js_name = getInvertedBoundary)]
     pub fn get_inverted_boundary(&self) -> Result<String, JsValue> {
-        let (boundary, _) = self.mercator.to_wgs84(&self.boundary_polygon).into_inner();
-        let polygon = Polygon::new(
-            LineString::from(vec![
-                (180.0, 90.0),
-                (-180.0, 90.0),
-                (-180.0, -90.0),
-                (180.0, -90.0),
-                (180.0, 90.0),
-            ]),
-            vec![boundary],
-        );
-        let f = Feature::from(Geometry::from(&polygon));
-        let out = serde_json::to_string(&f).map_err(err_to_js)?;
-        Ok(out)
+        self.graph.get_inverted_boundary().map_err(err_to_js)
     }
 
     #[wasm_bindgen(js_name = getBounds)]
     pub fn get_bounds(&self) -> Vec<f64> {
-        let b = &self.mercator.wgs84_bounds;
+        let b = &self.graph.mercator.wgs84_bounds;
         vec![b.min().x, b.min().y, b.max().x, b.max().y]
     }
 
@@ -201,32 +144,6 @@ impl MapModel {
         let out = serde_json::to_string(&disconnected::find_connected_components(self))
             .map_err(err_to_js)?;
         Ok(out)
-    }
-
-    fn find_edge(&self, i1: IntersectionID, i2: IntersectionID) -> &Road {
-        // TODO Store lookup table
-        for r in &self.intersections[i1.0].roads {
-            let road = &self.roads[r.0];
-            if road.src_i == i2 || road.dst_i == i2 {
-                return road;
-            }
-        }
-        panic!("no road from {i1} to {i2} or vice versa");
-    }
-}
-
-impl Road {
-    fn to_gj(&self, mercator: &Mercator) -> Feature {
-        let mut f = Feature::from(Geometry::from(&mercator.to_wgs84(&self.linestring)));
-        f.set_property("id", self.id.0);
-        f.set_property("kind", format!("{:?}", self.kind));
-        f.set_property("way", self.way.to_string());
-        f.set_property("node1", self.node1.to_string());
-        f.set_property("node2", self.node2.to_string());
-        for (k, v) in &self.tags.0 {
-            f.set_property(k, v.to_string());
-        }
-        f
     }
 }
 

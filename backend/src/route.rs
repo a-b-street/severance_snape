@@ -1,116 +1,79 @@
-use anyhow::{bail, Result};
-use fast_paths::{FastGraph, InputGraph};
-use geo::{EuclideanLength, LineString};
-use geojson::{Feature, FeatureCollection};
-use rstar::RTree;
-use utils::NodeMap;
+use anyhow::Result;
+use geo::{Coord, EuclideanLength, LineString};
+use geojson::{Feature, FeatureCollection, Geometry};
+use graph::{Mode, PathStep};
+use serde::Serialize;
 
-use crate::{
-    CompareRouteRequest, Intersection, IntersectionID, IntersectionLocation, MapModel, Road,
-    RoadKind,
-};
-
-pub fn build_router(
-    intersections: &Vec<Intersection>,
-    roads: &Vec<Road>,
-) -> (
-    RTree<IntersectionLocation>,
-    NodeMap<IntersectionID>,
-    FastGraph,
-) {
-    let mut input_graph = InputGraph::new();
-    let mut node_map = NodeMap::new();
-
-    for r in roads {
-        if r.kind == RoadKind::Severance {
-            continue;
-        }
-        let node1 = node_map.get_or_insert(r.src_i);
-        let node2 = node_map.get_or_insert(r.dst_i);
-        // Use units of cm for comparing edges
-        let cost = (100.0 * r.linestring.euclidean_length()).round() as usize;
-        input_graph.add_edge(node1, node2, cost);
-        input_graph.add_edge(node2, node1, cost);
-    }
-    input_graph.freeze();
-    let ch = fast_paths::prepare(&input_graph);
-
-    let closest_intersection = build_closest_intersection(intersections, &node_map);
-    (closest_intersection, node_map, ch)
-}
-
-fn build_closest_intersection(
-    intersections: &Vec<Intersection>,
-    node_map: &NodeMap<IntersectionID>,
-) -> RTree<IntersectionLocation> {
-    let mut points = Vec::new();
-    for i in intersections {
-        // If the intersection only involves severances, exclude
-        if let Some(node) = node_map.get(i.id) {
-            points.push(IntersectionLocation::new(i.point.into(), node));
-        }
-    }
-    RTree::bulk_load(points)
-}
+use crate::{CompareRouteRequest, MapModel};
 
 // Also returns the line of the snapped request (in WGS84)
-pub fn do_route(
-    map: &mut MapModel,
-    req: CompareRouteRequest,
-) -> Result<(Feature, FeatureCollection)> {
-    let start = map
-        .closest_intersection
-        .nearest_neighbor(&[req.x1, req.y1])
-        .unwrap()
-        .data;
-    let end = map
-        .closest_intersection
-        .nearest_neighbor(&[req.x2, req.y2])
-        .unwrap()
-        .data;
-    if start == end {
-        bail!("start = end");
-    }
+pub fn do_route(map: &MapModel, req: CompareRouteRequest) -> Result<(Feature, FeatureCollection)> {
+    let start = map.graph.snap_to_road(
+        Coord {
+            x: req.x1,
+            y: req.y1,
+        },
+        Mode::Foot,
+    );
+    let end = map.graph.snap_to_road(
+        Coord {
+            x: req.x2,
+            y: req.y2,
+        },
+        Mode::Foot,
+    );
 
-    if let Some(path) = map.path_calc.calc_path(&map.ch, start, end) {
-        let direct_line = LineString::new(vec![
-            map.intersections[map.node_map.translate_id(start).0]
-                .point
-                .into(),
-            map.intersections[map.node_map.translate_id(end).0]
-                .point
-                .into(),
-        ]);
-        let direct_feature = Feature::from(geojson::Geometry::from(
-            &map.mercator.to_wgs84(&direct_line),
-        ));
+    let route = map.graph.router[Mode::Foot].route(&map.graph, start, end)?;
+    let route_linestring = route.linestring(&map.graph);
 
-        let mut features = Vec::new();
-        let mut route_length = 0.0;
-        for pair in path.get_nodes().windows(2) {
-            let i1 = map.node_map.translate_id(pair[0]);
-            let i2 = map.node_map.translate_id(pair[1]);
-            let road = map.find_edge(i1, i2);
-            features.push(road.to_gj(&map.mercator));
-            route_length += road.linestring.euclidean_length();
+    let mut directions = Vec::new();
+    for step in route.steps {
+        if let PathStep::Road { road, .. } = step {
+            let r = &map.graph.roads[road.0];
+            directions.push(Step {
+                name: r.osm_tags.get("name").cloned(),
+                way: r.way.to_string(),
+                kind: format!("{:?}", map.road_kinds[road.0]),
+                layer: r
+                    .osm_tags
+                    .get("layer")
+                    .cloned()
+                    .unwrap_or_else(|| "0".to_string()),
+            });
         }
-        let direct_length = direct_line.euclidean_length();
-        return Ok((
-            direct_feature,
-            FeatureCollection {
-                features,
-                bbox: None,
-                foreign_members: Some(
-                    serde_json::json!({
-                        "direct_length": direct_length,
-                        "route_length": route_length,
-                    })
-                    .as_object()
-                    .unwrap()
-                    .clone(),
-                ),
-            },
-        ));
     }
-    bail!("No path");
+
+    // TODO More exactly, the point snapped to the road?
+    let direct_line = LineString::new(vec![
+        map.graph.intersections[start.intersection.0].point.into(),
+        map.graph.intersections[end.intersection.0].point.into(),
+    ]);
+
+    Ok((
+        Feature::from(Geometry::from(&map.graph.mercator.to_wgs84(&direct_line))),
+        FeatureCollection {
+            features: vec![Feature::from(Geometry::from(
+                &map.graph.mercator.to_wgs84(&route_linestring),
+            ))],
+            bbox: None,
+            foreign_members: Some(
+                serde_json::json!({
+                    "direct_length": direct_line.euclidean_length(),
+                    "route_length": route_linestring.euclidean_length(),
+                    "directions": directions,
+                })
+                .as_object()
+                .unwrap()
+                .clone(),
+            ),
+        },
+    ))
+}
+
+#[derive(Serialize)]
+struct Step {
+    name: Option<String>,
+    way: String,
+    kind: String,
+    layer: String,
 }
