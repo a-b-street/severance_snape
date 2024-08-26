@@ -111,8 +111,6 @@ impl MapModel {
     #[wasm_bindgen(js_name = makeHeatmap)]
     pub fn make_heatmap(&self) -> Result<String, JsValue> {
         let samples = heatmap::along_severances(self);
-        // TODO unit here is weird or wrong or something
-        //let samples = heatmap::nearby_footway_intersections(self, 500.0);
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }

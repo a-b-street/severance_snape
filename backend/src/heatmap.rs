@@ -1,9 +1,5 @@
-use std::collections::HashSet;
-
 use geo::{Coord, Densify, Line, LineString};
 use geojson::FeatureCollection;
-use graph::IntersectionID;
-use rstar::{primitives::GeomWithData, RTree};
 
 use crate::{MapModel, RoadKind};
 
@@ -19,42 +15,6 @@ pub fn along_severances(map: &MapModel) -> FeatureCollection {
             for line in make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
                 requests.push((line.start, line.end));
             }
-        }
-    }
-    calculate(map, requests)
-}
-
-// For every intersection involving a footway, look for any other nearby intersection and see how
-// hard it is to walk there.
-#[allow(unused)]
-pub fn nearby_footway_intersections(map: &MapModel, dist_meters: f64) -> FeatureCollection {
-    // Look for intersections we want to connect
-    let mut footway_intersections = HashSet::new();
-    for r in &map.graph.roads {
-        if map.road_kinds[r.id.0] == Some(RoadKind::Footway) {
-            footway_intersections.insert(r.src_i);
-            footway_intersections.insert(r.dst_i);
-        }
-    }
-
-    // Make an rtree
-    let mut points: Vec<GeomWithData<[f64; 2], IntersectionID>> = Vec::new();
-    for i in &footway_intersections {
-        points.push(GeomWithData::new(
-            map.graph.intersections[i.0].point.into(),
-            *i,
-        ));
-    }
-    let rtree = RTree::bulk_load(points);
-
-    // For every intersection, try to go to every nearby intersection
-    let mut requests = Vec::new();
-    for i1 in &footway_intersections {
-        let i1_pt: Coord = map.graph.intersections[i1.0].point.into();
-        for i2 in rtree.locate_within_distance(i1_pt.into(), dist_meters) {
-            // TODO Skip trivial things connected by a road
-            let i2_pt = map.graph.intersections[i2.data.0].point.into();
-            requests.push((i1_pt, i2_pt));
         }
     }
     calculate(map, requests)
