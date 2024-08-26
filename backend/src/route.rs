@@ -7,11 +7,16 @@ use serde::Serialize;
 use crate::MapModel;
 
 // Also returns the line of the snapped request (in WGS84)
-pub fn do_route(map: &MapModel, start: Coord, end: Coord) -> Result<(Feature, FeatureCollection)> {
-    let start = map.graph.snap_to_road(start, Mode::Foot);
-    let end = map.graph.snap_to_road(end, Mode::Foot);
+pub fn do_route(
+    map: &MapModel,
+    start: Coord,
+    end: Coord,
+    mode: Mode,
+) -> Result<(Feature, FeatureCollection)> {
+    let start = map.graph.snap_to_road(start, mode);
+    let end = map.graph.snap_to_road(end, mode);
 
-    let route = map.graph.router[Mode::Foot].route(&map.graph, start, end)?;
+    let route = map.graph.router[mode].route(&map.graph, start, end)?;
     let route_linestring = route.linestring(&map.graph);
 
     let mut directions = Vec::new();

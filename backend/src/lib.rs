@@ -103,14 +103,17 @@ impl MapModel {
             x: req.x2,
             y: req.y2,
         });
-        let (_, gj) = route::do_route(self, start, end).map_err(err_to_js)?;
+        let mode = Mode::parse(&req.mode).map_err(err_to_js)?;
+        let (_, gj) = route::do_route(self, start, end, mode).map_err(err_to_js)?;
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
     }
 
     #[wasm_bindgen(js_name = makeHeatmap)]
-    pub fn make_heatmap(&self) -> Result<String, JsValue> {
-        let samples = heatmap::along_severances(self);
+    pub fn make_heatmap(&self, mode: String) -> Result<String, JsValue> {
+        let mode = Mode::parse(&mode).map_err(err_to_js)?;
+        // TODO Different strategy for driving
+        let samples = heatmap::along_severances(self, mode);
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
@@ -150,6 +153,7 @@ pub struct CompareRouteRequest {
     y1: f64,
     x2: f64,
     y2: f64,
+    mode: String,
 }
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
