@@ -4,7 +4,7 @@ extern crate log;
 use std::sync::Once;
 
 use geo::Coord;
-use geojson::GeoJson;
+use geojson::{Feature, GeoJson, Geometry};
 use graph::{Direction, Graph, Mode, Road, Timer};
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
@@ -143,9 +143,13 @@ impl MapModel {
 
         for r in &self.graph.roads {
             if self.road_kinds[r.id.0] == Some(RoadKind::Severance) {
-                features1.push(Feature::from(Geometry::from(&self.graph.mercator.to_wgs84(&r.linestring))));
+                features1.push(Feature::from(Geometry::from(
+                    &self.graph.mercator.to_wgs84(&r.linestring),
+                )));
             } else {
-                features2.push(Feature::from(Geometry::from(&self.graph.mercator.to_wgs84(&r.linestring))));
+                features2.push(Feature::from(Geometry::from(
+                    &self.graph.mercator.to_wgs84(&r.linestring),
+                )));
             }
         }
 
