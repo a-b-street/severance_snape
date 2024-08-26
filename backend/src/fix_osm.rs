@@ -30,7 +30,7 @@ pub fn find_separate_sidewalks(map: &MapModel, duplicates_only: bool) -> GeoJson
         }
 
         // Along this road, if we project away, do we hit a footway?
-        for line in crate::heatmap::make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
+        for line in crate::scores::make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
             for footway in footways.locate_in_envelope_intersecting(&line.envelope()) {
                 if footway.intersects(&line) {
                     features.push(r.to_gj(&map.graph.mercator));

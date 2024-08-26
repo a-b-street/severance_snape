@@ -13,9 +13,9 @@ use crate::profiles::Profile;
 
 mod disconnected;
 mod fix_osm;
-mod heatmap;
 mod profiles;
 mod route;
+mod scores;
 
 static START: Once = Once::new();
 
@@ -109,11 +109,10 @@ impl MapModel {
         Ok(out)
     }
 
-    #[wasm_bindgen(js_name = makeHeatmap)]
-    pub fn make_heatmap(&self, mode: String) -> Result<String, JsValue> {
+    #[wasm_bindgen(js_name = scoreDetours)]
+    pub fn score_detours(&self, mode: String) -> Result<String, JsValue> {
         let mode = Mode::parse(&mode).map_err(err_to_js)?;
-        // TODO Different strategy for driving
-        let samples = heatmap::along_severances(self, mode);
+        let samples = scores::for_mode(self, mode);
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }

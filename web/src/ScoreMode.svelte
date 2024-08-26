@@ -32,7 +32,7 @@
   let highestScore = 0;
 
   function update(_mode: string) {
-    scoreGj = JSON.parse($model!.makeHeatmap($travelMode));
+    scoreGj = JSON.parse($model!.scoreDetours($travelMode));
     highestScore = Math.round(
       Math.max(...scoreGj.features.map((f) => f.properties.score)),
     );

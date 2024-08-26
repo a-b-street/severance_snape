@@ -1,21 +1,44 @@
 use geo::{Coord, Densify, Line, LineString};
 use geojson::FeatureCollection;
-use graph::Mode;
+use graph::{Direction, Mode};
 
 use crate::{MapModel, RoadKind};
+
+pub fn for_mode(map: &MapModel, mode: Mode) -> FeatureCollection {
+    match mode {
+        Mode::Foot => along_severances(map, mode),
+        // Makes less sense
+        Mode::Bicycle => along_severances(map, mode),
+        Mode::Car => non_crossable_roads(map, mode),
+    }
+}
 
 // Walk along severances. Every X meters, try to cross from one side to the other.
 //
 // We could focus where footways connect to severances, but that's probably a crossing. Ideally we
 // want to find footpaths parallel(ish) to severances. If we had some kind of generalized edge
 // bundling...
-pub fn along_severances(map: &MapModel, mode: Mode) -> FeatureCollection {
+fn along_severances(map: &MapModel, mode: Mode) -> FeatureCollection {
     let mut requests = Vec::new();
     for r in &map.graph.roads {
         if map.road_kinds[r.id.0] == Some(RoadKind::Severance) {
             for line in make_perpendicular_offsets(&r.linestring, 25.0, 15.0) {
                 requests.push((line.start, line.end));
             }
+        }
+    }
+    calculate(map, mode, requests)
+}
+
+// Look for roads cars can't cross. Ideally if there were was an entire component of non-driveable
+// road, the endpoints would be used.
+fn non_crossable_roads(map: &MapModel, mode: Mode) -> FeatureCollection {
+    let mut requests = Vec::new();
+    for r in &map.graph.roads {
+        // Filter out sidewalks; results are too noisy, and sidewalks are usually parallel to a
+        // driveable road
+        if r.access[mode] == Direction::None && !r.osm_tags.is("footway", "sidewalk") {
+            requests.push((r.linestring.0[0], *r.linestring.0.last().unwrap()));
         }
     }
     calculate(map, mode, requests)
