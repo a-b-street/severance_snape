@@ -43,6 +43,13 @@
         <u>USA</u>: An attempt to simplify the classification rules, tuned for
         some USA examples. Mostly uses the <i>highway</i> tag.
       </label>
+
+      <label>
+        <input type="radio" value="USAShoulders" bind:group={$profile} />
+        <u>USA with shoulders</u>: A variation that treats roads with a shoulder
+        as walkable, even if their speed/classifiation would mean they're
+        severances in the USA profile.
+      </label>
     </fieldset>
 
     <button on:click={() => (show = false)}>Done</button>

@@ -8,6 +8,7 @@ pub enum Profile {
     SeparateWays,
     SidewalksOnHighways,
     USA,
+    USAShoulders,
 }
 
 impl Profile {
@@ -42,6 +43,9 @@ impl Profile {
 
         if self == Profile::USA {
             return usa(tags);
+        }
+        if self == Profile::USAShoulders {
+            return usa_shoulders(tags);
         }
 
         // Big roads are always severances.
@@ -99,7 +103,7 @@ impl Profile {
             return match self {
                 Profile::SeparateWays => None,
                 Profile::SidewalksOnHighways => Some(RoadKind::WithTraffic),
-                Profile::USA => unreachable!(),
+                Profile::USA | Profile::USAShoulders => unreachable!(),
             };
         }
 
@@ -144,6 +148,16 @@ fn usa(tags: &Tags) -> Option<RoadKind> {
 
     // TODO
     Some(RoadKind::WithTraffic)
+}
+
+fn usa_shoulders(tags: &Tags) -> Option<RoadKind> {
+    let kind = usa(tags)?;
+    if kind == RoadKind::Severance
+        && (tags.is("cycleway", "shoulder") || tags.is("cyclestreet", "yes"))
+    {
+        return Some(RoadKind::WithTraffic);
+    }
+    Some(kind)
 }
 
 #[cfg(test)]
