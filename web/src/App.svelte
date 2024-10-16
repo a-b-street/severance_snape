@@ -1,6 +1,6 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
-  import logoDark from "../assets/logo_dark.svg?url";
+  import logo from "../assets/logo_light.svg?url";
   import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
@@ -119,7 +119,7 @@
 <Layout>
   <div slot="top" style="display: flex">
     <button class="outline" on:click={() => ($showAbout = true)}>
-      <img src={logoDark} style="height: 6vh;" alt="A/B Street logo" />
+      <img src={logo} style="height: 6vh;" alt="A/B Street logo" />
     </button>
     <span bind:this={topDiv} style="margin-left: 4px; width: 100%" />
   </div>
