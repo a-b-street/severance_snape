@@ -1,6 +1,6 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
-  import logo from "../assets/logo_light.svg?url";
+  import logo from "../assets/logo.svg?url";
   import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
