@@ -337,7 +337,7 @@ dependencies = [
 [[package]]
 name = "graph"
 version = "0.1.0"
-source = "git+https://github.com/a-b-street/15m#af29d3553da63c392c89d28b02f97428a5661718"
+source = "git+https://github.com/a-b-street/15m#1e05a879c79e9b6c4b1058f949c61992bdaecc75"
 dependencies = [
  "anyhow",
  "chrono",
@@ -918,7 +918,7 @@ checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 [[package]]
 name = "utils"
 version = "0.1.0"
-source = "git+https://github.com/a-b-street/utils#e345a9cb753717c883b0f300f53486c7a20aeb55"
+source = "git+https://github.com/a-b-street/utils#cce20c27d03a28b4dccb40d51a872d7baac21de3"
 dependencies = [
  "anyhow",
  "fast_paths",

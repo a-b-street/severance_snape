@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { GeoJSON, LineLayer, hoverStateFilter } from "svelte-maplibre";
+  import {
+    GeoJSON,
+    CircleLayer,
+    LineLayer,
+    hoverStateFilter,
+  } from "svelte-maplibre";
   import { notNull } from "svelte-utils";
   import { model } from "./stores";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
@@ -25,6 +30,17 @@
           "line-color": "red",
         }}
         manageHoverState
+      />
+    </GeoJSON>
+
+    <GeoJSON data={JSON.parse(notNull($model).getCrossings())}>
+      <CircleLayer
+        paint={{
+          "circle-radius": 7,
+          "circle-color": "yellow",
+          "circle-stroke-color": "black",
+          "circle-stroke-width": 1,
+        }}
       />
     </GeoJSON>
   </div>

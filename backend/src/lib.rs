@@ -3,7 +3,7 @@ extern crate log;
 
 use std::sync::Once;
 
-use geo::Coord;
+use geo::{Coord, Point};
 use geojson::GeoJson;
 use graph::Graph;
 use serde::Deserialize;
@@ -25,6 +25,11 @@ pub struct MapModel {
     graph: Graph,
     // Indexed by RoadID
     road_kinds: Vec<RoadKind>,
+    crossings: Vec<Crossing>,
+}
+
+struct Crossing {
+    point: Coord,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -67,6 +72,15 @@ impl MapModel {
         let gj = GeoJson::from(features);
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
+    }
+
+    #[wasm_bindgen(js_name = getCrossings)]
+    pub fn get_crossings(&self) -> Result<String, JsValue> {
+        let mut features = Vec::new();
+        for c in &self.crossings {
+            features.push(self.graph.mercator.to_wgs84_gj(&Point::from(c.point)));
+        }
+        Ok(serde_json::to_string(&GeoJson::from(features)).map_err(err_to_js)?)
     }
 
     #[wasm_bindgen(js_name = compareRoute)]

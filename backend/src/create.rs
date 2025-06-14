@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use anyhow::Result;
@@ -8,7 +8,7 @@ use osm_reader::{NodeID, OsmID, RelationID, WayID};
 use utils::osm2graph::OsmReader;
 use utils::Tags;
 
-use crate::{MapModel, Profile, RoadKind};
+use crate::{Crossing, MapModel, Profile, RoadKind};
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
@@ -34,10 +34,28 @@ impl MapModel {
         });
 
         let mut crossings = Crossings::default();
+        let scrape_graph = Box::new(
+            move |crossings: &mut Crossings, graph: &utils::osm2graph::Graph| {
+                // Only keep crossings on severances
+                let mut severance_nodes = HashSet::new();
+                for edge in graph.edges.values() {
+                    if profile.classify(&edge.osm_tags) == Some(RoadKind::Severance) {
+                        severance_nodes.extend(edge.node_ids.clone());
+                    }
+                }
+
+                crossings
+                    .crossings
+                    .retain(|(node, _)| severance_nodes.contains(node));
+                Ok(())
+            },
+        );
+
         let graph = Graph::new(
             input_bytes,
             &mut crossings,
             Box::new(|_| Ok(())),
+            scrape_graph,
             vec![
                 ("walking".to_string(), walking_profile),
                 ("dummy".to_string(), dummy_profile),
@@ -51,7 +69,19 @@ impl MapModel {
             .map(|r| profile.classify(&r.osm_tags).unwrap())
             .collect();
 
-        Ok(Self { graph, road_kinds })
+        let crossings = crossings
+            .crossings
+            .into_iter()
+            .map(|(_, pt)| Crossing {
+                point: graph.mercator.pt_to_mercator(pt),
+            })
+            .collect();
+
+        Ok(Self {
+            graph,
+            road_kinds,
+            crossings,
+        })
     }
 }
 
