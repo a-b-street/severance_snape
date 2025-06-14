@@ -9,10 +9,8 @@ use crate::{MapModel, RoadKind};
 pub fn find_connected_components(map: &MapModel) -> FeatureCollection {
     let mut graph: UnGraphMap<IntersectionID, RoadID> = UnGraphMap::new();
     for r in &map.graph.roads {
-        if let Some(kind) = map.road_kinds[r.id.0] {
-            if kind != RoadKind::Severance {
-                graph.add_edge(r.src_i, r.dst_i, r.id);
-            }
+        if map.road_kinds[r.id.0] != RoadKind::Severance {
+            graph.add_edge(r.src_i, r.dst_i, r.id);
         }
     }
 
@@ -24,7 +22,7 @@ pub fn find_connected_components(map: &MapModel) -> FeatureCollection {
         component_sizes.push(roads.len());
 
         for r in roads {
-            let mut f = map.graph.roads[r.0].to_gj(&map.graph.mercator);
+            let mut f = map.graph.roads[r.0].to_gj(&map.graph);
             f.set_property("component", component);
             features.push(f);
         }
@@ -52,8 +50,6 @@ fn nodes_to_edges(map: &MapModel, nodes: Vec<IntersectionID>) -> BTreeSet<RoadID
     for i in nodes {
         edges.extend(map.graph.intersections[i.0].roads.clone());
     }
-    edges.retain(|r| {
-        map.road_kinds[r.0].is_some() && map.road_kinds[r.0] != Some(RoadKind::Severance)
-    });
+    edges.retain(|r| map.road_kinds[r.0] != RoadKind::Severance);
     edges
 }

@@ -1,22 +1,18 @@
 use anyhow::Result;
-use geo::{Coord, EuclideanLength, LineString};
+use geo::{Coord, Euclidean, Length, LineString};
 use geojson::{Feature, FeatureCollection, Geometry};
-use graph::{Mode, PathStep};
+use graph::PathStep;
 use serde::Serialize;
 
 use crate::MapModel;
 
 // Also returns the line of the snapped request (in WGS84)
-pub fn do_route(
-    map: &MapModel,
-    start: Coord,
-    end: Coord,
-    mode: Mode,
-) -> Result<(Feature, FeatureCollection)> {
-    let start = map.graph.snap_to_road(start, mode);
-    let end = map.graph.snap_to_road(end, mode);
+pub fn do_route(map: &MapModel, start: Coord, end: Coord) -> Result<(Feature, FeatureCollection)> {
+    let profile = map.graph.profile_names["walking"];
+    let start = map.graph.snap_to_road(start, profile);
+    let end = map.graph.snap_to_road(end, profile);
 
-    let route = map.graph.router[mode].route(&map.graph, start, end)?;
+    let route = map.graph.routers[profile.0].route(&map.graph, start, end)?;
     let route_linestring = route.linestring(&map.graph);
 
     let mut directions = Vec::new();
@@ -51,8 +47,8 @@ pub fn do_route(
             bbox: None,
             foreign_members: Some(
                 serde_json::json!({
-                    "direct_length": direct_line.euclidean_length(),
-                    "route_length": route_linestring.euclidean_length(),
+                    "direct_length": Euclidean.length(&direct_line),
+                    "route_length": Euclidean.length(&route_linestring),
                     "directions": directions,
                 })
                 .as_object()

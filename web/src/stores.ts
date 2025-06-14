@@ -83,12 +83,6 @@ export let duplicateSidewalks: Writable<boolean> = urlState({
   stringify: (x) => (x ? "1" : "0"),
   parse: (x) => x == "1",
 });
-export let travelMode = urlState({
-  name: "travelMode",
-  defaultValue: "foot",
-  stringify: (x) => x,
-  parse: enumUrl(["car", "bicycle", "foot"]),
-});
 
 export type Position = [number, number];
 

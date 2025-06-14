@@ -3,10 +3,9 @@
   import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import { model, type RouteGJ, routeA, routeB, travelMode } from "./stores";
+  import { model, type RouteGJ, routeA, routeB } from "./stores";
   import NavBar from "./NavBar.svelte";
   import { onMount } from "svelte";
-  import PickTravelMode from "./PickTravelMode.svelte";
 
   // TODO or empty
   let route_gj: RouteGJ | null = null;
@@ -30,7 +29,6 @@
           y1: $routeA[1],
           x2: $routeB[0],
           y2: $routeB[1],
-          mode: $travelMode,
         }),
       );
       route_err = "";
@@ -58,7 +56,6 @@
       Move the <b>A</b> and <b>B</b> pins to find a route. (Hint: right-click to
       set the first pin somewhere.)
     </p>
-    <PickTravelMode />
     {#if route_err}
       <p>{route_err}</p>
     {/if}

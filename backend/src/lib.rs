@@ -2,11 +2,13 @@
 extern crate log;
 
 use std::sync::Once;
+use std::time::Duration;
 
-use geo::Coord;
+use geo::{Coord, Euclidean, Length, LineString};
 use geojson::GeoJson;
-use graph::{Direction, Graph, Mode, Road, Timer};
+use graph::{Direction, Graph, Timer};
 use serde::Deserialize;
+use utils::Tags;
 use wasm_bindgen::prelude::*;
 
 use crate::profiles::Profile;
@@ -22,8 +24,8 @@ static START: Once = Once::new();
 #[wasm_bindgen]
 pub struct MapModel {
     graph: Graph,
-    // Indexed by RoadID. None means the road should be totally ignored from the walking analysis
-    road_kinds: Vec<Option<RoadKind>>,
+    // Indexed by RoadID
+    road_kinds: Vec<RoadKind>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -41,7 +43,7 @@ pub enum RoadKind {
 impl MapModel {
     /// Call with bytes of an osm.pbf or osm.xml string and a profile name
     #[wasm_bindgen(constructor)]
-    pub async fn new(input_bytes: &[u8], profile: JsValue) -> Result<MapModel, JsValue> {
+    pub fn new(input_bytes: &[u8], profile: JsValue) -> Result<MapModel, JsValue> {
         // Panics shouldn't happen, but if they do, console.log them.
         console_error_panic_hook::set_once();
         START.call_once(|| {
@@ -50,26 +52,44 @@ impl MapModel {
 
         let profile: Profile = serde_wasm_bindgen::from_value(profile)?;
 
-        let mut road_kinds = Vec::new();
-        let modify_roads = |roads: &mut Vec<Road>| {
-            for r in roads {
-                let kind = profile.classify(&r.osm_tags);
-                road_kinds.push(kind);
-                // Remove some edges from routing
-                if kind == None || kind == Some(RoadKind::Severance) {
-                    r.access[Mode::Foot] = Direction::None;
-                }
+        let walking_profile = Box::new(move |tags: &Tags, linestring: &LineString| {
+            let exclude = (Direction::None, Duration::ZERO);
+            let kind = profile.classify(tags);
+            if kind == None || kind == Some(RoadKind::Severance) {
+                return exclude;
             }
-        };
+
+            // 3mph
+            let speed = 1.34112;
+            let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
+            (Direction::Both, cost)
+        });
+        // TODO Hack to include severances
+        let dummy_profile = Box::new(move |tags: &Tags, _: &LineString| {
+            if profile.classify(tags) == Some(RoadKind::Severance) {
+                (Direction::Both, Duration::from_secs_f64(1.0))
+            } else {
+                (Direction::None, Duration::ZERO)
+            }
+        });
+
         let graph = Graph::new(
             input_bytes,
-            graph::GtfsSource::None,
             &mut utils::osm2graph::NullReader,
-            modify_roads,
+            Box::new(|_| Ok(())),
+            vec![
+                ("walking".to_string(), walking_profile),
+                ("dummy".to_string(), dummy_profile),
+            ],
             &mut Timer::new("build graph", None),
         )
-        .await
         .map_err(err_to_js)?;
+
+        let road_kinds = graph
+            .roads
+            .iter()
+            .map(|r| profile.classify(&r.osm_tags).unwrap())
+            .collect();
 
         Ok(MapModel { graph, road_kinds })
     }
@@ -80,11 +100,9 @@ impl MapModel {
         let mut features = Vec::new();
 
         for r in &self.graph.roads {
-            if let Some(kind) = self.road_kinds[r.id.0] {
-                let mut f = r.to_gj(&self.graph.mercator);
-                f.set_property("kind", format!("{:?}", kind));
-                features.push(f);
-            }
+            let mut f = r.to_gj(&self.graph);
+            f.set_property("kind", format!("{:?}", self.road_kinds[r.id.0]));
+            features.push(f);
         }
 
         let gj = GeoJson::from(features);
@@ -103,16 +121,14 @@ impl MapModel {
             x: req.x2,
             y: req.y2,
         });
-        let mode = Mode::parse(&req.mode).map_err(err_to_js)?;
-        let (_, gj) = route::do_route(self, start, end, mode).map_err(err_to_js)?;
+        let (_, gj) = route::do_route(self, start, end).map_err(err_to_js)?;
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
     }
 
     #[wasm_bindgen(js_name = scoreDetours)]
-    pub fn score_detours(&self, mode: String) -> Result<String, JsValue> {
-        let mode = Mode::parse(&mode).map_err(err_to_js)?;
-        let samples = scores::for_mode(self, mode);
+    pub fn score_detours(&self) -> Result<String, JsValue> {
+        let samples = scores::calculate(self);
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
@@ -152,7 +168,6 @@ pub struct CompareRouteRequest {
     y1: f64,
     x2: f64,
     y2: f64,
-    mode: String,
 }
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {

@@ -10,18 +10,17 @@ crate-type = ["cdylib", "rlib"]
 anyhow = "1.0.82"
 console_error_panic_hook = "0.1.6"
 console_log = "1.0.0"
-geo = "0.28.0"
+geo = "0.30.0"
 geojson = { git = "https://github.com/georust/geojson", features = ["geo-types"] }
 graph = { git = "https://github.com/a-b-street/15m" }
 log = "0.4.20"
-petgraph = "0.6.5"
+petgraph = "0.7.1"
 rstar = "0.12.0"
 serde = "1.0.188"
 serde_json = "1.0.105"
 serde-wasm-bindgen = "0.6.0"
 utils = { git = "https://github.com/a-b-street/utils", features = ["serde"] }
-wasm-bindgen = "0.2.87"
-wasm-bindgen-futures = "0.4.42"
+wasm-bindgen = "0.2.100"
 web-sys = { version = "0.3.64", features = ["console"] }
 
 # For local development, build dependencies in release mode once, but otherwise

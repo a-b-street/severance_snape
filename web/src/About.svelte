@@ -1,10 +1,12 @@
 <script lang="ts">
-  import { notNull, Modal } from "svelte-utils";
+  import { Modal } from "svelte-utils";
   import { showAbout } from "./stores";
+
+  // TODO The button autofocuses and scrolls things down
 </script>
 
 {#if $showAbout}
-  <Modal on:close={() => ($showAbout = false)} let:dialog>
+  <Modal bind:show={$showAbout}>
     <h1>Severance Snape</h1>
     <p>
       This is an <b>experimental</b> tool to study "severances" for people walking.
@@ -79,7 +81,7 @@
     </details>
 
     <center
-      ><button on:click={() => notNull(dialog).close()}>Start!</button></center
+      ><button on:click={() => ($showAbout = false)}>Start!</button></center
     >
   </Modal>
 {/if}

@@ -4,6 +4,7 @@
   import { Loading } from "svelte-utils";
   import { OverpassSelector } from "svelte-utils/overpass";
   import { profile, map, model } from "../stores";
+  import type { Feature, Polygon } from "geojson";
 
   let setupDone = false;
   let example = "";
@@ -42,7 +43,7 @@
   let fileInput: HTMLInputElement;
   async function loadFile(e: Event) {
     try {
-      await loadModel(await fileInput.files![0].arrayBuffer());
+      loadModel(await fileInput.files![0].arrayBuffer());
       example = "";
     } catch (err) {
       window.alert(`Couldn't open this file: ${err}`);
@@ -50,17 +51,17 @@
     loading = "";
   }
 
-  async function loadModel(buffer: ArrayBuffer) {
+  function loadModel(buffer: ArrayBuffer) {
     loading = "Building map model from OSM input";
     console.time("load");
-    $model = await new MapModel(new Uint8Array(buffer), $profile);
+    $model = new MapModel(new Uint8Array(buffer), $profile);
     console.timeEnd("load");
   }
 
-  async function gotXml(e: CustomEvent<string>) {
+  function gotXml(e: CustomEvent<{ xml: string; boundary: Feature<Polygon> }>) {
     try {
       // TODO Can we avoid turning into bytes?
-      await loadModel(new TextEncoder().encode(e.detail));
+      loadModel(new TextEncoder().encode(e.detail.xml));
       example = "";
     } catch (err) {
       window.alert(`Couldn't import from Overpass: ${err}`);
@@ -96,7 +97,7 @@
     try {
       loading = `Downloading ${url}`;
       let resp = await fetch(url);
-      await loadModel(await resp.arrayBuffer());
+      loadModel(await resp.arrayBuffer());
     } catch (err) {
       window.alert(`Couldn't open from URL ${url}: ${err}`);
     }

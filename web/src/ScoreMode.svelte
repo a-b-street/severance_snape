@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SequentialLegend } from "svelte-utils";
-  import { Popup, makeColorRamp } from "svelte-utils/map";
+  import { Popup, makeRamp } from "svelte-utils/map";
   import type { Feature, FeatureCollection, LineString } from "geojson";
   import type { MapMouseEvent } from "maplibre-gl";
   import {
@@ -19,29 +19,20 @@
     maxScore,
     routeA,
     routeB,
-    travelMode,
     type Position,
   } from "./stores";
   import NavBar from "./NavBar.svelte";
-  import PickTravelMode from "./PickTravelMode.svelte";
 
-  let scoreGj: FeatureCollection<LineString, { score: number }> = {
-    type: "FeatureCollection" as const,
-    features: [],
-  };
-  let highestScore = 0;
-
-  function update(_mode: string) {
-    scoreGj = JSON.parse($model!.scoreDetours($travelMode));
-    highestScore = Math.round(
-      Math.max(...scoreGj.features.map((f) => f.properties.score)),
-    );
-    if ($maxScore > highestScore) {
-      $minScore = 0;
-      $maxScore = highestScore;
-    }
+  let scoreGj: FeatureCollection<LineString, { score: number }> = JSON.parse(
+    $model!.scoreDetours(),
+  );
+  let highestScore = Math.round(
+    Math.max(...scoreGj.features.map((f) => f.properties.score)),
+  );
+  if ($maxScore > highestScore) {
+    $minScore = 0;
+    $maxScore = highestScore;
   }
-  $: update($travelMode);
 
   let desire_line: Feature<LineString, { score: number }> | null = null;
   let route_gj: FeatureCollection | null = null;
@@ -66,7 +57,6 @@
           y1: linestring[0][1],
           x2: linestring[1][0],
           y2: linestring[1][1],
-          mode: $travelMode,
         }),
       );
     } catch (err) {
@@ -108,7 +98,7 @@
       The desire lines are coloured based on their detour factor. <b>Click</b> one
       to see the route
     </p>
-    <SequentialLegend {colorScale} {limits} />
+    <SequentialLegend {colorScale} labels={{ limits }} />
 
     <fieldset>
       <label
@@ -118,14 +108,6 @@
         <input type="range" bind:value={$maxScore} min="0" max={highestScore} />
       </label>
     </fieldset>
-
-    <PickTravelMode />
-    {#if $travelMode != "foot"}
-      <p>
-        Note the scores are calculated in one arbitrary direction, which might
-        pick up one-way roads
-      </p>
-    {/if}
 
     <hr />
 
@@ -152,7 +134,7 @@
         ]}
         paint={{
           "line-width": 8,
-          "line-color": makeColorRamp(["get", "score"], limits, colorScale),
+          "line-color": makeRamp(["get", "score"], limits, colorScale),
         }}
         on:click={showRoute}
       >
