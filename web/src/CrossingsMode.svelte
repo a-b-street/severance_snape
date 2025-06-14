@@ -34,7 +34,7 @@
     >
       <LineLayer
         paint={{
-          "line-width": hoverStateFilter(5, 7),
+          "line-width": hoverStateFilter(5, 10),
           "line-color": makeRamp(["get", "length"], limits, colorScale),
         }}
         manageHoverState
@@ -48,7 +48,7 @@
     <GeoJSON data={JSON.parse(notNull($model).getCrossings())}>
       <CircleLayer
         paint={{
-          "circle-radius": 7,
+          "circle-radius": ["step", ["zoom"], 0, 12, 1, 14, 3, 15, 7],
           "circle-color": "yellow",
           "circle-stroke-color": "black",
           "circle-stroke-width": 1,
