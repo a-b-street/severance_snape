@@ -12,7 +12,7 @@
   import NavBar from "./NavBar.svelte";
   import { colorScale } from "./colors";
 
-  let limits = [1, 200, 400, 600, 800, 5000];
+  let limits = [1, 100, 200, 400, 800, 5000];
 </script>
 
 <SplitComponent>
@@ -48,7 +48,7 @@
     <GeoJSON data={JSON.parse(notNull($model).getCrossings())}>
       <CircleLayer
         paint={{
-          "circle-radius": ["step", ["zoom"], 0, 12, 1, 14, 3, 15, 7],
+          "circle-radius": ["step", ["zoom"], 0, 12, 3, 14, 5, 15, 7],
           "circle-color": "yellow",
           "circle-stroke-color": "black",
           "circle-stroke-width": 1,
