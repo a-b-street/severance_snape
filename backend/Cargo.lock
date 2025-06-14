@@ -67,6 +67,7 @@ dependencies = [
  "geojson",
  "graph",
  "log",
+ "osm-reader",
  "petgraph",
  "rstar",
  "serde",

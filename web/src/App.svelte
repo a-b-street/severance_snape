@@ -11,6 +11,7 @@
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
+  import CrossingsMode from "./CrossingsMode.svelte";
   import OsmSeparateSidewalksMode from "./OsmSeparateSidewalksMode.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import {
@@ -65,6 +66,7 @@
       [
         "score",
         "route",
+        "crossings",
         "debug",
         "disconnected",
         "osm-separate-sidewalks",
@@ -127,7 +129,7 @@
     <h1>Severance Snape</h1>
     <div bind:this={sidebarDiv} />
 
-    {#if $mode.kind != "title"}
+    {#if $mode.kind != "title" && $mode.kind != "crossings"}
       <hr />
       <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
@@ -190,7 +192,8 @@
           {offlineMode}
           show={$mode.kind != "debug" &&
             $mode.kind != "osm-separate-sidewalks" &&
-            $mode.kind != "disconnected"}
+            $mode.kind != "disconnected" &&
+            $mode.kind != "crossings"}
           {showSeverances}
           {opacity}
         />
@@ -199,6 +202,8 @@
           <RouteMode />
         {:else if $mode.kind == "score"}
           <ScoreMode />
+        {:else if $mode.kind == "crossings"}
+          <CrossingsMode />
         {:else if $mode.kind == "debug"}
           <DebugMode {showSeverances} {opacity} />
         {:else if $mode.kind == "osm-separate-sidewalks"}

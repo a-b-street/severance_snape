@@ -34,6 +34,13 @@
 
     <li>
       <button
+        on:click={() => ($mode = { kind: "crossings" })}
+        disabled={$mode.kind == "crossings"}>Crossings</button
+      >
+    </li>
+
+    <li>
+      <button
         on:click={() => ($mode = { kind: "disconnected" })}
         disabled={$mode.kind == "disconnected"}>Network disconnections</button
       >

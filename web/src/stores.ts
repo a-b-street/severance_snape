@@ -10,6 +10,7 @@ export type Mode =
   | { kind: "title" }
   | { kind: "score" }
   | { kind: "route" }
+  | { kind: "crossings" }
   | { kind: "debug" }
   | { kind: "disconnected" }
   | { kind: "osm-separate-sidewalks" };

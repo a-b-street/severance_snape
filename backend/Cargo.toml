@@ -14,6 +14,7 @@ geo = "0.30.0"
 geojson = { git = "https://github.com/georust/geojson", features = ["geo-types"] }
 graph = { git = "https://github.com/a-b-street/15m" }
 log = "0.4.20"
+osm-reader = { git = "https://github.com/a-b-street/osm-reader" }
 petgraph = "0.7.1"
 rstar = "0.12.0"
 serde = "1.0.188"
