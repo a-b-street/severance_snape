@@ -1,6 +1,8 @@
-use geo::{Coord, Densify, Euclidean, Line, LineString};
-use geojson::FeatureCollection;
+use anyhow::Result;
+use geo::{Coord, Densify, Euclidean, Length, Line, LineString};
+use geojson::{FeatureCollection, GeoJson};
 
+use crate::join_lines::KeyedLineString;
 use crate::{MapModel, RoadKind};
 
 // Walk along severances. Every X meters, try to cross from one side to the other.
@@ -78,4 +80,27 @@ fn project_away(pt: Coord, angle_degs: f64, dist_away_m: f64) -> Coord {
         x: pt.x + dist_away_m * cos,
         y: pt.y + dist_away_m * sin,
     }
+}
+
+pub fn get_crossing_distances(map: &MapModel) -> Result<String> {
+    // Get all severances, then glue together into a minimal number of lines
+    let mut input = Vec::new();
+    for road in &map.graph.roads {
+        if map.road_kinds[road.id.0] == RoadKind::Severance {
+            input.push(KeyedLineString {
+                linestring: road.linestring.clone(),
+                ids: vec![(road.id, true)],
+            });
+        }
+    }
+
+    let joined_lines = crate::join_lines::collapse_degree_2(input);
+
+    let mut features = Vec::new();
+    for line in joined_lines {
+        let mut f = map.graph.mercator.to_wgs84_gj(&line.linestring);
+        f.set_property("length", Euclidean.length(&line.linestring));
+        features.push(f);
+    }
+    Ok(serde_json::to_string(&GeoJson::from(features))?)
 }

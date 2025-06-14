@@ -5,10 +5,14 @@
     LineLayer,
     hoverStateFilter,
   } from "svelte-maplibre";
-  import { notNull } from "svelte-utils";
+  import { notNull, SequentialLegend } from "svelte-utils";
+  import { Popup, makeRamp } from "svelte-utils/map";
   import { model } from "./stores";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
   import NavBar from "./NavBar.svelte";
+  import { colorScale } from "./colors";
+
+  let limits = [1, 200, 400, 600, 800, 5000];
 </script>
 
 <SplitComponent>
@@ -20,17 +24,25 @@
       assumed that it's easy enough to cross the street anywhere, even without
       explicit crossings.
     </p>
+
+    <SequentialLegend {colorScale} labels={{ limits }} />
   </div>
   <div slot="map">
-    <GeoJSON data={JSON.parse(notNull($model).render())} generateId>
+    <GeoJSON
+      data={JSON.parse(notNull($model).getCrossingDistances())}
+      generateId
+    >
       <LineLayer
-        filter={["==", ["get", "kind"], "Severance"]}
         paint={{
           "line-width": hoverStateFilter(5, 7),
-          "line-color": "red",
+          "line-color": makeRamp(["get", "length"], limits, colorScale),
         }}
         manageHoverState
-      />
+      >
+        <Popup openOn="hover" let:props>
+          {Math.round(props.length)}m
+        </Popup>
+      </LineLayer>
     </GeoJSON>
 
     <GeoJSON data={JSON.parse(notNull($model).getCrossings())}>

@@ -14,6 +14,7 @@ use crate::profiles::Profile;
 mod create;
 mod disconnected;
 mod fix_osm;
+mod join_lines;
 mod profiles;
 mod route;
 mod scores;
@@ -81,6 +82,11 @@ impl MapModel {
             features.push(self.graph.mercator.to_wgs84_gj(&Point::from(c.point)));
         }
         Ok(serde_json::to_string(&GeoJson::from(features)).map_err(err_to_js)?)
+    }
+
+    #[wasm_bindgen(js_name = getCrossingDistances)]
+    pub fn get_crossing_distances(&self) -> Result<String, JsValue> {
+        Ok(scores::get_crossing_distances(self).map_err(err_to_js)?)
     }
 
     #[wasm_bindgen(js_name = compareRoute)]
