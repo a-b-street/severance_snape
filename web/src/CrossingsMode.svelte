@@ -33,6 +33,7 @@
       generateId
     >
       <LineLayer
+        beforeId="Road labels"
         paint={{
           "line-width": hoverStateFilter(5, 10),
           "line-color": makeRamp(["get", "length"], limits, colorScale),

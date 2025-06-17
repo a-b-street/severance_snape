@@ -1,13 +1,13 @@
+use std::collections::HashSet;
+
 use anyhow::Result;
-use geo::{
-    Coord, Densify, Distance, Euclidean, InterpolatableLine, Length, Line, LineLocatePoint,
-    LineString, Point,
-};
+use geo::{Coord, Densify, Euclidean, Length, Line, LineLocatePoint, LineString, Point};
 use geojson::{FeatureCollection, GeoJson};
+use graph::RoadID;
 use utils::LineSplit;
 
 use crate::join_lines::KeyedLineString;
-use crate::{MapModel, RoadKind};
+use crate::{Crossing, MapModel, RoadKind};
 
 // Walk along severances. Every X meters, try to cross from one side to the other.
 //
@@ -99,10 +99,7 @@ pub fn get_crossing_distances(map: &MapModel) -> Result<String> {
     }
 
     let joined_lines = crate::join_lines::collapse_degree_2(input);
-    let split = split_by_crossings(
-        joined_lines.into_iter().map(|l| l.linestring).collect(),
-        map.crossings.iter().map(|c| c.point).collect(),
-    );
+    let split = split_by_crossings(joined_lines, &map.crossings);
 
     let mut features = Vec::new();
     for linestring in split {
@@ -113,27 +110,28 @@ pub fn get_crossing_distances(map: &MapModel) -> Result<String> {
     Ok(serde_json::to_string(&GeoJson::from(features))?)
 }
 
-fn split_by_crossings(input: Vec<LineString>, split_points: Vec<Coord>) -> Vec<LineString> {
-    // TODO Brute-force, prune
+fn split_by_crossings(input: Vec<KeyedLineString>, crossings: &Vec<Crossing>) -> Vec<LineString> {
     let mut output = Vec::new();
-    for linestring in input {
+    for joined_line in input {
+        // Find all crossings on any of the roads belonging to this joined linestring
+        let roads: HashSet<RoadID> = joined_line.ids.iter().map(|(r, _)| *r).collect();
+
         let mut fractions = Vec::new();
-        for pt in &split_points {
-            let Some(fraction) = linestring.line_locate_point(&Point::from(*pt)) else {
+        for crossing in crossings {
+            if crossing.roads.is_disjoint(&roads) {
                 continue;
-            };
-            // Check the point is actually on the line
-            let Some(pt_on_line) = linestring.point_at_ratio_from_start(&Euclidean, fraction)
+            }
+            let Some(fraction) = joined_line
+                .linestring
+                .line_locate_point(&Point::from(crossing.point))
             else {
                 continue;
             };
-            if Euclidean.distance(Point::from(*pt), pt_on_line) > 1.0 {
-                continue;
-            }
             fractions.push(fraction);
         }
 
-        for ls in linestring
+        for ls in joined_line
+            .linestring
             .line_split_many(&fractions)
             .unwrap_or_else(Vec::new)
         {

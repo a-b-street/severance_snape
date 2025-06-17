@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use geo::{Coord, Euclidean, Length, LineString};
-use graph::{Direction, Graph, Timer};
+use graph::{Direction, Graph, RoadID, Timer};
 use osm_reader::{NodeID, OsmID, RelationID, WayID};
 use utils::osm2graph::OsmReader;
 use utils::Tags;
@@ -37,16 +37,27 @@ impl MapModel {
         let scrape_graph = Box::new(
             move |crossings: &mut Crossings, graph: &utils::osm2graph::Graph| {
                 // Only keep crossings on severances
-                let mut severance_nodes = HashSet::new();
+                let mut severance_nodes: HashMap<NodeID, HashSet<RoadID>> = HashMap::new();
                 for edge in graph.edges.values() {
                     if profile.classify(&edge.osm_tags) == Some(RoadKind::Severance) {
-                        severance_nodes.extend(edge.node_ids.clone());
+                        for node in &edge.node_ids {
+                            // EdgeID becomes RoadID, because IDs have already been compacted
+                            severance_nodes
+                                .entry(*node)
+                                .or_insert_with(HashSet::new)
+                                .insert(RoadID(edge.id.0));
+                        }
                     }
                 }
 
-                crossings
-                    .crossings
-                    .retain(|(node, _)| severance_nodes.contains(node));
+                let mut keep_crossings = Vec::new();
+                for mut crossing in crossings.crossings.drain(..) {
+                    if let Some(roads) = severance_nodes.get(&crossing.0) {
+                        crossing.2.extend(roads.into_iter().cloned());
+                        keep_crossings.push(crossing);
+                    }
+                }
+                crossings.crossings = keep_crossings;
                 Ok(())
             },
         );
@@ -72,8 +83,9 @@ impl MapModel {
         let crossings = crossings
             .crossings
             .into_iter()
-            .map(|(_, pt)| Crossing {
+            .map(|(_, pt, roads)| Crossing {
                 point: graph.mercator.pt_to_mercator(pt),
+                roads,
             })
             .collect();
 
@@ -87,13 +99,13 @@ impl MapModel {
 
 #[derive(Default)]
 struct Crossings {
-    crossings: Vec<(NodeID, Coord)>,
+    crossings: Vec<(NodeID, Coord, HashSet<RoadID>)>,
 }
 
 impl OsmReader for Crossings {
     fn node(&mut self, id: NodeID, pt: Coord, tags: Tags) {
         if tags.is("highway", "crossing") {
-            self.crossings.push((id, pt));
+            self.crossings.push((id, pt, HashSet::new()));
         }
     }
 

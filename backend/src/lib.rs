@@ -1,11 +1,12 @@
 #[macro_use]
 extern crate log;
 
+use std::collections::HashSet;
 use std::sync::Once;
 
 use geo::{Coord, Point};
 use geojson::GeoJson;
-use graph::Graph;
+use graph::{Graph, RoadID};
 use serde::Deserialize;
 use wasm_bindgen::prelude::*;
 
@@ -31,6 +32,7 @@ pub struct MapModel {
 
 struct Crossing {
     point: Coord,
+    roads: HashSet<RoadID>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
