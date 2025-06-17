@@ -8,6 +8,7 @@ use geo::{Coord, Point};
 use geojson::GeoJson;
 use graph::{Graph, RoadID};
 use serde::Deserialize;
+use utils::Tags;
 use wasm_bindgen::prelude::*;
 
 use crate::profiles::Profile;
@@ -33,6 +34,7 @@ pub struct MapModel {
 struct Crossing {
     point: Coord,
     roads: HashSet<RoadID>,
+    tags: Tags,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -81,7 +83,11 @@ impl MapModel {
     pub fn get_crossings(&self) -> Result<String, JsValue> {
         let mut features = Vec::new();
         for c in &self.crossings {
-            features.push(self.graph.mercator.to_wgs84_gj(&Point::from(c.point)));
+            let mut f = self.graph.mercator.to_wgs84_gj(&Point::from(c.point));
+            for (k, v) in &c.tags.0 {
+                f.set_property(k, v.to_string());
+            }
+            features.push(f);
         }
         Ok(serde_json::to_string(&GeoJson::from(features)).map_err(err_to_js)?)
     }

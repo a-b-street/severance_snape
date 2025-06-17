@@ -53,7 +53,7 @@ impl MapModel {
                 let mut keep_crossings = Vec::new();
                 for mut crossing in crossings.crossings.drain(..) {
                     if let Some(roads) = severance_nodes.get(&crossing.0) {
-                        crossing.2.extend(roads.into_iter().cloned());
+                        crossing.3.extend(roads.into_iter().cloned());
                         keep_crossings.push(crossing);
                     }
                 }
@@ -83,9 +83,10 @@ impl MapModel {
         let crossings = crossings
             .crossings
             .into_iter()
-            .map(|(_, pt, roads)| Crossing {
+            .map(|(_, pt, tags, roads)| Crossing {
                 point: graph.mercator.pt_to_mercator(pt),
                 roads,
+                tags,
             })
             .collect();
 
@@ -99,13 +100,13 @@ impl MapModel {
 
 #[derive(Default)]
 struct Crossings {
-    crossings: Vec<(NodeID, Coord, HashSet<RoadID>)>,
+    crossings: Vec<(NodeID, Coord, Tags, HashSet<RoadID>)>,
 }
 
 impl OsmReader for Crossings {
     fn node(&mut self, id: NodeID, pt: Coord, tags: Tags) {
         if tags.is("highway", "crossing") {
-            self.crossings.push((id, pt, HashSet::new()));
+            self.crossings.push((id, pt, tags, HashSet::new()));
         }
     }
 

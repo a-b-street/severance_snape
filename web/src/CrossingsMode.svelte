@@ -5,7 +5,7 @@
     LineLayer,
     hoverStateFilter,
   } from "svelte-maplibre";
-  import { notNull, SequentialLegend } from "svelte-utils";
+  import { notNull, PropertiesTable, SequentialLegend } from "svelte-utils";
   import { Popup, makeRamp } from "svelte-utils/map";
   import { model } from "./stores";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
@@ -54,7 +54,12 @@
           "circle-stroke-color": "black",
           "circle-stroke-width": 1,
         }}
-      />
+        hoverCursor="pointer"
+      >
+        <Popup openOn="click" let:props>
+          <PropertiesTable properties={props} />
+        </Popup>
+      </CircleLayer>
     </GeoJSON>
   </div>
 </SplitComponent>
