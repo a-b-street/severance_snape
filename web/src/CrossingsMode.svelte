@@ -47,6 +47,9 @@
       <label>
         <input type="checkbox" bind:checked={includeKinds[key]} />
         {key}
+        {#if key != "unknown"}
+          <a href="https://wiki.openstreetmap.org/wiki/Tag:crossing%3D{key}" target="_blank">?</a>
+        {/if}
       </label>
     {/each}
   </div>
