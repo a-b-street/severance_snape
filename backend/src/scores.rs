@@ -125,7 +125,8 @@ fn split_by_crossings(input: Vec<KeyedLineString>, crossings: Vec<&Crossing>) ->
         // Find all crossings on any of the roads belonging to this joined linestring
         let roads: HashSet<RoadID> = joined_line.ids.iter().map(|(r, _)| *r).collect();
 
-        let mut fractions = Vec::new();
+        // Even if there are no crossings on this road, never drop any input
+        let mut fractions = vec![0.0, 1.0];
         for crossing in &crossings {
             if crossing.roads.is_disjoint(&roads) {
                 continue;
