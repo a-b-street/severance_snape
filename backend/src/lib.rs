@@ -93,8 +93,11 @@ impl MapModel {
     }
 
     #[wasm_bindgen(js_name = getCrossingDistances)]
-    pub fn get_crossing_distances(&self) -> Result<String, JsValue> {
-        Ok(scores::get_crossing_distances(self).map_err(err_to_js)?)
+    pub fn get_crossing_distances(&self, include_kinds: Vec<String>) -> Result<String, JsValue> {
+        Ok(
+            scores::get_crossing_distances(self, include_kinds.into_iter().collect())
+                .map_err(err_to_js)?,
+        )
     }
 
     #[wasm_bindgen(js_name = compareRoute)]

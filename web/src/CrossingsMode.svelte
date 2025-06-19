@@ -12,6 +12,19 @@
   import NavBar from "./NavBar.svelte";
   import { colorScale } from "./colors";
 
+  let crossingsGj = JSON.parse($model!.getCrossings());
+  let includeKinds = getKinds();
+  $: filterKinds = Object.keys(includeKinds).filter((key) => includeKinds[key]);
+
+  function getKinds(): Record<string, boolean> {
+    let kinds: Record<string, boolean> = {};
+    for (let f of crossingsGj.features) {
+      let key: string = f.properties.crossing || "unknown";
+      kinds[key] = true;
+    }
+    return kinds;
+  }
+
   let limits = [1, 100, 200, 400, 800, 5000];
 </script>
 
@@ -26,10 +39,20 @@
     </p>
 
     <SequentialLegend {colorScale} labels={{ limits }} />
+
+    <hr />
+    <p>What crossings do you want to include for measuring distance?</p>
+
+    {#each Object.keys(includeKinds) as key}
+      <label>
+        <input type="checkbox" bind:checked={includeKinds[key]} />
+        {key}
+      </label>
+    {/each}
   </div>
   <div slot="map">
     <GeoJSON
-      data={JSON.parse(notNull($model).getCrossingDistances())}
+      data={JSON.parse(notNull($model).getCrossingDistances(filterKinds))}
       generateId
     >
       <LineLayer
@@ -46,11 +69,20 @@
       </LineLayer>
     </GeoJSON>
 
-    <GeoJSON data={JSON.parse(notNull($model).getCrossings())}>
+    <GeoJSON data={crossingsGj}>
       <CircleLayer
         paint={{
           "circle-radius": ["step", ["zoom"], 0, 12, 3, 14, 5, 15, 7],
-          "circle-color": "yellow",
+          "circle-color": [
+            "case",
+            [
+              "in",
+              ["coalesce", ["get", "crossing"], "unknown"],
+              ["literal", filterKinds],
+            ],
+            "yellow",
+            "grey",
+          ],
           "circle-stroke-color": "black",
           "circle-stroke-width": 1,
         }}

@@ -86,7 +86,7 @@ fn project_away(pt: Coord, angle_degs: f64, dist_away_m: f64) -> Coord {
     }
 }
 
-pub fn get_crossing_distances(map: &MapModel) -> Result<String> {
+pub fn get_crossing_distances(map: &MapModel, include_kinds: HashSet<String>) -> Result<String> {
     // Get all severances, then glue together into a minimal number of lines
     let mut input = Vec::new();
     for road in &map.graph.roads {
@@ -99,7 +99,16 @@ pub fn get_crossing_distances(map: &MapModel) -> Result<String> {
     }
 
     let joined_lines = crate::join_lines::collapse_degree_2(input);
-    let split = split_by_crossings(joined_lines, &map.crossings);
+    let split = split_by_crossings(
+        joined_lines,
+        map.crossings
+            .iter()
+            .filter(|c| match c.tags.get("crossing") {
+                Some(kind) => include_kinds.contains(kind),
+                None => include_kinds.contains("unknown"),
+            })
+            .collect(),
+    );
 
     let mut features = Vec::new();
     for linestring in split {
@@ -110,14 +119,14 @@ pub fn get_crossing_distances(map: &MapModel) -> Result<String> {
     Ok(serde_json::to_string(&GeoJson::from(features))?)
 }
 
-fn split_by_crossings(input: Vec<KeyedLineString>, crossings: &Vec<Crossing>) -> Vec<LineString> {
+fn split_by_crossings(input: Vec<KeyedLineString>, crossings: Vec<&Crossing>) -> Vec<LineString> {
     let mut output = Vec::new();
     for joined_line in input {
         // Find all crossings on any of the roads belonging to this joined linestring
         let roads: HashSet<RoadID> = joined_line.ids.iter().map(|(r, _)| *r).collect();
 
         let mut fractions = Vec::new();
-        for crossing in crossings {
+        for crossing in &crossings {
             if crossing.roads.is_disjoint(&roads) {
                 continue;
             }
