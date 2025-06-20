@@ -1,4 +1,4 @@
-use std::collections::{BTreeSet, HashMap};
+use std::collections::HashMap;
 
 use geo::{Coord, LineString};
 use graph::RoadID;
@@ -13,12 +13,18 @@ pub struct KeyedLineString {
     pub ids: Vec<(RoadID, bool)>,
 }
 
+impl KeyedLineString {
+    fn first_pt(&self) -> HashedPoint {
+        HashedPoint::new(*self.linestring.0.first().unwrap())
+    }
+
+    fn last_pt(&self) -> HashedPoint {
+        HashedPoint::new(*self.linestring.0.last().unwrap())
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct HashedPoint(isize, isize);
-
-// Unrelated to the input type
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct RoadIDx(usize);
 
 impl HashedPoint {
     fn new(pt: Coord) -> Self {
@@ -28,120 +34,80 @@ impl HashedPoint {
 }
 
 /// Find all linestrings that meet at one end and join them
-pub fn collapse_degree_2(mut lines: Vec<KeyedLineString>) -> Vec<KeyedLineString> {
-    // TODO I think this is doable in one pass
+pub fn collapse_degree_2(input_lines: Vec<KeyedLineString>) -> Vec<KeyedLineString> {
+    // Assign each input an ID that doesn't change
+    let mut lines: HashMap<usize, KeyedLineString> = input_lines.into_iter().enumerate().collect();
+    let mut id_counter = lines.len();
+
+    // TODO Do this in one pass, either with something like union-find, just a search starting from
+    // any degree 2, or by updating point_to_line indices
     loop {
-        let mut intersections: HashMap<HashedPoint, RoadIDx> = HashMap::new();
-
-        let mut path = None;
-        'FIND: for (idx1, line) in lines.iter().enumerate() {
-            let i1 = HashedPoint::new(*line.linestring.0.first().unwrap());
-            let i2 = HashedPoint::new(*line.linestring.0.last().unwrap());
-            if i1 == i2 {
-                continue;
-            }
-
-            let idx1 = RoadIDx(idx1);
-            for i in [i1, i2] {
-                match intersections.get(&i) {
-                    Some(idx2) => {
-                        // Don't create a loop though!
-                        // TODO Doesn't seem to always work
-                        if number_shared_endpoints(line, &lines[idx2.0]) == 1 {
-                            path = Some(vec![idx1, *idx2]);
-                            break 'FIND;
-                        }
-                    }
-                    None => {
-                        intersections.insert(i, idx1);
-                    }
-                }
-            }
+        // How many lines connect to each point?
+        let mut point_to_line: HashMap<HashedPoint, Vec<usize>> = HashMap::new();
+        for (id, line) in &lines {
+            point_to_line
+                .entry(line.first_pt())
+                .or_insert_with(Vec::new)
+                .push(*id);
+            point_to_line
+                .entry(line.last_pt())
+                .or_insert_with(Vec::new)
+                .push(*id);
         }
 
-        if let Some(path) = path {
-            lines = join_path(lines, path);
-        } else {
+        // Find any degree 2 case
+        let Some(pair) = point_to_line.into_values().find(|list| list.len() == 2) else {
             break;
-        }
+        };
+        let (idx1, idx2) = (pair[0], pair[1]);
+
+        let line1 = lines.remove(&idx1).unwrap();
+        let line2 = lines.remove(&idx2).unwrap();
+        let joined = join_lines(line1, line2);
+        lines.insert(id_counter, joined);
+        id_counter += 1;
     }
-    lines
+
+    lines.into_values().collect()
 }
 
-// Combines everything in the path, returning a smaller list of lines
-fn join_path(lines: Vec<KeyedLineString>, path: Vec<RoadIDx>) -> Vec<KeyedLineString> {
-    // Build up the joined line
-    let mut points = Vec::new();
-    let mut ids = Vec::new();
+fn join_lines(mut line1: KeyedLineString, mut line2: KeyedLineString) -> KeyedLineString {
+    let (pt1, pt2) = (line1.first_pt(), line1.last_pt());
+    let (pt3, pt4) = (line2.first_pt(), line2.last_pt());
 
-    for idx in &path {
-        let mut next_ids = lines[idx.0].ids.clone();
-        let mut next_points = lines[idx.0].linestring.clone().into_inner();
+    if pt1 == pt3 {
+        line1.linestring.0.reverse();
+        line1.linestring.0.pop();
+        line1.linestring.0.extend(line2.linestring.0);
 
-        if points.is_empty() {
-            points = next_points;
-            ids = next_ids;
-            continue;
-        }
-        let pt1 = HashedPoint::new(*points.first().unwrap());
-        let pt2 = HashedPoint::new(*points.last().unwrap());
-        let pt3 = HashedPoint::new(*next_points.first().unwrap());
-        let pt4 = HashedPoint::new(*next_points.last().unwrap());
+        line1.ids.reverse();
+        flip_direction(&mut line1.ids);
+        line1.ids.extend(line2.ids);
+    } else if pt1 == pt4 {
+        line2.linestring.0.pop();
+        line2.linestring.0.extend(line1.linestring.0);
+        line1.linestring.0 = line2.linestring.0;
 
-        if pt1 == pt3 {
-            points.reverse();
-            points.pop();
-            points.extend(next_points);
+        line2.ids.extend(line1.ids);
+        line1.ids = line2.ids;
+    } else if pt2 == pt3 {
+        line1.linestring.0.pop();
+        line1.linestring.0.extend(line2.linestring.0);
 
-            ids.reverse();
-            flip_direction(&mut ids);
-            ids.extend(next_ids);
-        } else if pt1 == pt4 {
-            next_points.pop();
-            next_points.extend(points);
-            points = next_points;
+        line1.ids.extend(line2.ids);
+    } else if pt2 == pt4 {
+        line2.linestring.0.reverse();
+        line1.linestring.0.pop();
+        line1.linestring.0.extend(line2.linestring.0);
 
-            next_ids.extend(ids);
-            ids = next_ids;
-        } else if pt2 == pt3 {
-            points.pop();
-            points.extend(next_points);
-
-            ids.extend(next_ids);
-        } else if pt2 == pt4 {
-            next_points.reverse();
-            points.pop();
-            points.extend(next_points);
-
-            next_ids.reverse();
-            flip_direction(&mut next_ids);
-            ids.extend(next_ids);
-        } else {
-            unreachable!()
-        }
+        line2.ids.reverse();
+        flip_direction(&mut line2.ids);
+        line1.ids.extend(line2.ids);
+    } else {
+        unreachable!()
     }
 
-    let mut result = vec![KeyedLineString {
-        linestring: LineString::new(points),
-        ids,
-    }];
-
-    // Leftovers
-    for (i, line) in lines.into_iter().enumerate() {
-        if !path.contains(&RoadIDx(i)) {
-            result.push(line);
-        }
-    }
-    result
-}
-
-fn number_shared_endpoints(line1: &KeyedLineString, line2: &KeyedLineString) -> usize {
-    let mut set = BTreeSet::new();
-    set.insert(HashedPoint::new(*line1.linestring.0.first().unwrap()));
-    set.insert(HashedPoint::new(*line1.linestring.0.last().unwrap()));
-    set.insert(HashedPoint::new(*line2.linestring.0.first().unwrap()));
-    set.insert(HashedPoint::new(*line2.linestring.0.last().unwrap()));
-    4 - set.len()
+    line1
 }
 
 fn flip_direction(ids: &mut Vec<(RoadID, bool)>) {
