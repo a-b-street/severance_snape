@@ -1,29 +1,27 @@
 use std::collections::HashMap;
+use std::hash::Hash;
 
 use geo::{Coord, LineString};
-use graph::RoadID;
 
-// TODO For simplicty right now, hardcodes types. Make generic later.
-// TODO Upstream in geo or utils
-
-/// A linestring with a list of IDs in order
-pub struct KeyedLineString {
+/// A linestring with a list of IDs in order, and an arbitrary key
+pub struct KeyedLineString<ID, K> {
     pub linestring: LineString,
     // True if forwards, false if backwards
-    pub ids: Vec<(RoadID, bool)>,
+    pub ids: Vec<(ID, bool)>,
+    pub key: K,
 }
 
-impl KeyedLineString {
-    fn first_pt(&self) -> HashedPoint {
-        HashedPoint::new(*self.linestring.0.first().unwrap())
+impl<ID, K: Copy + Eq + Hash> KeyedLineString<ID, K> {
+    fn first_pt(&self) -> HashedPoint<K> {
+        HashedPoint::new(*self.linestring.0.first().unwrap(), self.key)
     }
 
-    fn last_pt(&self) -> HashedPoint {
-        HashedPoint::new(*self.linestring.0.last().unwrap())
+    fn last_pt(&self) -> HashedPoint<K> {
+        HashedPoint::new(*self.linestring.0.last().unwrap(), self.key)
     }
 
     // TODO Assumes not a loop
-    fn other_endpt(&self, pt: HashedPoint) -> HashedPoint {
+    fn other_endpt(&self, pt: HashedPoint<K>) -> HashedPoint<K> {
         if self.first_pt() == pt {
             self.last_pt()
         } else {
@@ -33,24 +31,29 @@ impl KeyedLineString {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-struct HashedPoint(isize, isize);
+struct HashedPoint<K: Hash + Eq>(isize, isize, K);
 
-impl HashedPoint {
-    fn new(pt: Coord) -> Self {
+impl<K: Hash + Eq> HashedPoint<K> {
+    fn new(pt: Coord, key: K) -> Self {
         // cm precision
-        Self((pt.x * 100.0) as isize, (pt.y * 100.0) as isize)
+        Self((pt.x * 100.0) as isize, (pt.y * 100.0) as isize, key)
     }
 }
 
-/// Find all linestrings that meet at one end and join them
+/// Takes a network of linestrings. Finds every case of exactly two linestrings meeting at a point,
+/// and merges them together. Only linestrings with a matching key are considered. The linestrings
+/// can track an underlying road or edge ID, and the result will retain that detailed semantic path.
 // TODO Test with a loop consisting of two inputs
-pub fn collapse_degree_2(input_lines: Vec<KeyedLineString>) -> Vec<KeyedLineString> {
+pub fn collapse_degree_2<ID, K: Copy + Eq + Hash>(
+    input_lines: Vec<KeyedLineString<ID, K>>,
+) -> Vec<KeyedLineString<ID, K>> {
     // Assign each input an ID that doesn't change
-    let mut lines: HashMap<usize, KeyedLineString> = input_lines.into_iter().enumerate().collect();
+    let mut lines: HashMap<usize, KeyedLineString<ID, K>> =
+        input_lines.into_iter().enumerate().collect();
     let mut id_counter = lines.len();
 
     // How many lines connect to each point?
-    let mut point_to_line: HashMap<HashedPoint, Vec<usize>> = HashMap::new();
+    let mut point_to_line: HashMap<HashedPoint<K>, Vec<usize>> = HashMap::new();
     for (id, line) in &lines {
         point_to_line
             .entry(line.first_pt())
@@ -63,7 +66,7 @@ pub fn collapse_degree_2(input_lines: Vec<KeyedLineString>) -> Vec<KeyedLineStri
     }
 
     // Find all degree 2 cases
-    let degree_two: Vec<HashedPoint> = point_to_line
+    let degree_two: Vec<HashedPoint<K>> = point_to_line
         .iter()
         .filter(|(_, list)| list.len() == 2)
         .map(|(pt, _)| *pt)
@@ -100,7 +103,10 @@ pub fn collapse_degree_2(input_lines: Vec<KeyedLineString>) -> Vec<KeyedLineStri
     lines.into_values().collect()
 }
 
-fn join_lines(mut line1: KeyedLineString, mut line2: KeyedLineString) -> KeyedLineString {
+fn join_lines<ID, K: Copy + Eq + Hash>(
+    mut line1: KeyedLineString<ID, K>,
+    mut line2: KeyedLineString<ID, K>,
+) -> KeyedLineString<ID, K> {
     let (pt1, pt2) = (line1.first_pt(), line1.last_pt());
     let (pt3, pt4) = (line2.first_pt(), line2.last_pt());
 
@@ -139,7 +145,7 @@ fn join_lines(mut line1: KeyedLineString, mut line2: KeyedLineString) -> KeyedLi
     line1
 }
 
-fn flip_direction(ids: &mut Vec<(RoadID, bool)>) {
+fn flip_direction<ID>(ids: &mut Vec<(ID, bool)>) {
     for pair in ids {
         pair.1 = !pair.1;
     }

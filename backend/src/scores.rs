@@ -94,6 +94,7 @@ pub fn get_crossing_distances(map: &MapModel, include_kinds: HashSet<String>) ->
             input.push(KeyedLineString {
                 linestring: road.linestring.clone(),
                 ids: vec![(road.id, true)],
+                key: (),
             });
         }
     }
@@ -119,7 +120,10 @@ pub fn get_crossing_distances(map: &MapModel, include_kinds: HashSet<String>) ->
     Ok(serde_json::to_string(&GeoJson::from(features))?)
 }
 
-fn split_by_crossings(input: Vec<KeyedLineString>, crossings: Vec<&Crossing>) -> Vec<LineString> {
+fn split_by_crossings(
+    input: Vec<KeyedLineString<RoadID, ()>>,
+    crossings: Vec<&Crossing>,
+) -> Vec<LineString> {
     let mut output = Vec::new();
     for joined_line in input {
         // Find all crossings on any of the roads belonging to this joined linestring
