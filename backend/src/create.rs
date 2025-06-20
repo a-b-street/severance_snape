@@ -105,8 +105,12 @@ struct Crossings {
 
 impl OsmReader for Crossings {
     fn node(&mut self, id: NodeID, pt: Coord, tags: Tags) {
-        if tags.is("highway", "crossing") {
+        if tags.is("highway", "crossing")
+            || (tags.is("highway", "traffic_signals") && tags.is("crossing", "traffic_signals"))
+        {
             self.crossings.push((id, pt, tags, HashSet::new()));
+        } else if tags.has("crossing") {
+            warn!("Ignoring possible crossing {id:?} with tags {tags:?}");
         }
     }
 
