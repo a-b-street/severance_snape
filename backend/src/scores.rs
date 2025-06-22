@@ -4,9 +4,8 @@ use anyhow::Result;
 use geo::{Coord, Densify, Euclidean, Length, Line, LineLocatePoint, LineString, Point};
 use geojson::{FeatureCollection, GeoJson};
 use graph::RoadID;
-use utils::LineSplit;
+use utils::{collapse_degree_2, KeyedLineString, LineSplit};
 
-use crate::join_lines::KeyedLineString;
 use crate::{Crossing, MapModel, RoadKind};
 
 // Walk along severances. Every X meters, try to cross from one side to the other.
@@ -99,7 +98,7 @@ pub fn get_crossing_distances(map: &MapModel, include_kinds: HashSet<String>) ->
         }
     }
 
-    let joined_lines = crate::join_lines::collapse_degree_2(input);
+    let joined_lines = collapse_degree_2(input);
     let split = split_by_crossings(
         joined_lines,
         map.crossings

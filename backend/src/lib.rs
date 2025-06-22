@@ -16,7 +16,6 @@ use crate::profiles::Profile;
 mod create;
 mod disconnected;
 mod fix_osm;
-mod join_lines;
 mod profiles;
 mod route;
 mod scores;
