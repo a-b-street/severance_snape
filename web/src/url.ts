@@ -26,14 +26,17 @@ export function urlState<T>(params: {
   let store = writable(initialValue);
   // TODO How do we avoid leaking this?
   store.subscribe((state) => {
-    let url = new URL(window.location.href);
-    let value = params.stringify(state);
-    if (value == null) {
-      url.searchParams.delete(params.name);
-    } else {
-      url.searchParams.set(params.name, value);
-    }
-    window.history.replaceState(null, "", url.toString());
+    debounce(500, () => {
+      console.log(`hello! called`);
+      let url = new URL(window.location.href);
+      let value = params.stringify(state);
+      if (value == null) {
+        url.searchParams.delete(params.name);
+      } else {
+        url.searchParams.set(params.name, value);
+      }
+      window.history.replaceState(null, "", url.toString());
+    })();
   });
   return store;
 }
@@ -46,5 +49,13 @@ export function enumUrl(values: string[]): (param: string) => string {
       return param;
     }
     throw new Error(`${param} isn't in ${values}`);
+  };
+}
+
+function debounce(delayMs: number, callback: Function) {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => callback(...args), delayMs);
   };
 }
