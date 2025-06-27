@@ -57,9 +57,7 @@
         target="_blank">open source</a
       >
       tool is created by
-      <a href="https://abstreet.uk" target="_blank"
-        >Dustin Carlino</a
-      >
+      <a href="https://abstreet.uk" target="_blank">Dustin Carlino</a>
       and relies heavily on
       <a href="https://www.openstreetmap.org/about" target="_blank"
         >OpenStreetMap</a
