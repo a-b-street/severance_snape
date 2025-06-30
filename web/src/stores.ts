@@ -17,6 +17,7 @@ export type Mode =
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;
   route_length: number;
+  duration_s: number;
   directions: Step[];
 }
 

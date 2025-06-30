@@ -25,12 +25,25 @@
       return `${padding}[${level}] ${x.kind}`;
     }
   }
+
+  // TODO Move to svelte-utils
+  function prettyPrintTime(seconds: number): string {
+    if (seconds < 60.0) {
+      return Math.round(seconds) + "s";
+    }
+    let minutes = Math.floor(seconds / 60);
+    let leftover = Math.round(seconds - minutes * 60);
+    return `${minutes}m${leftover}s`;
+  }
 </script>
 
 <p>
   Detour factor: <b
     >{(route_gj.route_length / route_gj.direct_length).toFixed(1)}x</b
   > longer than straight line
+</p>
+<p>
+  Duration: <b>{prettyPrintTime(route_gj.duration_s)}</b> (not precise at start/end)
 </p>
 <p>{levelChanges(route_gj)} changes in level</p>
 

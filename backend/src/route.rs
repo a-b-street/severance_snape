@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use anyhow::Result;
 use geo::{Coord, Euclidean, Length, LineString};
 use geojson::{Feature, FeatureCollection, Geometry};
@@ -25,6 +27,7 @@ pub fn do_route(
     let route = map.graph.routers[profile.0].route(&map.graph, start, end)?;
     let route_linestring = route.linestring(&map.graph);
 
+    let mut duration = Duration::ZERO;
     let mut directions = Vec::new();
     for step in route.steps {
         if let PathStep::Road { road, .. } = step {
@@ -39,6 +42,7 @@ pub fn do_route(
                     .cloned()
                     .unwrap_or_else(|| "0".to_string()),
             });
+            duration += r.cost[profile.0];
         }
     }
 
@@ -60,6 +64,7 @@ pub fn do_route(
                     "direct_length": Euclidean.length(&direct_line),
                     "route_length": Euclidean.length(&route_linestring),
                     "directions": directions,
+                    "duration_s": duration.as_secs(),
                 })
                 .as_object()
                 .unwrap()
