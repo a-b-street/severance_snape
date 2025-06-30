@@ -12,8 +12,7 @@ export type Mode =
   | { kind: "route" }
   | { kind: "crossings" }
   | { kind: "debug" }
-  | { kind: "disconnected" }
-  | { kind: "osm-separate-sidewalks" };
+  | { kind: "disconnected" };
 
 export interface RouteGJ extends FeatureCollection {
   direct_length: number;
@@ -77,12 +76,6 @@ export let maxScore: Writable<number> = urlState({
   defaultValue: 100,
   stringify: (x) => (x == 100 ? null : x.toString()),
   parse: parsePercent,
-});
-export let duplicateSidewalks: Writable<boolean> = urlState({
-  name: "duplicateSidewalks",
-  defaultValue: true,
-  stringify: (x) => (x ? "1" : "0"),
-  parse: (x) => x == "1",
 });
 
 export type Position = [number, number];

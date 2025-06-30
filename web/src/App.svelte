@@ -12,7 +12,6 @@
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
   import CrossingsMode from "./CrossingsMode.svelte";
-  import OsmSeparateSidewalksMode from "./OsmSeparateSidewalksMode.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import {
     map as mapStore,
@@ -63,14 +62,7 @@
     let value = new URLSearchParams(window.location.search).get("mode") || "";
     // Exclude title from this list; don't stay here
     if (
-      [
-        "score",
-        "route",
-        "crossings",
-        "debug",
-        "disconnected",
-        "osm-separate-sidewalks",
-      ].includes(value)
+      ["score", "route", "crossings", "debug", "disconnected"].includes(value)
     ) {
       return { kind: value } as Mode;
     }
@@ -133,33 +125,31 @@
       <hr />
       <div><button on:click={zoomToFit}>Zoom to fit</button></div>
 
-      {#if $mode.kind != "osm-separate-sidewalks"}
-        <Legend
-          rows={[
-            ["Footway (ground, outdoors)", kindToColor.Footway],
-            ["Indoors footway", kindToColor.Indoors],
-            ["Footway not on the ground", kindToColor.BridgeOrTunnel],
-            [
-              "Street with vehicle traffic (maybe with a sidewalk, maybe not)",
-              kindToColor.WithTraffic,
-            ],
-            ["Crossing", kindToColor.Crossing],
-            ["Severance", kindToColor.Severance],
-          ]}
-        />
-        <div>
-          <label>
-            <input type="checkbox" bind:checked={showSeverances} />
-            Show severances
-          </label>
-        </div>
-        <div>
-          <label>
-            Network opacity:
-            <input type="range" min="0" max="100" bind:value={opacity} />
-          </label>
-        </div>
-      {/if}
+      <Legend
+        rows={[
+          ["Footway (ground, outdoors)", kindToColor.Footway],
+          ["Indoors footway", kindToColor.Indoors],
+          ["Footway not on the ground", kindToColor.BridgeOrTunnel],
+          [
+            "Street with vehicle traffic (maybe with a sidewalk, maybe not)",
+            kindToColor.WithTraffic,
+          ],
+          ["Crossing", kindToColor.Crossing],
+          ["Severance", kindToColor.Severance],
+        ]}
+      />
+      <div>
+        <label>
+          <input type="checkbox" bind:checked={showSeverances} />
+          Show severances
+        </label>
+      </div>
+      <div>
+        <label>
+          Network opacity:
+          <input type="range" min="0" max="100" bind:value={opacity} />
+        </label>
+      </div>
     {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
@@ -191,7 +181,6 @@
         <NetworkLayer
           {offlineMode}
           show={$mode.kind != "debug" &&
-            $mode.kind != "osm-separate-sidewalks" &&
             $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
           {showSeverances}
@@ -206,8 +195,6 @@
           <CrossingsMode />
         {:else if $mode.kind == "debug"}
           <DebugMode {showSeverances} {opacity} />
-        {:else if $mode.kind == "osm-separate-sidewalks"}
-          <OsmSeparateSidewalksMode />
         {:else if $mode.kind == "disconnected"}
           <DisconnectionsMode />
         {/if}

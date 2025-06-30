@@ -15,7 +15,6 @@ use crate::profiles::Profile;
 
 mod create;
 mod disconnected;
-mod fix_osm;
 mod profiles;
 mod route;
 mod scores;
@@ -132,13 +131,6 @@ impl MapModel {
     pub fn get_bounds(&self) -> Vec<f64> {
         let b = &self.graph.mercator.wgs84_bounds;
         vec![b.min().x, b.min().y, b.max().x, b.max().y]
-    }
-
-    #[wasm_bindgen(js_name = findSeparateSidewalks)]
-    pub fn find_separate_sidewalks(&self, duplicates_only: bool) -> Result<String, JsValue> {
-        let out = serde_json::to_string(&fix_osm::find_separate_sidewalks(self, duplicates_only))
-            .map_err(err_to_js)?;
-        Ok(out)
     }
 
     #[wasm_bindgen(js_name = findConnectedComponents)]

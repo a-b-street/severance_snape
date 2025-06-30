@@ -48,14 +48,6 @@
 
     <li>
       <button
-        on:click={() => ($mode = { kind: "osm-separate-sidewalks" })}
-        disabled={$mode.kind == "osm-separate-sidewalks"}
-        >Fix OSM sidewalk=separate</button
-      >
-    </li>
-
-    <li>
-      <button
         on:click={() => ($mode = { kind: "debug" })}
         disabled={$mode.kind == "debug"}>Debug network</button
       >
