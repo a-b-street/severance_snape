@@ -65,7 +65,7 @@ impl MapModel {
         let graph = Graph::new(
             input_bytes,
             &mut crossings,
-            Box::new(|_| Ok(())),
+            post_process_graph(profile),
             scrape_graph,
             vec![
                 ("walking".to_string(), walking_profile),
@@ -117,4 +117,77 @@ impl OsmReader for Crossings {
     fn way(&mut self, _: WayID, _: &Vec<NodeID>, _: &HashMap<NodeID, Coord>, _: &Tags) {}
 
     fn relation(&mut self, _: RelationID, _: &Vec<(String, OsmID)>, _: &Tags) {}
+}
+
+fn post_process_graph(profile: Profile) -> Box<dyn Fn(&mut utils::osm2graph::Graph) -> Result<()>> {
+    Box::new(move |graph| {
+        // Look for intersections with only Severances and WithTraffic streets. Assume footways
+        // directly connecting to severances (on both sides) are mistakenly tagged crossings.
+        let mut disconnect: Vec<(utils::osm2graph::IntersectionID, utils::osm2graph::EdgeID)> =
+            Vec::new();
+
+        'INTERSECTION: for intersection in graph.intersections.values() {
+            let mut severances = Vec::new();
+            let mut with_traffics = Vec::new();
+            for e in &intersection.edges {
+                let kind = profile.classify(&graph.edges[e].osm_tags);
+                match kind {
+                    Some(RoadKind::Severance) => {
+                        severances.push(*e);
+                    }
+                    Some(RoadKind::WithTraffic) => {
+                        with_traffics.push(*e);
+                    }
+                    Some(RoadKind::Footway | RoadKind::Crossing) => {
+                        // TODO What if there are mixes involving WithTraffic too?
+                        continue 'INTERSECTION;
+                    }
+                    None => {}
+                }
+            }
+            // TODO Check that we actually have to cross the severance, and that it's not just
+            // connected on one side
+            if !severances.is_empty() && !with_traffics.is_empty() {
+                for e in with_traffics {
+                    disconnect.push((intersection.id, e));
+                }
+            }
+        }
+
+        // Don't allow connections between Severances and WithTraffics. This will apply for
+        // routing, isochrones, network disconnections, etc. Achieve this by duplicating the
+        // Intersection.
+        for (original_node, edge_id) in disconnect {
+            graph
+                .intersections
+                .get_mut(&original_node)
+                .unwrap()
+                .edges
+                .retain(|e| *e != edge_id);
+
+            let new_intersection_id = new_intersection_id(graph);
+            assert!(!graph.intersections.contains_key(&new_intersection_id));
+            let mut intersection_copy = graph.intersections[&original_node].clone();
+            intersection_copy.edges = vec![edge_id];
+            // TODO Keep same osm_node?
+            intersection_copy.id = new_intersection_id;
+            graph
+                .intersections
+                .insert(new_intersection_id, intersection_copy);
+
+            let edge = graph.edges.get_mut(&edge_id).unwrap();
+            if edge.src == original_node {
+                edge.src = new_intersection_id;
+            }
+            if edge.dst == original_node {
+                edge.dst = new_intersection_id;
+            }
+        }
+
+        Ok(())
+    })
+}
+
+fn new_intersection_id(graph: &utils::osm2graph::Graph) -> utils::osm2graph::IntersectionID {
+    utils::osm2graph::IntersectionID(graph.intersections.keys().max().unwrap().0 + 1)
 }
