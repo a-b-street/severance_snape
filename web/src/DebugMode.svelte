@@ -41,6 +41,7 @@
   <div slot="map">
     <GeoJSON data={JSON.parse(notNull($model).render())} generateId>
       <LineLayer
+        beforeId="Road labels"
         paint={{
           "line-width": hoverStateFilter(5, 7),
           "line-color": constructMatchExpression(

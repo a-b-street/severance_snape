@@ -29,6 +29,9 @@ impl Profile {
             }
             return Some(RoadKind::Footway);
         }
+        if tags.is("highway", "cycleway") && tags.is("foot", "yes") {
+            return Some(RoadKind::Footway);
+        }
 
         if tags.is("highway", "crossing") || tags.has("crossing") {
             return Some(RoadKind::Crossing);
@@ -89,7 +92,6 @@ impl Profile {
                 "unclassified",
                 "service",
                 "living_street",
-                "cycleway",
             ],
         ) && !tags.is("foot", "no")
         {
