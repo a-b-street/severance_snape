@@ -59,3 +59,12 @@ export let minScore: Writable<number> = writable(0);
 export let maxScore: Writable<number> = writable(100);
 
 export type Position = [number, number];
+
+interface Settings {
+  obey_crossings: boolean;
+  base_speed: number;
+}
+export let settings: Writable<Settings> = writable({
+  obey_crossings: true,
+  base_speed: 3,
+});

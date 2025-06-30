@@ -117,14 +117,20 @@ impl MapModel {
             x: req.x2,
             y: req.y2,
         });
-        let (_, gj) = route::do_route(self, start, end).map_err(err_to_js)?;
+        let (_, gj) = route::do_route(self, start, end, req.settings).map_err(err_to_js)?;
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
     }
 
     #[wasm_bindgen(js_name = scoreDetours)]
     pub fn score_detours(&self) -> Result<String, JsValue> {
-        let samples = scores::calculate(self);
+        let samples = scores::calculate(
+            self,
+            Settings {
+                obey_crossings: true,
+                base_speed: 3.0,
+            },
+        );
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
@@ -157,6 +163,13 @@ pub struct CompareRouteRequest {
     y1: f64,
     x2: f64,
     y2: f64,
+    settings: Settings,
+}
+
+#[derive(Clone, Copy, PartialEq, Deserialize)]
+pub struct Settings {
+    obey_crossings: bool,
+    base_speed: f64,
 }
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {

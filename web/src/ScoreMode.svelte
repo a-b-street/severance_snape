@@ -19,6 +19,7 @@
     maxScore,
     routeA,
     routeB,
+          settings,
     type Position,
   } from "./stores";
   import NavBar from "./NavBar.svelte";
@@ -57,6 +58,7 @@
           y1: linestring[0][1],
           x2: linestring[1][0],
           y2: linestring[1][1],
+                settings: $settings,
         }),
       );
     } catch (err) {

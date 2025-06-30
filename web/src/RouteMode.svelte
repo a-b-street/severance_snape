@@ -2,8 +2,9 @@
   import type { MapMouseEvent } from "maplibre-gl";
   import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
+  import ChangeSettings from "./ChangeSettings.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import { model, type RouteGJ, routeA, routeB } from "./stores";
+  import { model, type RouteGJ, routeA, routeB, settings } from "./stores";
   import NavBar from "./NavBar.svelte";
   import { onMount } from "svelte";
 
@@ -29,6 +30,7 @@
           y1: $routeA[1],
           x2: $routeB[0],
           y2: $routeB[1],
+          settings: $settings,
         }),
       );
       route_err = "";
@@ -62,6 +64,7 @@
     {#if route_gj}
       <Directions {route_gj} />
     {/if}
+    <ChangeSettings />
   </div>
   <div slot="map">
     <MapEvents on:contextmenu={onRightClick} />

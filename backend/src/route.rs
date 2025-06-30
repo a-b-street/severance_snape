@@ -4,11 +4,21 @@ use geojson::{Feature, FeatureCollection, Geometry};
 use graph::PathStep;
 use serde::Serialize;
 
-use crate::MapModel;
+use crate::{MapModel, Settings};
 
 // Also returns the line of the snapped request (in WGS84)
-pub fn do_route(map: &MapModel, start: Coord, end: Coord) -> Result<(Feature, FeatureCollection)> {
-    let profile = map.graph.profile_names["walking"];
+pub fn do_route(
+    map: &MapModel,
+    start: Coord,
+    end: Coord,
+    settings: Settings,
+) -> Result<(Feature, FeatureCollection)> {
+    let profile_name = if settings.obey_crossings {
+        "walking"
+    } else {
+        "cross_anywhere"
+    };
+    let profile = map.graph.profile_names[profile_name];
     let start = map.graph.snap_to_road(start, profile);
     let end = map.graph.snap_to_road(end, profile);
 

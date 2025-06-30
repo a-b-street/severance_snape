@@ -12,15 +12,6 @@ use crate::{Crossing, MapModel, Profile, RoadKind};
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
-        // TODO Hack to include severances
-        let dummy_profile = Box::new(move |tags: &Tags, _: &LineString| {
-            if profile.classify(tags) == Some(RoadKind::Severance) {
-                (Direction::Both, Duration::from_secs_f64(1.0))
-            } else {
-                (Direction::None, Duration::ZERO)
-            }
-        });
-
         let mut crossings = Crossings::default();
         let graph = Graph::new(
             input_bytes,
@@ -29,7 +20,7 @@ impl MapModel {
             scrape_graph(profile),
             vec![
                 ("walking".to_string(), walking_profile(profile)),
-                ("dummy".to_string(), dummy_profile),
+                ("cross_anywhere".to_string(), cross_anywhere(profile)),
             ],
             &mut Timer::new("build graph", None),
         )?;
@@ -85,6 +76,21 @@ fn walking_profile(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direc
         let exclude = (Direction::None, Duration::ZERO);
         let kind = profile.classify(tags);
         if kind == None || kind == Some(RoadKind::Severance) {
+            return exclude;
+        }
+
+        // 3mph
+        let speed = 1.34112;
+        let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
+        (Direction::Both, cost)
+    })
+}
+
+fn cross_anywhere(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direction, Duration)> {
+    Box::new(move |tags, linestring| {
+        let exclude = (Direction::None, Duration::ZERO);
+        let kind = profile.classify(tags);
+        if kind == None {
             return exclude;
         }
 

@@ -6,14 +6,14 @@ use geojson::{FeatureCollection, GeoJson};
 use graph::RoadID;
 use utils::{collapse_degree_2, KeyedLineString, LineSplit};
 
-use crate::{Crossing, MapModel, RoadKind};
+use crate::{Crossing, MapModel, RoadKind, Settings};
 
 // Walk along severances. Every X meters, try to cross from one side to the other.
 //
 // We could focus where footways connect to severances, but that's probably a crossing. Ideally we
 // want to find footpaths parallel(ish) to severances. If we had some kind of generalized edge
 // bundling...
-pub fn calculate(map: &MapModel) -> FeatureCollection {
+pub fn calculate(map: &MapModel, settings: Settings) -> FeatureCollection {
     let mut requests = Vec::new();
     for r in &map.graph.roads {
         if map.road_kinds[r.id.0] == RoadKind::Severance {
@@ -26,7 +26,7 @@ pub fn calculate(map: &MapModel) -> FeatureCollection {
     let mut samples = Vec::new();
     let mut max_score = 0.0_f64;
     for (start, end) in requests {
-        if let Ok((mut f, fc)) = crate::route::do_route(map, start, end) {
+        if let Ok((mut f, fc)) = crate::route::do_route(map, start, end, settings) {
             let direct = fc
                 .foreign_members
                 .as_ref()
