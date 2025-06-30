@@ -94,8 +94,18 @@
         }}
         hoverCursor="pointer"
       >
-        <Popup openOn="click" let:props>
+        <Popup openOn="click" let:props let:features>
+          {@const [lon, lat] = features[0].geometry.coordinates}
           <PropertiesTable properties={props} />
+          <a href={props.url} target="_blank">OSM</a>,
+          <a
+            href={`http://maps.google.com/maps?q=&layer=c&cbll=${lat},${lon}&cbp=11,0,0,0,0`}
+            target="_blank">Google StreetView</a
+          >,
+          <a
+            href={`https://www.bing.com/maps?cp=${lat}~${lon}&style=x`}
+            target="_blank">Bing Streetside</a
+          >
         </Popup>
       </CircleLayer>
     </GeoJSON>

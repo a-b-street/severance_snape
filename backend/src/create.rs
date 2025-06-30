@@ -43,7 +43,8 @@ impl MapModel {
         let crossings = crossings
             .crossings
             .into_iter()
-            .map(|(_, pt, tags, roads)| Crossing {
+            .map(|(osm_id, pt, tags, roads)| Crossing {
+                osm_id,
                 point: graph.mercator.pt_to_mercator(pt),
                 roads,
                 tags,

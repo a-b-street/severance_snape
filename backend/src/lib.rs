@@ -7,6 +7,7 @@ use std::sync::Once;
 use geo::{Coord, Point};
 use geojson::GeoJson;
 use graph::{Graph, RoadID};
+use osm_reader::NodeID;
 use serde::Deserialize;
 use utils::Tags;
 use wasm_bindgen::prelude::*;
@@ -30,6 +31,7 @@ pub struct MapModel {
 }
 
 struct Crossing {
+    osm_id: NodeID,
     point: Coord,
     roads: HashSet<RoadID>,
     tags: Tags,
@@ -71,8 +73,9 @@ impl MapModel {
         let mut features = Vec::new();
 
         for r in &self.graph.roads {
-            let mut f = r.to_gj(&self.graph);
+            let mut f = self.graph.mercator.to_wgs84_gj(&r.linestring);
             f.set_property("kind", format!("{:?}", self.road_kinds[r.id.0]));
+            f.set_property("url", r.way.to_string());
             features.push(f);
         }
 
@@ -87,6 +90,7 @@ impl MapModel {
         for c in &self.crossings {
             let mut f = self.graph.mercator.to_wgs84_gj(&Point::from(c.point));
             for (k, v) in &c.tags.0 {
+                f.set_property("url", c.osm_id.to_string());
                 f.set_property(k, v.to_string());
             }
             features.push(f);
