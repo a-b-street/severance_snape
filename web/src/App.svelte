@@ -10,12 +10,11 @@
     NavigationControl,
     MapLibre,
   } from "svelte-maplibre";
-  import { kindToColor } from "./colors";
-  import { Legend } from "svelte-utils";
   import { Geocoder } from "svelte-utils/map";
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
+  import LayerControls from "./LayerControls.svelte";
   import CrossingsMode from "./CrossingsMode.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
   import {
@@ -127,29 +126,6 @@
   <div slot="left">
     <h1>Severance Snape</h1>
     <div bind:this={sidebarDiv} />
-
-    {#if $mode.kind != "title" && $mode.kind != "crossings"}
-      <hr />
-      <div><button on:click={zoomToFit}>Zoom to fit</button></div>
-
-      <Legend
-        rows={[
-          ["Footway", kindToColor.Footway],
-          ["Crossing", kindToColor.Crossing],
-          [
-            "Walkable and easily crossable street (maybe no sidewalk)",
-            kindToColor.WithTraffic,
-          ],
-          ["Severance", kindToColor.Severance],
-        ]}
-      />
-      <div>
-        <label>
-          Network opacity:
-          <input type="range" min="0" max="100" bind:value={opacity} />
-        </label>
-      </div>
-    {/if}
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
@@ -164,6 +140,9 @@
       }}
     >
       <NavigationControl showCompass={false} />
+      {#if $mode.kind != "title"}
+        <LayerControls {zoomToFit} bind:opacity />
+      {/if}
 
       {#if !offlineMode}
         <Geocoder {map} apiKey={maptilerApiKey} country={undefined} />
