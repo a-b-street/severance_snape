@@ -4,7 +4,12 @@
   import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
-  import { FillLayer, GeoJSON, MapLibre } from "svelte-maplibre";
+  import {
+    FillLayer,
+    GeoJSON,
+    NavigationControl,
+    MapLibre,
+  } from "svelte-maplibre";
   import { kindToColor } from "./colors";
   import { Legend } from "svelte-utils";
   import { Geocoder } from "svelte-utils/map";
@@ -51,6 +56,9 @@
 
   let map: Map;
   $: if (map) {
+    map.keyboard.disableRotation();
+    map.dragRotate.disable();
+    map.touchZoomRotate.disableRotation();
     mapStore.set(map);
   }
 
@@ -148,7 +156,6 @@
       style={offlineMode
         ? "http://localhost:5173/offline/light_style.json"
         : `https://api.maptiler.com/maps/landscape/style.json?key=${maptilerApiKey}`}
-      standardControls
       hash
       bind:map
       on:error={(e) => {
@@ -156,6 +163,8 @@
         console.log(e.detail.error);
       }}
     >
+      <NavigationControl showCompass={false} />
+
       {#if !offlineMode}
         <Geocoder {map} apiKey={maptilerApiKey} country={undefined} />
       {/if}
