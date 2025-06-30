@@ -43,7 +43,7 @@
   > longer than straight line
 </p>
 <p>
-  Duration: <b>{prettyPrintTime(route_gj.duration_s)}</b> (not precise at start/end)
+  Duration: <b>{prettyPrintTime(route_gj.duration_s)}</b>
 </p>
 <p>{levelChanges(route_gj)} changes in level</p>
 

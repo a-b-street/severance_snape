@@ -4,6 +4,7 @@ use anyhow::Result;
 use geo::{Coord, Euclidean, Length, LineString};
 use geojson::{Feature, FeatureCollection, Geometry};
 use graph::PathStep;
+use itertools::Itertools;
 use serde::Serialize;
 
 use crate::{MapModel, Settings};
@@ -29,8 +30,8 @@ pub fn do_route(
 
     let mut duration = Duration::ZERO;
     let mut directions = Vec::new();
-    for step in route.steps {
-        if let PathStep::Road { road, .. } = step {
+    for (pos, step) in route.steps.into_iter().with_position() {
+        if let PathStep::Road { road, forwards } = step {
             let r = &map.graph.roads[road.0];
             directions.push(Step {
                 name: r.osm_tags.get("name").cloned(),
@@ -42,7 +43,28 @@ pub fn do_route(
                     .cloned()
                     .unwrap_or_else(|| "0".to_string()),
             });
-            duration += r.cost[profile.0];
+
+            let percent = match pos {
+                itertools::Position::First => {
+                    if forwards {
+                        1.0 - route.start.fraction_along
+                    } else {
+                        route.start.fraction_along
+                    }
+                }
+                itertools::Position::Last => {
+                    if forwards {
+                        route.end.fraction_along
+                    } else {
+                        1.0 - route.end.fraction_along
+                    }
+                }
+                itertools::Position::Middle => 1.0,
+                itertools::Position::Only => {
+                    (route.end.fraction_along - route.start.fraction_along).abs()
+                }
+            };
+            duration += r.cost[profile.0].mul_f64(percent);
         }
     }
 
