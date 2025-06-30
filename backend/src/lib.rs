@@ -37,13 +37,17 @@ struct Crossing {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RoadKind {
+    /// Sidewalks and other pedestrian-oriented
     Footway,
-    Indoors,
-    BridgeOrTunnel,
-    WithTraffic,
+    /// Tagged crossings
     Crossing,
+
+    /// A big road that can only be crossed at crossings
     Severance,
-    // TODO other types of road?
+    /// Other roads that aren't severances and allow pedestrians. If they explicitly have separate
+    /// sidewalks tagged, excluded. Otherwise, may or may not actually have sidewalks. Assumed to
+    /// be easy enough to walk along and cross anywhere.
+    WithTraffic,
 }
 
 #[wasm_bindgen]

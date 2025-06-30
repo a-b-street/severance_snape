@@ -14,7 +14,6 @@
 
   // TODO Could try to reuse NetworkLayer and add in the interactivity
 
-  export let showSeverances: boolean;
   export let opacity: number;
 
   async function updateOsm() {
@@ -49,15 +48,7 @@
             kindToColor,
             "yellow",
           ),
-          "line-opacity": showSeverances
-            ? opacity / 100
-            : constructMatchExpression(
-                ["get", "kind"],
-                {
-                  Severance: 0.0,
-                },
-                opacity / 100.0,
-              ),
+          "line-opacity": opacity / 100,
         }}
         manageHoverState
         on:click={(e) =>

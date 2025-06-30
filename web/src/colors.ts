@@ -1,9 +1,6 @@
 export const kindToColor = {
   Footway: "black",
-  Indoors: "grey",
-  // TODO dashed
-  BridgeOrTunnel: "black",
-  WithTraffic: "#4C3926",
+  WithTraffic: "grey",
   Crossing: "green",
   Severance: "red",
 };

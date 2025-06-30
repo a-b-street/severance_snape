@@ -6,8 +6,6 @@
   import { model } from "./stores";
 
   export let show: boolean;
-  // TODO Use filter expressions?
-  export let showSeverances: boolean;
   export let opacity: number;
   export let offlineMode: boolean;
 </script>
@@ -26,15 +24,7 @@
         kindToColor,
         "yellow",
       ),
-      "line-opacity": showSeverances
-        ? opacity / 100
-        : constructMatchExpression(
-            ["get", "kind"],
-            {
-              Severance: 0.0,
-            },
-            opacity / 100.0,
-          ),
+      "line-opacity": opacity / 100,
     }}
   />
 </GeoJSON>

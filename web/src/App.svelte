@@ -55,7 +55,6 @@
   }
 
   let opacity = 100;
-  let showSeverances = true;
 
   // We always have to go through TitleMode to load the study area, so we have to restore the Mode a little carefully
   function parseMode(): Mode {
@@ -127,23 +126,15 @@
 
       <Legend
         rows={[
-          ["Footway (ground, outdoors)", kindToColor.Footway],
-          ["Indoors footway", kindToColor.Indoors],
-          ["Footway not on the ground", kindToColor.BridgeOrTunnel],
+          ["Footway", kindToColor.Footway],
+          ["Crossing", kindToColor.Crossing],
           [
-            "Street with vehicle traffic (maybe with a sidewalk, maybe not)",
+            "Walkable and easily crossable street (maybe no sidewalk)",
             kindToColor.WithTraffic,
           ],
-          ["Crossing", kindToColor.Crossing],
           ["Severance", kindToColor.Severance],
         ]}
       />
-      <div>
-        <label>
-          <input type="checkbox" bind:checked={showSeverances} />
-          Show severances
-        </label>
-      </div>
       <div>
         <label>
           Network opacity:
@@ -183,7 +174,6 @@
           show={$mode.kind != "debug" &&
             $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
-          {showSeverances}
           {opacity}
         />
 
@@ -194,7 +184,7 @@
         {:else if $mode.kind == "crossings"}
           <CrossingsMode />
         {:else if $mode.kind == "debug"}
-          <DebugMode {showSeverances} {opacity} />
+          <DebugMode {opacity} />
         {:else if $mode.kind == "disconnected"}
           <DisconnectionsMode />
         {/if}

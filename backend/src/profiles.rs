@@ -24,13 +24,6 @@ impl Profile {
             "highway",
             vec!["footway", "steps", "path", "track", "corridor"],
         ) {
-            // TODO These aren't mutually exclusive...
-            if tags.has("indoor") || tags.is("highway", "corridor") {
-                return Some(RoadKind::Indoors);
-            }
-            if tags.has_any(vec!["layer", "bridge", "tunnel"]) {
-                return Some(RoadKind::BridgeOrTunnel);
-            }
             if tags.is("footway", "crossing") {
                 return Some(RoadKind::Crossing);
             }
@@ -108,6 +101,7 @@ impl Profile {
         }
 
         // TODO highway=construction?
+        // TODO Private?
 
         // TODO Maybe just use tagged / assumed speed limit instead of highway classification?
 
