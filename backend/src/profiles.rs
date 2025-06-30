@@ -15,7 +15,10 @@ impl Profile {
     /// This function classifies an OSM way as a RoadKind. If it returns `None`, then the way is
     /// totally excluded from the walking graph.
     pub fn classify(self, tags: &Tags) -> Option<RoadKind> {
-        if !tags.has("highway") || tags.is("highway", "proposed") || tags.is("area", "yes") {
+        if !tags.has("highway")
+            || tags.is_any("highway", vec!["construction", "proposed"])
+            || tags.is("area", "yes")
+        {
             return None;
         }
 
@@ -102,7 +105,6 @@ impl Profile {
             };
         }
 
-        // TODO highway=construction?
         // TODO Private?
 
         // TODO Maybe just use tagged / assumed speed limit instead of highway classification?
