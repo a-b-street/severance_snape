@@ -12,18 +12,6 @@ use crate::{Crossing, MapModel, Profile, RoadKind};
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
-        let walking_profile = Box::new(move |tags: &Tags, linestring: &LineString| {
-            let exclude = (Direction::None, Duration::ZERO);
-            let kind = profile.classify(tags);
-            if kind == None || kind == Some(RoadKind::Severance) {
-                return exclude;
-            }
-
-            // 3mph
-            let speed = 1.34112;
-            let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
-            (Direction::Both, cost)
-        });
         // TODO Hack to include severances
         let dummy_profile = Box::new(move |tags: &Tags, _: &LineString| {
             if profile.classify(tags) == Some(RoadKind::Severance) {
@@ -34,41 +22,13 @@ impl MapModel {
         });
 
         let mut crossings = Crossings::default();
-        let scrape_graph = Box::new(
-            move |crossings: &mut Crossings, graph: &utils::osm2graph::Graph| {
-                // Only keep crossings on severances
-                let mut severance_nodes: HashMap<NodeID, HashSet<RoadID>> = HashMap::new();
-                for edge in graph.edges.values() {
-                    if profile.classify(&edge.osm_tags) == Some(RoadKind::Severance) {
-                        for node in &edge.node_ids {
-                            // EdgeID becomes RoadID, because IDs have already been compacted
-                            severance_nodes
-                                .entry(*node)
-                                .or_insert_with(HashSet::new)
-                                .insert(RoadID(edge.id.0));
-                        }
-                    }
-                }
-
-                let mut keep_crossings = Vec::new();
-                for mut crossing in crossings.crossings.drain(..) {
-                    if let Some(roads) = severance_nodes.get(&crossing.0) {
-                        crossing.3.extend(roads.into_iter().cloned());
-                        keep_crossings.push(crossing);
-                    }
-                }
-                crossings.crossings = keep_crossings;
-                Ok(())
-            },
-        );
-
         let graph = Graph::new(
             input_bytes,
             &mut crossings,
             post_process_graph(profile),
-            scrape_graph,
+            scrape_graph(profile),
             vec![
-                ("walking".to_string(), walking_profile),
+                ("walking".to_string(), walking_profile(profile)),
                 ("dummy".to_string(), dummy_profile),
             ],
             &mut Timer::new("build graph", None),
@@ -117,6 +77,51 @@ impl OsmReader for Crossings {
     fn way(&mut self, _: WayID, _: &Vec<NodeID>, _: &HashMap<NodeID, Coord>, _: &Tags) {}
 
     fn relation(&mut self, _: RelationID, _: &Vec<(String, OsmID)>, _: &Tags) {}
+}
+
+fn walking_profile(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direction, Duration)> {
+    Box::new(move |tags, linestring| {
+        let exclude = (Direction::None, Duration::ZERO);
+        let kind = profile.classify(tags);
+        if kind == None || kind == Some(RoadKind::Severance) {
+            return exclude;
+        }
+
+        // 3mph
+        let speed = 1.34112;
+        let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
+        (Direction::Both, cost)
+    })
+}
+
+fn scrape_graph(
+    profile: Profile,
+) -> Box<dyn Fn(&mut Crossings, &utils::osm2graph::Graph) -> Result<()>> {
+    Box::new(move |crossings, graph| {
+        // Only keep crossings on severances
+        let mut severance_nodes: HashMap<NodeID, HashSet<RoadID>> = HashMap::new();
+        for edge in graph.edges.values() {
+            if profile.classify(&edge.osm_tags) == Some(RoadKind::Severance) {
+                for node in &edge.node_ids {
+                    // EdgeID becomes RoadID, because IDs have already been compacted
+                    severance_nodes
+                        .entry(*node)
+                        .or_insert_with(HashSet::new)
+                        .insert(RoadID(edge.id.0));
+                }
+            }
+        }
+
+        let mut keep_crossings = Vec::new();
+        for mut crossing in crossings.crossings.drain(..) {
+            if let Some(roads) = severance_nodes.get(&crossing.0) {
+                crossing.3.extend(roads.into_iter().cloned());
+                keep_crossings.push(crossing);
+            }
+        }
+        crossings.crossings = keep_crossings;
+        Ok(())
+    })
 }
 
 fn post_process_graph(profile: Profile) -> Box<dyn Fn(&mut utils::osm2graph::Graph) -> Result<()>> {
