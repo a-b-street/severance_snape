@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { GeoJSON, LineLayer } from "svelte-maplibre";
-  import { kindToColor } from "./colors";
+  import { SymbolLayer, GeoJSON, LineLayer } from "svelte-maplibre";
+  import { gradientLimits, gradientColors, kindToColor } from "./colors";
   import { notNull } from "svelte-utils";
-  import { constructMatchExpression } from "svelte-utils/map";
+  import { constructMatchExpression, makeRamp } from "svelte-utils/map";
   import { model } from "./stores";
 
   export let show: boolean;
   export let opacity: number;
   export let offlineMode: boolean;
+  export let showGradient: boolean;
 </script>
 
 <GeoJSON data={JSON.parse(notNull($model).render())}>
@@ -19,12 +20,26 @@
     }}
     paint={{
       "line-width": 5,
-      "line-color": constructMatchExpression(
-        ["get", "kind"],
-        kindToColor,
-        "yellow",
-      ),
+      "line-color": showGradient
+        ? makeRamp(["abs", ["get", "gradient"]], gradientLimits, gradientColors)
+        : constructMatchExpression(["get", "kind"], kindToColor, "yellow"),
       "line-opacity": opacity / 100,
+    }}
+  />
+
+  <SymbolLayer
+    id="gradient-arrows"
+    beforeId={offlineMode ? "roads_labels_major" : "Road labels"}
+    minzoom={12}
+    filter={[">", ["abs", ["get", "gradient"]], 3]}
+    layout={{
+      "icon-image": "chevron",
+      "icon-size": 1.0,
+      "symbol-placement": "line",
+      "symbol-spacing": 50,
+      "icon-allow-overlap": true,
+      "icon-rotate": ["case", ["<", ["get", "gradient"], 0], 180, 0],
+      visibility: show && showGradient ? "visible" : "none",
     }}
   />
 </GeoJSON>

@@ -1,12 +1,20 @@
 <script lang="ts">
   import { Control } from "svelte-maplibre";
-  import { kindToColor, crossingColors } from "./colors";
-  import { QualitativeLegend } from "svelte-utils";
+  import {
+    gradientLimits,
+    gradientColors,
+    kindToColor,
+    crossingColors,
+  } from "./colors";
+  import { SequentialLegend, QualitativeLegend } from "svelte-utils";
+  import chevron from "../assets/chevron.png?url";
 
   export let zoomToFit: () => void;
   export let opacity: number;
   export let showCrossings: boolean;
   export let canShowCrossings: boolean;
+  export let showGradient: boolean;
+  export let canShowGradient: boolean;
 </script>
 
 <Control position="top-right">
@@ -43,6 +51,23 @@
             itemsPerRow={1}
             swatchClass="circle"
           />
+        {/if}
+      {/if}
+
+      {#if canShowGradient}
+        <label>
+          <input type="checkbox" bind:checked={showGradient} />
+          Gradient
+        </label>
+        {#if showGradient}
+          <SequentialLegend
+            colorScale={gradientColors}
+            labels={{ limits: gradientLimits }}
+          />
+          <p>
+            <img src={chevron} alt="arrow" />
+            Arrows point uphill
+          </p>
         {/if}
       {/if}
     </details>

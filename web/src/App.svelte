@@ -1,5 +1,6 @@
 <script lang="ts">
   import "@picocss/pico/css/pico.jade.min.css";
+  import chevron from "../assets/chevron.png?url";
   import logo from "../assets/logo.svg?url";
   import init, { MapModel } from "backend";
   import type { Map } from "maplibre-gl";
@@ -64,6 +65,7 @@
 
   let opacity = 100;
   let showCrossings = true;
+  let showGradient = false;
 
   // We always have to go through TitleMode to load the study area, so we have to restore the Mode a little carefully
   function parseMode(): Mode {
@@ -140,6 +142,7 @@
         // @ts-expect-error ErrorEvent isn't exported
         console.log(e.detail.error);
       }}
+      images={[{ id: "chevron", url: chevron }]}
     >
       <NavigationControl showCompass={false} />
       {#if $mode.kind != "title"}
@@ -147,7 +150,11 @@
           {zoomToFit}
           bind:opacity
           bind:showCrossings
+          bind:showGradient
           canShowCrossings={$mode.kind != "disconnected" &&
+            $mode.kind != "crossings"}
+          canShowGradient={$mode.kind != "debug" &&
+            $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
         />
       {/if}
@@ -171,6 +178,7 @@
             $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
           {opacity}
+          {showGradient}
         />
         <CrossingsLayer
           {offlineMode}
