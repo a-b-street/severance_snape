@@ -48,13 +48,10 @@ impl MapModel {
             road_kinds,
             crossings,
 
-            walking_settings: Settings {
-                obey_crossings: true,
-                base_speed: mph_to_mps(3.0),
-            },
+            walking_settings: Settings::uk(),
             cross_anywhere_settings: Settings {
                 obey_crossings: false,
-                base_speed: mph_to_mps(3.0),
+                ..Settings::uk()
             },
         })
     }
@@ -89,7 +86,7 @@ fn walking_profile(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direc
             return exclude;
         }
 
-        let speed = mph_to_mps(3.0);
+        let speed = mph_to_mps(Settings::uk().base_speed_mph);
         let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
         (Direction::Both, cost)
     })
@@ -103,7 +100,7 @@ fn cross_anywhere(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direct
             return exclude;
         }
 
-        let speed = mph_to_mps(3.0);
+        let speed = mph_to_mps(Settings::uk().base_speed_mph);
         let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
         (Direction::Both, cost)
     })

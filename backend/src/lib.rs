@@ -137,13 +137,7 @@ impl MapModel {
 
     #[wasm_bindgen(js_name = scoreDetours)]
     pub fn score_detours(&mut self) -> Result<String, JsValue> {
-        let samples = scores::calculate(
-            self,
-            Settings {
-                obey_crossings: true,
-                base_speed: mph_to_mps(3.0),
-            },
-        );
+        let samples = scores::calculate(self, Settings::uk());
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
         Ok(out)
     }
@@ -182,7 +176,22 @@ pub struct CompareRouteRequest {
 #[derive(Clone, Copy, PartialEq, Deserialize)]
 pub struct Settings {
     obey_crossings: bool,
-    base_speed: f64,
+    base_speed_mph: f64,
+    delay_signalized: f64,
+    delay_zebra: f64,
+    delay_other: f64,
+}
+
+impl Settings {
+    pub fn uk() -> Self {
+        Self {
+            obey_crossings: true,
+            base_speed_mph: 3.0,
+            delay_signalized: 30.0,
+            delay_zebra: 0.0,
+            delay_other: 10.0,
+        }
+    }
 }
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {

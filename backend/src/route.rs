@@ -28,7 +28,7 @@ pub fn do_route(
         || (!settings.obey_crossings && map.cross_anywhere_settings != settings)
     {
         info!("Updating costs for {profile_name}");
-        let speed = mph_to_mps(settings.base_speed);
+        let speed = mph_to_mps(settings.base_speed_mph);
 
         for road in &mut map.graph.roads {
             if road.access[profile.0] == Direction::Both {

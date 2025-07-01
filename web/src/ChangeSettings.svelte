@@ -1,5 +1,6 @@
 <script lang="ts">
   import { settings } from "./stores";
+  import { crossingColors } from "./colors";
 </script>
 
 <details open>
@@ -14,10 +15,55 @@
     Base walking speed (mph)
     <input
       type="number"
-      bind:value={$settings.base_speed}
+      bind:value={$settings.base_speed_mph}
       min="0.1"
       max="3.5"
       step="0.1"
     />
   </label>
+
+  <label>
+    <span class="circle" style:background={crossingColors.Signalized} />
+    Delay at signalized crossings (s)
+    <input
+      type="number"
+      bind:value={$settings.delay_signalized}
+      min="0"
+      max="60"
+      step="1"
+    />
+  </label>
+
+  <label>
+    <span class="circle" style:background={crossingColors.Zebra} />
+    Delay at zebra crossings (s)
+    <input
+      type="number"
+      bind:value={$settings.delay_zebra}
+      min="0"
+      max="60"
+      step="1"
+    />
+  </label>
+
+  <label>
+    <span class="circle" style:background={crossingColors.Other} />
+    Delay at other crossings (s)
+    <input
+      type="number"
+      bind:value={$settings.delay_other}
+      min="0"
+      max="60"
+      step="1"
+    />
+  </label>
 </details>
+
+<style>
+  .circle {
+    height: 20px;
+    width: 20px;
+    border-radius: 10px;
+    border: 1px solid black;
+  }
+</style>
