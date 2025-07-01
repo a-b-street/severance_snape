@@ -5,6 +5,12 @@ export const kindToColor = {
   Severance: "red",
 };
 
+export const crossingColors = {
+  Signalized: "yellow",
+  Zebra: "white",
+  Other: "brown",
+};
+
 export const colorScale = [
   "#CDE594",
   "#80C6A3",

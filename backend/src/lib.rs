@@ -39,6 +39,14 @@ struct Crossing {
     point: Coord,
     roads: HashSet<RoadID>,
     tags: Tags,
+    kind: CrossingKind,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum CrossingKind {
+    Signalized,
+    Zebra,
+    Other,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -95,6 +103,7 @@ impl MapModel {
             let mut f = self.graph.mercator.to_wgs84_gj(&Point::from(c.point));
             for (k, v) in &c.tags.0 {
                 f.set_property("url", c.osm_id.to_string());
+                f.set_property("kind", format!("{:?}", c.kind));
                 f.set_property(k, v.to_string());
             }
             features.push(f);

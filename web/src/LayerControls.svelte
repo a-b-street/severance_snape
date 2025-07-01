@@ -1,10 +1,12 @@
 <script lang="ts">
   import { Control } from "svelte-maplibre";
-  import { kindToColor } from "./colors";
+  import { kindToColor, crossingColors } from "./colors";
   import { QualitativeLegend } from "svelte-utils";
 
   export let zoomToFit: () => void;
   export let opacity: number;
+  export let showCrossings: boolean;
+  export let canShowCrossings: boolean;
 </script>
 
 <Control position="top-right">
@@ -29,6 +31,20 @@
         Network opacity:
         <input type="range" min="0" max="100" bind:value={opacity} />
       </label>
+
+      {#if canShowCrossings}
+        <label>
+          <input type="checkbox" bind:checked={showCrossings} />
+          Crossings
+        </label>
+        {#if showCrossings}
+          <QualitativeLegend
+            labelColors={crossingColors}
+            itemsPerRow={1}
+            swatchClass="circle"
+          />
+        {/if}
+      {/if}
     </details>
   </div>
 </Control>

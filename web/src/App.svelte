@@ -17,6 +17,7 @@
   import LayerControls from "./LayerControls.svelte";
   import CrossingsMode from "./CrossingsMode.svelte";
   import NetworkLayer from "./NetworkLayer.svelte";
+  import CrossingsLayer from "./CrossingsLayer.svelte";
   import {
     map as mapStore,
     mode,
@@ -62,6 +63,7 @@
   }
 
   let opacity = 100;
+  let showCrossings = true;
 
   // We always have to go through TitleMode to load the study area, so we have to restore the Mode a little carefully
   function parseMode(): Mode {
@@ -141,7 +143,14 @@
     >
       <NavigationControl showCompass={false} />
       {#if $mode.kind != "title"}
-        <LayerControls {zoomToFit} bind:opacity />
+        <LayerControls
+          {zoomToFit}
+          bind:opacity
+          bind:showCrossings
+          canShowCrossings={$mode.kind != "debug" &&
+            $mode.kind != "disconnected" &&
+            $mode.kind != "crossings"}
+        />
       {/if}
 
       {#if !offlineMode}
@@ -163,6 +172,13 @@
             $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
           {opacity}
+        />
+        <CrossingsLayer
+          {offlineMode}
+          show={showCrossings &&
+            $mode.kind != "debug" &&
+            $mode.kind != "disconnected" &&
+            $mode.kind != "crossings"}
         />
 
         {#if $mode.kind == "route"}

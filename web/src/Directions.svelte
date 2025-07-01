@@ -33,7 +33,7 @@
     }
     let hours = Math.floor(seconds / 3600);
     let minutes = Math.floor((seconds - hours * 3600) / 60);
-    let leftover = Math.round(seconds - (hours * 3600) - (minutes * 60));
+    let leftover = Math.round(seconds - hours * 3600 - minutes * 60);
     if (hours > 0) {
       return `${hours}h${minutes}m${leftover}s`;
     } else {

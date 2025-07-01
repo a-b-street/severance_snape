@@ -8,7 +8,7 @@ use osm_reader::{NodeID, OsmID, RelationID, WayID};
 use utils::osm2graph::OsmReader;
 use utils::Tags;
 
-use crate::{mph_to_mps, Crossing, MapModel, Profile, RoadKind, Settings};
+use crate::{mph_to_mps, Crossing, CrossingKind, MapModel, Profile, RoadKind, Settings};
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
@@ -35,6 +35,7 @@ impl MapModel {
             .crossings
             .into_iter()
             .map(|(osm_id, pt, tags, roads)| Crossing {
+                kind: crossing_kind(&tags),
                 osm_id,
                 point: graph.mercator.pt_to_mercator(pt),
                 roads,
@@ -209,4 +210,16 @@ fn post_process_graph(profile: Profile) -> Box<dyn Fn(&mut utils::osm2graph::Gra
 
 fn new_intersection_id(graph: &utils::osm2graph::Graph) -> utils::osm2graph::IntersectionID {
     utils::osm2graph::IntersectionID(graph.intersections.keys().max().unwrap().0 + 1)
+}
+
+// TODO UK centric and probably wrong...
+fn crossing_kind(tags: &Tags) -> CrossingKind {
+    if tags.is("crossing", "traffic_signals") {
+        return CrossingKind::Signalized;
+    }
+    if tags.is("crossing", "uncontrolled") {
+        // TODO And crossing:markings or crossing_ref?
+        return CrossingKind::Zebra;
+    }
+    CrossingKind::Other
 }
