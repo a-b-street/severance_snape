@@ -19,6 +19,7 @@ fn main() -> Result<()> {
     let map = backend::MapModel::create(&fs_err::read(&args.input)?, backend::Profile::USA)?;
     let writer = std::io::BufWriter::new(fs_err::File::create(&args.output)?);
     bincode::serialize_into(writer, &map)?;
+    log::info!("Wrote {}", args.output);
 
     Ok(())
 }
