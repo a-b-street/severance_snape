@@ -9,11 +9,11 @@ use geo::{Coord, Euclidean, Length, LineString, Point};
 use geojson::GeoJson;
 use graph::{Graph, RoadID};
 use osm_reader::NodeID;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use utils::Tags;
 use wasm_bindgen::prelude::*;
 
-use crate::profiles::Profile;
+pub use crate::profiles::Profile;
 
 mod create;
 mod disconnected;
@@ -24,6 +24,7 @@ mod scores;
 static START: Once = Once::new();
 
 #[wasm_bindgen]
+#[derive(Serialize, Deserialize)]
 pub struct MapModel {
     graph: Graph,
     // Indexed by RoadID
@@ -35,6 +36,7 @@ pub struct MapModel {
     cross_anywhere_settings: Settings,
 }
 
+#[derive(Serialize, Deserialize)]
 struct Crossing {
     osm_id: NodeID,
     point: Coord,
@@ -43,7 +45,7 @@ struct Crossing {
     kind: CrossingKind,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CrossingKind {
     Signalized,
     Zebra,
@@ -64,7 +66,7 @@ impl CrossingKind {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum RoadKind {
     /// Sidewalks and other pedestrian-oriented
     Footway,
@@ -81,17 +83,23 @@ pub enum RoadKind {
 
 #[wasm_bindgen]
 impl MapModel {
-    /// Call with bytes of an osm.pbf or osm.xml string and a profile name
+    /// Call either with bytes of an osm.pbf or osm.xml string and a profile name, or a bincoded
+    /// file
     #[wasm_bindgen(constructor)]
-    pub fn new(input_bytes: &[u8], profile: JsValue) -> Result<MapModel, JsValue> {
+    pub fn new(is_osm: bool, input_bytes: &[u8], profile: JsValue) -> Result<MapModel, JsValue> {
         // Panics shouldn't happen, but if they do, console.log them.
         console_error_panic_hook::set_once();
         START.call_once(|| {
             console_log::init_with_level(log::Level::Info).unwrap();
         });
 
-        let profile: Profile = serde_wasm_bindgen::from_value(profile)?;
-        MapModel::create(input_bytes, profile).map_err(err_to_js)
+        if is_osm {
+            let profile: Profile = serde_wasm_bindgen::from_value(profile)?;
+            MapModel::create(input_bytes, profile).map_err(err_to_js)
+        } else {
+            info!("Deserializing MapModel from {} bytes", input_bytes.len());
+            bincode::deserialize_from(input_bytes).map_err(err_to_js)
+        }
     }
 
     /// Returns a GeoJSON string. Just shows the full ped network
@@ -188,7 +196,7 @@ pub struct CompareRouteRequest {
     settings: Settings,
 }
 
-#[derive(Clone, Copy, PartialEq, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct Settings {
     obey_crossings: bool,
     base_speed_mph: f64,

@@ -41,9 +41,9 @@
   });
 
   let fileInput: HTMLInputElement;
-  async function loadFile(e: Event) {
+  async function loadOSMFile(e: Event) {
     try {
-      loadModel(await fileInput.files![0].arrayBuffer());
+      loadFromOSM(await fileInput.files![0].arrayBuffer());
       example = "";
     } catch (err) {
       window.alert(`Couldn't open this file: ${err}`);
@@ -51,17 +51,33 @@
     loading = "";
   }
 
-  function loadModel(buffer: ArrayBuffer) {
+  async function loadBinFile(e: Event) {
+    try {
+      loading = "Deserializing binary file";
+      let buffer = await fileInput.files![0].arrayBuffer();
+      console.time("load");
+      let isOSM = false;
+      $model = new MapModel(isOSM, new Uint8Array(buffer), $profile);
+      console.timeEnd("load");
+      example = "";
+    } catch (err) {
+      window.alert(`Couldn't open this file: ${err}`);
+    }
+    loading = "";
+  }
+
+  function loadFromOSM(buffer: ArrayBuffer) {
     loading = "Building map model from OSM input";
     console.time("load");
-    $model = new MapModel(new Uint8Array(buffer), $profile);
+    let isOSM = true;
+    $model = new MapModel(isOSM, new Uint8Array(buffer), $profile);
     console.timeEnd("load");
   }
 
   function gotXml(e: CustomEvent<{ xml: string; boundary: Feature<Polygon> }>) {
     try {
       // TODO Can we avoid turning into bytes?
-      loadModel(new TextEncoder().encode(e.detail.xml));
+      loadFromOSM(new TextEncoder().encode(e.detail.xml));
       example = "";
     } catch (err) {
       window.alert(`Couldn't import from Overpass: ${err}`);
@@ -97,7 +113,7 @@
     try {
       loading = `Downloading ${url}`;
       let resp = await fetch(url);
-      loadModel(await resp.arrayBuffer());
+      loadFromOSM(await resp.arrayBuffer());
     } catch (err) {
       window.alert(`Couldn't open from URL ${url}: ${err}`);
     }
@@ -128,7 +144,7 @@
 <div>
   <label>
     Load an osm.xml or a .pbf file:
-    <input bind:this={fileInput} on:change={loadFile} type="file" />
+    <input bind:this={fileInput} on:change={loadOSMFile} type="file" />
   </label>
 </div>
 
@@ -140,3 +156,12 @@
   on:loading={(e) => (loading = e.detail)}
   on:error={(e) => window.alert(e.detail)}
 />
+
+<i>or...</i>
+
+<div>
+  <label>
+    Load a pre-built .bin file:
+    <input bind:this={fileInput} on:change={loadBinFile} type="file" />
+  </label>
+</div>
