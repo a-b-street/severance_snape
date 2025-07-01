@@ -8,7 +8,7 @@ use osm_reader::{NodeID, OsmID, RelationID, WayID};
 use utils::osm2graph::OsmReader;
 use utils::Tags;
 
-use crate::{Crossing, MapModel, Profile, RoadKind};
+use crate::{mph_to_mps, Crossing, MapModel, Profile, RoadKind, Settings};
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
@@ -46,6 +46,15 @@ impl MapModel {
             graph,
             road_kinds,
             crossings,
+
+            walking_settings: Settings {
+                obey_crossings: true,
+                base_speed: mph_to_mps(3.0),
+            },
+            cross_anywhere_settings: Settings {
+                obey_crossings: false,
+                base_speed: mph_to_mps(3.0),
+            },
         })
     }
 }
@@ -79,8 +88,7 @@ fn walking_profile(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direc
             return exclude;
         }
 
-        // 3mph
-        let speed = 1.34112;
+        let speed = mph_to_mps(3.0);
         let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
         (Direction::Both, cost)
     })
@@ -94,8 +102,7 @@ fn cross_anywhere(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direct
             return exclude;
         }
 
-        // 3mph
-        let speed = 1.34112;
+        let speed = mph_to_mps(3.0);
         let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
         (Direction::Both, cost)
     })

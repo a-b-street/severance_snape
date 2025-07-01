@@ -31,9 +31,14 @@
     if (seconds < 60.0) {
       return Math.round(seconds) + "s";
     }
-    let minutes = Math.floor(seconds / 60);
-    let leftover = Math.round(seconds - minutes * 60);
-    return `${minutes}m${leftover}s`;
+    let hours = Math.floor(seconds / 3600);
+    let minutes = Math.floor((seconds - hours * 3600) / 60);
+    let leftover = Math.round(seconds - (hours * 3600) - (minutes * 60));
+    if (hours > 0) {
+      return `${hours}h${minutes}m${leftover}s`;
+    } else {
+      return `${minutes}m${leftover}s`;
+    }
   }
 </script>
 

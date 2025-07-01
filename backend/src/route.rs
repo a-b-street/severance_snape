@@ -3,15 +3,15 @@ use std::time::Duration;
 use anyhow::Result;
 use geo::{Coord, Euclidean, Length, LineString};
 use geojson::{Feature, FeatureCollection, Geometry};
-use graph::PathStep;
+use graph::{Direction, PathStep};
 use itertools::Itertools;
 use serde::Serialize;
 
-use crate::{MapModel, Settings};
+use crate::{mph_to_mps, MapModel, Settings};
 
 // Also returns the line of the snapped request (in WGS84)
 pub fn do_route(
-    map: &MapModel,
+    map: &mut MapModel,
     start: Coord,
     end: Coord,
     settings: Settings,
@@ -22,6 +22,28 @@ pub fn do_route(
         "cross_anywhere"
     };
     let profile = map.graph.profile_names[profile_name];
+
+    // TODO This is getting called upfront after creation; f64 comparisons?
+    if (settings.obey_crossings && map.walking_settings != settings)
+        || (!settings.obey_crossings && map.cross_anywhere_settings != settings)
+    {
+        info!("Updating costs for {profile_name}");
+        let speed = mph_to_mps(settings.base_speed);
+
+        for road in &mut map.graph.roads {
+            if road.access[profile.0] == Direction::Both {
+                road.cost[profile.0] =
+                    Duration::from_secs_f64(Euclidean.length(&road.linestring) / speed);
+            }
+        }
+        map.graph.routers[profile.0].update_costs(&map.graph.roads, profile);
+        if settings.obey_crossings {
+            map.walking_settings = settings;
+        } else {
+            map.cross_anywhere_settings = settings;
+        }
+    }
+
     let start = map.graph.snap_to_road(start, profile);
     let end = map.graph.snap_to_road(end, profile);
 

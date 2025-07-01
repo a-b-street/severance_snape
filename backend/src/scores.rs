@@ -13,7 +13,7 @@ use crate::{Crossing, MapModel, RoadKind, Settings};
 // We could focus where footways connect to severances, but that's probably a crossing. Ideally we
 // want to find footpaths parallel(ish) to severances. If we had some kind of generalized edge
 // bundling...
-pub fn calculate(map: &MapModel, settings: Settings) -> FeatureCollection {
+pub fn calculate(map: &mut MapModel, settings: Settings) -> FeatureCollection {
     let mut requests = Vec::new();
     for r in &map.graph.roads {
         if map.road_kinds[r.id.0] == RoadKind::Severance {

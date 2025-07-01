@@ -28,6 +28,10 @@ pub struct MapModel {
     // Indexed by RoadID
     road_kinds: Vec<RoadKind>,
     crossings: Vec<Crossing>,
+
+    // Do we need to update a router's costs?
+    walking_settings: Settings,
+    cross_anywhere_settings: Settings,
 }
 
 struct Crossing {
@@ -107,7 +111,7 @@ impl MapModel {
     }
 
     #[wasm_bindgen(js_name = compareRoute)]
-    pub fn compare_route(&self, input: JsValue) -> Result<String, JsValue> {
+    pub fn compare_route(&mut self, input: JsValue) -> Result<String, JsValue> {
         let req: CompareRouteRequest = serde_wasm_bindgen::from_value(input)?;
         let start = self.graph.mercator.pt_to_mercator(Coord {
             x: req.x1,
@@ -123,12 +127,12 @@ impl MapModel {
     }
 
     #[wasm_bindgen(js_name = scoreDetours)]
-    pub fn score_detours(&self) -> Result<String, JsValue> {
+    pub fn score_detours(&mut self) -> Result<String, JsValue> {
         let samples = scores::calculate(
             self,
             Settings {
                 obey_crossings: true,
-                base_speed: 3.0,
+                base_speed: mph_to_mps(3.0),
             },
         );
         let out = serde_json::to_string(&samples).map_err(err_to_js)?;
@@ -174,4 +178,8 @@ pub struct Settings {
 
 fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
     JsValue::from_str(&err.to_string())
+}
+
+pub fn mph_to_mps(mph: f64) -> f64 {
+    mph * 0.44704
 }
