@@ -13,7 +13,7 @@ console_error_panic_hook = "0.1.6"
 console_log = "1.0.0"
 geo = "0.30.0"
 geojson = { git = "https://github.com/georust/geojson", features = ["geo-types"] }
-graph = { git = "https://github.com/a-b-street/15m" }
+graph = { workspace = true }
 itertools = "0.14.0"
 log = { workspace = true }
 osm-reader = { git = "https://github.com/a-b-street/osm-reader" }

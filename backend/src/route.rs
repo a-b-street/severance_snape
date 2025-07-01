@@ -7,7 +7,7 @@ use graph::{Direction, PathStep};
 use itertools::Itertools;
 use serde::Serialize;
 
-use crate::{cost, MapModel, Settings};
+use crate::{MapModel, Settings, cost};
 
 // Also returns the line of the snapped request (in WGS84)
 pub fn do_route(

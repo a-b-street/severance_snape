@@ -5,10 +5,10 @@ use anyhow::Result;
 use geo::{Coord, LineString};
 use graph::{Direction, Graph, RoadID, Timer};
 use osm_reader::{NodeID, OsmID, RelationID, WayID};
-use utils::osm2graph::OsmReader;
 use utils::Tags;
+use utils::osm2graph::OsmReader;
 
-use crate::{cost, Crossing, CrossingKind, MapModel, Profile, RoadKind, Settings};
+use crate::{Crossing, CrossingKind, MapModel, Profile, RoadKind, Settings, cost};
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
@@ -30,6 +30,7 @@ impl MapModel {
             .iter()
             .map(|r| profile.classify(&r.osm_tags).unwrap())
             .collect();
+        let gradients = std::iter::repeat(0.0).take(graph.roads.len()).collect();
 
         let crossings = crossings
             .crossings
@@ -47,6 +48,7 @@ impl MapModel {
             graph,
             road_kinds,
             crossings,
+            gradients,
 
             walking_settings: Settings::uk(),
             cross_anywhere_settings: Settings {

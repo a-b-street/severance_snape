@@ -4,7 +4,7 @@ use anyhow::Result;
 use geo::{Coord, Densify, Euclidean, Length, Line, LineLocatePoint, LineString, Point};
 use geojson::{FeatureCollection, GeoJson};
 use graph::RoadID;
-use utils::{collapse_degree_2, KeyedLineString, LineSplit};
+use utils::{KeyedLineString, LineSplit, collapse_degree_2};
 
 use crate::{Crossing, MapModel, RoadKind, Settings};
 

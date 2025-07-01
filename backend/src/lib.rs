@@ -28,6 +28,7 @@ static START: Once = Once::new();
 pub struct MapModel {
     graph: Graph,
     // Indexed by RoadID
+    gradients: Vec<f64>,
     road_kinds: Vec<RoadKind>,
     crossings: Vec<Crossing>,
 
@@ -111,6 +112,7 @@ impl MapModel {
             let mut f = self.graph.mercator.to_wgs84_gj(&r.linestring);
             f.set_property("kind", format!("{:?}", self.road_kinds[r.id.0]));
             f.set_property("url", r.way.to_string());
+            f.set_property("gradient", self.gradients[r.id.0]);
             features.push(f);
         }
 
@@ -182,6 +184,17 @@ impl MapModel {
         let out = serde_json::to_string(&disconnected::find_connected_components(self))
             .map_err(err_to_js)?;
         Ok(out)
+    }
+}
+
+// Avoid making some fields pub and screwing up wasm_bindgen
+impl MapModel {
+    pub fn get_graph(&self) -> &Graph {
+        &self.graph
+    }
+
+    pub fn set_gradients(&mut self, gradients: Vec<f64>) {
+        self.gradients = gradients;
     }
 }
 

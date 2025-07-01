@@ -62,6 +62,7 @@
             href={`https://www.bing.com/maps?cp=${lat}~${lon}&style=x`}
             target="_blank">Bing Streetside</a
           >
+          <p>Gradient: {props.gradient.toFixed(1)}%</p>
         </Popup>
       </LineLayer>
     </GeoJSON>

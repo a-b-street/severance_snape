@@ -8,6 +8,8 @@ anyhow = { workspace = true }
 backend = { path = "../backend" }
 bincode = { workspace = true }
 clap = { version = "4.5.20", features = ["derive"] }
+elevation = { git = "https://github.com/dabreegster/elevation" }
 fs-err = "3.1.1"
+graph = { workspace = true }
 log = { workspace = true }
 simple_logger = "5.0.0"
