@@ -35,7 +35,7 @@ impl MapModel {
             .crossings
             .into_iter()
             .map(|(osm_id, pt, tags, roads)| Crossing {
-                kind: crossing_kind(&tags),
+                kind: CrossingKind::from_tags(&tags),
                 osm_id,
                 point: graph.mercator.pt_to_mercator(pt),
                 roads,
@@ -155,7 +155,7 @@ fn post_process_graph(profile: Profile) -> Box<dyn Fn(&mut utils::osm2graph::Gra
                     Some(RoadKind::WithTraffic) => {
                         with_traffics.push(*e);
                     }
-                    Some(RoadKind::Footway | RoadKind::Crossing) => {
+                    Some(RoadKind::Footway | RoadKind::Crossing(_)) => {
                         // TODO What if there are mixes involving WithTraffic too?
                         continue 'INTERSECTION;
                     }
@@ -207,16 +207,4 @@ fn post_process_graph(profile: Profile) -> Box<dyn Fn(&mut utils::osm2graph::Gra
 
 fn new_intersection_id(graph: &utils::osm2graph::Graph) -> utils::osm2graph::IntersectionID {
     utils::osm2graph::IntersectionID(graph.intersections.keys().max().unwrap().0 + 1)
-}
-
-// TODO UK centric and probably wrong...
-fn crossing_kind(tags: &Tags) -> CrossingKind {
-    if tags.is("crossing", "traffic_signals") {
-        return CrossingKind::Signalized;
-    }
-    if tags.is("crossing", "uncontrolled") {
-        // TODO And crossing:markings or crossing_ref?
-        return CrossingKind::Zebra;
-    }
-    CrossingKind::Other
 }

@@ -49,12 +49,26 @@ pub enum CrossingKind {
     Other,
 }
 
+impl CrossingKind {
+    // TODO UK centric and probably wrong...
+    pub fn from_tags(tags: &Tags) -> Self {
+        if tags.is("crossing", "traffic_signals") {
+            return Self::Signalized;
+        }
+        if tags.is("crossing", "uncontrolled") {
+            // TODO And crossing:markings or crossing_ref?
+            return Self::Zebra;
+        }
+        CrossingKind::Other
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RoadKind {
     /// Sidewalks and other pedestrian-oriented
     Footway,
     /// Tagged crossings
-    Crossing,
+    Crossing(CrossingKind),
 
     /// A big road that can only be crossed at crossings
     Severance,

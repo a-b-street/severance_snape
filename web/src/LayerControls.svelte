@@ -20,7 +20,7 @@
       <QualitativeLegend
         labelColors={{
           Footway: kindToColor.Footway,
-          Crossing: kindToColor.Crossing,
+          Crossing: kindToColor["Crossing(Signalized)"],
           "Walkable and easily crossable street (maybe no sidewalk)":
             kindToColor.WithTraffic,
           Severance: kindToColor.Severance,

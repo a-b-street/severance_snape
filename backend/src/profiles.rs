@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use utils::Tags;
 
-use crate::RoadKind;
+use crate::{CrossingKind, RoadKind};
 
 #[derive(Clone, Copy, PartialEq, Deserialize)]
 pub enum Profile {
@@ -28,16 +28,20 @@ impl Profile {
             vec!["footway", "steps", "path", "track", "corridor"],
         ) {
             if tags.is("footway", "crossing") {
-                return Some(RoadKind::Crossing);
+                // TODO Assumes the tags are both on the way and crossing node
+                return Some(RoadKind::Crossing(CrossingKind::from_tags(tags)));
             }
             return Some(RoadKind::Footway);
         }
         if tags.is("highway", "cycleway") && tags.is("foot", "yes") {
+            if tags.is("cycleway", "crossing") {
+                return Some(RoadKind::Crossing(CrossingKind::from_tags(tags)));
+            }
             return Some(RoadKind::Footway);
         }
 
         if tags.is("highway", "crossing") || tags.has("crossing") {
-            return Some(RoadKind::Crossing);
+            return Some(RoadKind::Crossing(CrossingKind::from_tags(tags)));
         }
 
         if self == Profile::USA {

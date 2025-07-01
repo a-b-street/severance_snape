@@ -1,7 +1,9 @@
 export const kindToColor = {
   Footway: "black",
   WithTraffic: "grey",
-  Crossing: "green",
+  "Crossing(Signalized)": "green",
+  "Crossing(Zebra)": "green",
+  "Crossing(Other)": "green",
   Severance: "red",
 };
 

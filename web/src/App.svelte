@@ -147,8 +147,7 @@
           {zoomToFit}
           bind:opacity
           bind:showCrossings
-          canShowCrossings={$mode.kind != "debug" &&
-            $mode.kind != "disconnected" &&
+          canShowCrossings={$mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
         />
       {/if}
@@ -176,7 +175,6 @@
         <CrossingsLayer
           {offlineMode}
           show={showCrossings &&
-            $mode.kind != "debug" &&
             $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
         />
