@@ -2,13 +2,13 @@ use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use anyhow::Result;
-use geo::{Coord, Euclidean, Length, LineString};
+use geo::{Coord, LineString};
 use graph::{Direction, Graph, RoadID, Timer};
 use osm_reader::{NodeID, OsmID, RelationID, WayID};
 use utils::osm2graph::OsmReader;
 use utils::Tags;
 
-use crate::{mph_to_mps, Crossing, CrossingKind, MapModel, Profile, RoadKind, Settings};
+use crate::{cost, Crossing, CrossingKind, MapModel, Profile, RoadKind, Settings};
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
@@ -86,9 +86,8 @@ fn walking_profile(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direc
             return exclude;
         }
 
-        let speed = mph_to_mps(Settings::uk().base_speed_mph);
-        let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
-        (Direction::Both, cost)
+        let (cost1, cost2) = cost(linestring, kind.unwrap(), &Settings::uk());
+        (Direction::Both, cost1 + cost2)
     })
 }
 
@@ -100,9 +99,8 @@ fn cross_anywhere(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direct
             return exclude;
         }
 
-        let speed = mph_to_mps(Settings::uk().base_speed_mph);
-        let cost = Duration::from_secs_f64(Euclidean.length(linestring) / speed);
-        (Direction::Both, cost)
+        let (cost1, cost2) = cost(linestring, kind.unwrap(), &Settings::uk());
+        (Direction::Both, cost1 + cost2)
     })
 }
 

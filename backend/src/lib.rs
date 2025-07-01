@@ -3,8 +3,9 @@ extern crate log;
 
 use std::collections::HashSet;
 use std::sync::Once;
+use std::time::Duration;
 
-use geo::{Coord, Point};
+use geo::{Coord, Euclidean, Length, LineString, Point};
 use geojson::GeoJson;
 use graph::{Graph, RoadID};
 use osm_reader::NodeID;
@@ -212,6 +213,24 @@ fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
     JsValue::from_str(&err.to_string())
 }
 
-pub fn mph_to_mps(mph: f64) -> f64 {
+fn mph_to_mps(mph: f64) -> f64 {
     mph * 0.44704
+}
+
+/// (active time to walk, waiting time)
+pub fn cost(
+    road_linestring: &LineString,
+    kind: RoadKind,
+    settings: &Settings,
+) -> (Duration, Duration) {
+    // TODO Cache the mph_to_mps?
+    let speed = mph_to_mps(settings.base_speed_mph);
+    let active = Duration::from_secs_f64(Euclidean.length(road_linestring) / speed);
+    let waiting = Duration::from_secs_f64(match kind {
+        RoadKind::Crossing(CrossingKind::Signalized) => settings.delay_signalized,
+        RoadKind::Crossing(CrossingKind::Zebra) => settings.delay_zebra,
+        RoadKind::Crossing(CrossingKind::Other) => settings.delay_other,
+        _ => 0.0,
+    });
+    (active, waiting)
 }

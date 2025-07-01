@@ -48,7 +48,12 @@
   > longer than straight line
 </p>
 <p>
-  Duration: <b>{prettyPrintTime(route_gj.duration_s)}</b>
+  Duration: <b
+    >{prettyPrintTime(
+      route_gj.active_duration_s + route_gj.waiting_duration_s,
+    )}</b
+  >
+  ({prettyPrintTime(route_gj.waiting_duration_s)} waiting at crossings)
 </p>
 <p>{levelChanges(route_gj)} changes in level</p>
 

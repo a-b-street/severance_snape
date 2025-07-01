@@ -7,7 +7,7 @@ use graph::{Direction, PathStep};
 use itertools::Itertools;
 use serde::Serialize;
 
-use crate::{mph_to_mps, MapModel, Settings};
+use crate::{cost, MapModel, Settings};
 
 // Also returns the line of the snapped request (in WGS84)
 pub fn do_route(
@@ -28,12 +28,11 @@ pub fn do_route(
         || (!settings.obey_crossings && map.cross_anywhere_settings != settings)
     {
         info!("Updating costs for {profile_name}");
-        let speed = mph_to_mps(settings.base_speed_mph);
 
         for road in &mut map.graph.roads {
             if road.access[profile.0] == Direction::Both {
-                road.cost[profile.0] =
-                    Duration::from_secs_f64(Euclidean.length(&road.linestring) / speed);
+                let (cost1, cost2) = cost(&road.linestring, map.road_kinds[road.id.0], &settings);
+                road.cost[profile.0] = cost1 + cost2;
             }
         }
         map.graph.routers[profile.0].update_costs(&map.graph.roads, profile);
@@ -50,7 +49,8 @@ pub fn do_route(
     let route = map.graph.routers[profile.0].route(&map.graph, start, end)?;
     let route_linestring = route.linestring(&map.graph);
 
-    let mut duration = Duration::ZERO;
+    let mut active_duration = Duration::ZERO;
+    let mut waiting_duration = Duration::ZERO;
     let mut directions = Vec::new();
     for (pos, step) in route.steps.into_iter().with_position() {
         if let PathStep::Road { road, forwards } = step {
@@ -86,7 +86,10 @@ pub fn do_route(
                     (route.end.fraction_along - route.start.fraction_along).abs()
                 }
             };
-            duration += r.cost[profile.0].mul_f64(percent);
+
+            let (cost1, cost2) = cost(&r.linestring, map.road_kinds[road.0], &settings);
+            active_duration += cost1.mul_f64(percent);
+            waiting_duration += cost2;
         }
     }
 
@@ -108,7 +111,8 @@ pub fn do_route(
                     "direct_length": Euclidean.length(&direct_line),
                     "route_length": Euclidean.length(&route_linestring),
                     "directions": directions,
-                    "duration_s": duration.as_secs(),
+                    "active_duration_s": active_duration.as_secs(),
+                    "waiting_duration_s": waiting_duration.as_secs(),
                 })
                 .as_object()
                 .unwrap()
