@@ -40,10 +40,10 @@
     setupDone = true;
   });
 
-  let fileInput: HTMLInputElement;
+  let fileInput1: HTMLInputElement;
   async function loadOSMFile(e: Event) {
     try {
-      loadFromOSM(await fileInput.files![0].arrayBuffer());
+      loadFromOSM(await fileInput1.files![0].arrayBuffer());
       example = "";
     } catch (err) {
       window.alert(`Couldn't open this file: ${err}`);
@@ -51,10 +51,11 @@
     loading = "";
   }
 
+  let fileInput2: HTMLInputElement;
   async function loadBinFile(e: Event) {
     try {
       loading = "Deserializing binary file";
-      let buffer = await fileInput.files![0].arrayBuffer();
+      let buffer = await fileInput2.files![0].arrayBuffer();
       console.time("load");
       let isOSM = false;
       $model = new MapModel(isOSM, new Uint8Array(buffer), $profile);
@@ -144,7 +145,7 @@
 <div>
   <label>
     Load an osm.xml or a .pbf file:
-    <input bind:this={fileInput} on:change={loadOSMFile} type="file" />
+    <input bind:this={fileInput1} on:change={loadOSMFile} type="file" />
   </label>
 </div>
 
@@ -162,6 +163,6 @@
 <div>
   <label>
     Load a pre-built .bin file:
-    <input bind:this={fileInput} on:change={loadBinFile} type="file" />
+    <input bind:this={fileInput2} on:change={loadBinFile} type="file" />
   </label>
 </div>
