@@ -54,6 +54,7 @@ fn read_gradients(path: &str, graph: &graph::Graph) -> Result<Vec<f64>> {
         };
 
         let slope = (height2 - height1) / (road.length_meters as f32) * 100.0;
+        // TODO Check it's in a reasonable range
         gradients.push(slope.into());
     }
     Ok(gradients)

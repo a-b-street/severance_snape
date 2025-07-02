@@ -31,7 +31,12 @@ pub fn do_route(
 
         for road in &mut map.graph.roads {
             if road.access[profile.0] == Direction::Both {
-                let (cost1, cost2) = cost(&road.linestring, map.road_kinds[road.id.0], &settings);
+                let (cost1, cost2) = cost(
+                    &road.linestring,
+                    map.road_kinds[road.id.0],
+                    map.gradients[road.id.0],
+                    &settings,
+                );
                 road.cost[profile.0] = cost1 + cost2;
             }
         }
@@ -87,7 +92,12 @@ pub fn do_route(
                 }
             };
 
-            let (cost1, cost2) = cost(&r.linestring, map.road_kinds[road.0], &settings);
+            let (cost1, cost2) = cost(
+                &r.linestring,
+                map.road_kinds[road.0],
+                map.gradients[road.0],
+                &settings,
+            );
             active_duration += cost1.mul_f64(percent);
             waiting_duration += cost2;
         }

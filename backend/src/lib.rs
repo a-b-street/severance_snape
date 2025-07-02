@@ -213,6 +213,7 @@ pub struct CompareRouteRequest {
 pub struct Settings {
     obey_crossings: bool,
     base_speed_mph: f64,
+    use_gradient: bool,
     delay_signalized: f64,
     delay_zebra: f64,
     delay_other: f64,
@@ -223,6 +224,8 @@ impl Settings {
         Self {
             obey_crossings: true,
             base_speed_mph: 3.0,
+            // TODO Trickier to enable by default.
+            use_gradient: false,
             delay_signalized: 30.0,
             delay_zebra: 0.0,
             delay_other: 10.0,
@@ -234,18 +237,18 @@ fn err_to_js<E: std::fmt::Display>(err: E) -> JsValue {
     JsValue::from_str(&err.to_string())
 }
 
-fn mph_to_mps(mph: f64) -> f64 {
-    mph * 0.44704
-}
-
 /// (active time to walk, waiting time)
 pub fn cost(
     road_linestring: &LineString,
     kind: RoadKind,
+    gradient: f64,
     settings: &Settings,
 ) -> (Duration, Duration) {
-    // TODO Cache the mph_to_mps?
-    let speed = mph_to_mps(settings.base_speed_mph);
+    let speed = if settings.use_gradient {
+        walking_speed_on_incline(settings.base_speed_mph, gradient)
+    } else {
+        mph_to_mps(settings.base_speed_mph)
+    };
     let active = Duration::from_secs_f64(Euclidean.length(road_linestring) / speed);
     let waiting = Duration::from_secs_f64(match kind {
         RoadKind::Crossing(CrossingKind::Signalized) => settings.delay_signalized,
@@ -254,4 +257,23 @@ pub fn cost(
         _ => 0.0,
     });
     (active, waiting)
+}
+
+// Returns m/s. https://en.wikipedia.org/wiki/Tobler%27s_hiking_function
+fn walking_speed_on_incline(base_speed_mph: f64, gradient: f64) -> f64 {
+    let exponent = -3.5 * (gradient + 0.05).abs();
+    let tobler_kmph = mps_to_kmph(mph_to_mps(base_speed_mph)) * exponent.exp();
+    kmph_to_mps(tobler_kmph)
+}
+
+fn mph_to_mps(mph: f64) -> f64 {
+    mph * 0.44704
+}
+
+fn mps_to_kmph(mps: f64) -> f64 {
+    mps * 3.6
+}
+
+fn kmph_to_mps(kmph: f64) -> f64 {
+    kmph / 3.6
 }

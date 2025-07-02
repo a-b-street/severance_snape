@@ -23,6 +23,14 @@
   </label>
 
   <label>
+    <input type="checkbox" bind:checked={$settings.use_gradient} />
+    Adjust speed for gradient (<a
+      href="https://en.wikipedia.org/wiki/Tobler's_hiking_function"
+      target="_blank">Tobler</a
+    >)
+  </label>
+
+  <label>
     <span class="circle" style:background={crossingColors.Signalized} />
     Delay at signalized crossings (s)
     <input

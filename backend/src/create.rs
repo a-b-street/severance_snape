@@ -88,7 +88,9 @@ fn walking_profile(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direc
             return exclude;
         }
 
-        let (cost1, cost2) = cost(linestring, kind.unwrap(), &Settings::uk());
+        // TODO We haven't calculated it yet
+        let gradient = 0.0;
+        let (cost1, cost2) = cost(linestring, kind.unwrap(), gradient, &Settings::uk());
         (Direction::Both, cost1 + cost2)
     })
 }
@@ -101,7 +103,9 @@ fn cross_anywhere(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direct
             return exclude;
         }
 
-        let (cost1, cost2) = cost(linestring, kind.unwrap(), &Settings::uk());
+        // TODO We haven't calculated it yet
+        let gradient = 0.0;
+        let (cost1, cost2) = cost(linestring, kind.unwrap(), gradient, &Settings::uk());
         (Direction::Both, cost1 + cost2)
     })
 }

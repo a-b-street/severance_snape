@@ -65,6 +65,7 @@ export type Position = [number, number];
 interface Settings {
   obey_crossings: boolean;
   base_speed_mph: number;
+  use_gradient: boolean;
   delay_signalized: number;
   delay_zebra: number;
   delay_other: number;
@@ -72,6 +73,7 @@ interface Settings {
 export let settings: Writable<Settings> = writable({
   obey_crossings: true,
   base_speed_mph: 3,
+  use_gradient: false,
   delay_signalized: 30,
   delay_zebra: 0,
   delay_other: 10,
