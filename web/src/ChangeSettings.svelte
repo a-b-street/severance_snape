@@ -1,9 +1,11 @@
 <script lang="ts">
   import { settings } from "./stores";
   import { crossingColors } from "./colors";
+
+  export let open: boolean;
 </script>
 
-<details open>
+<details {open}>
   <summary>Settings</summary>
 
   <label>

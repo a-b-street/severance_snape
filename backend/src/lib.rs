@@ -17,6 +17,7 @@ pub use crate::profiles::Profile;
 
 mod create;
 mod disconnected;
+mod isochrone;
 mod profiles;
 mod route;
 mod scores;
@@ -160,6 +161,18 @@ impl MapModel {
         Ok(out)
     }
 
+    #[wasm_bindgen(js_name = isochrone)]
+    pub fn isochrone(&mut self, input: JsValue) -> Result<String, JsValue> {
+        let req: IsochroneRequest = serde_wasm_bindgen::from_value(input)?;
+        let start = self
+            .graph
+            .mercator
+            .pt_to_mercator(Coord { x: req.x, y: req.y });
+        let gj = self.calculate_isochrone(start, req.style, req.time_limit, req.settings);
+        let out = serde_json::to_string(&gj).map_err(err_to_js)?;
+        Ok(out)
+    }
+
     #[wasm_bindgen(js_name = scoreDetours)]
     pub fn score_detours(&mut self) -> Result<String, JsValue> {
         let samples = scores::calculate(self, Settings::uk());
@@ -201,7 +214,7 @@ impl MapModel {
 // Mercator worldspace internally, but not when it comes in from the app
 // TODO only use this on the boundary
 #[derive(Deserialize)]
-pub struct CompareRouteRequest {
+struct CompareRouteRequest {
     x1: f64,
     y1: f64,
     x2: f64,
@@ -209,7 +222,16 @@ pub struct CompareRouteRequest {
     settings: Settings,
 }
 
-#[derive(Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Deserialize)]
+struct IsochroneRequest {
+    x: f64,
+    y: f64,
+    settings: Settings,
+    style: isochrone::Style,
+    time_limit: u64,
+}
+
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Settings {
     obey_crossings: bool,
     base_speed_mph: f64,

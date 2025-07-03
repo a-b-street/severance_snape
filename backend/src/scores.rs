@@ -26,7 +26,7 @@ pub fn calculate(map: &mut MapModel, settings: Settings) -> FeatureCollection {
     let mut samples = Vec::new();
     let mut max_score = 0.0_f64;
     for (start, end) in requests {
-        if let Ok((mut f, fc)) = crate::route::do_route(map, start, end, settings) {
+        if let Ok((mut f, fc)) = crate::route::do_route(map, start, end, settings.clone()) {
             let direct = fc
                 .foreign_members
                 .as_ref()

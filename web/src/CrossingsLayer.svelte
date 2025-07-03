@@ -3,16 +3,15 @@
   import { crossingColors } from "./colors";
   import { notNull } from "svelte-utils";
   import { constructMatchExpression } from "svelte-utils/map";
-  import { model } from "./stores";
+  import { offlineMode, model } from "./stores";
 
   export let show: boolean;
-  export let offlineMode: boolean;
 </script>
 
 <GeoJSON data={JSON.parse(notNull($model).getCrossings())}>
   <CircleLayer
     id="crossings"
-    beforeId={offlineMode ? "roads_labels_major" : "Road labels"}
+    beforeId={$offlineMode ? "roads_labels_major" : "Road labels"}
     layout={{
       visibility: show ? "visible" : "none",
     }}

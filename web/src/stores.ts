@@ -10,6 +10,7 @@ export type Mode =
   | { kind: "title" }
   | { kind: "score" }
   | { kind: "route" }
+  | { kind: "isochrone" }
   | { kind: "crossings" }
   | { kind: "debug" }
   | { kind: "disconnected" };
@@ -31,6 +32,7 @@ export interface Step {
 
 export let model: Writable<MapModel | null> = writable(null);
 export let map: Writable<Map | null> = writable(null);
+export let offlineMode = writable(true);
 
 // Don't use urlState, because we have to manually go through title mode first
 export let mode: Writable<Mode> = writable({ kind: "title" });
@@ -59,6 +61,7 @@ export let routeA: Writable<Position | null> = writable(null);
 export let routeB: Writable<Position | null> = writable(null);
 export let minScore: Writable<number> = writable(0);
 export let maxScore: Writable<number> = writable(100);
+export let isochroneMins: Writable<number> = writable(15);
 
 export type Position = [number, number];
 

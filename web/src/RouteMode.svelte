@@ -64,7 +64,7 @@
     {#if route_gj}
       <Directions {route_gj} />
     {/if}
-    <ChangeSettings />
+    <ChangeSettings open />
   </div>
   <div slot="map">
     <MapEvents on:contextmenu={onRightClick} />

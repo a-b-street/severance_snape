@@ -34,6 +34,13 @@
 
     <li>
       <button
+        on:click={() => ($mode = { kind: "isochrone" })}
+        disabled={$mode.kind == "isochrone"}>Isochrone</button
+      >
+    </li>
+
+    <li>
+      <button
         on:click={() => ($mode = { kind: "crossings" })}
         disabled={$mode.kind == "crossings"}>Crossings</button
       >

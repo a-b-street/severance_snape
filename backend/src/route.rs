@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Result;
 use geo::{Coord, Euclidean, Length, LineString};
 use geojson::{Feature, FeatureCollection, Geometry};
-use graph::{Direction, PathStep};
+use graph::{Direction, PathStep, ProfileID};
 use itertools::Itertools;
 use serde::Serialize;
 
@@ -16,38 +16,7 @@ pub fn do_route(
     end: Coord,
     settings: Settings,
 ) -> Result<(Feature, FeatureCollection)> {
-    let profile_name = if settings.obey_crossings {
-        "walking"
-    } else {
-        "cross_anywhere"
-    };
-    let profile = map.graph.profile_names[profile_name];
-
-    // TODO This is getting called upfront after creation; f64 comparisons?
-    if (settings.obey_crossings && map.walking_settings != settings)
-        || (!settings.obey_crossings && map.cross_anywhere_settings != settings)
-    {
-        info!("Updating costs for {profile_name}");
-
-        for road in &mut map.graph.roads {
-            if road.access[profile.0] == Direction::Both {
-                let (cost1, cost2) = cost(
-                    &road.linestring,
-                    map.road_kinds[road.id.0],
-                    map.gradients[road.id.0],
-                    &settings,
-                );
-                road.cost[profile.0] = cost1 + cost2;
-            }
-        }
-        map.graph.routers[profile.0].update_costs(&map.graph.roads, profile);
-        if settings.obey_crossings {
-            map.walking_settings = settings;
-        } else {
-            map.cross_anywhere_settings = settings;
-        }
-    }
-
+    let profile = map.prepare_profile(settings.clone());
     let start = map.graph.snap_to_road(start, profile);
     let end = map.graph.snap_to_road(end, profile);
 
@@ -138,4 +107,42 @@ struct Step {
     way: String,
     kind: String,
     layer: String,
+}
+
+impl MapModel {
+    pub fn prepare_profile(&mut self, settings: Settings) -> ProfileID {
+        let profile_name = if settings.obey_crossings {
+            "walking"
+        } else {
+            "cross_anywhere"
+        };
+        let profile = self.graph.profile_names[profile_name];
+
+        // TODO This is getting called upfront after creation; f64 comparisons?
+        if (settings.obey_crossings && self.walking_settings != settings)
+            || (!settings.obey_crossings && self.cross_anywhere_settings != settings)
+        {
+            info!("Updating costs for {profile_name}");
+
+            for road in &mut self.graph.roads {
+                if road.access[profile.0] == Direction::Both {
+                    let (cost1, cost2) = cost(
+                        &road.linestring,
+                        self.road_kinds[road.id.0],
+                        self.gradients[road.id.0],
+                        &settings,
+                    );
+                    road.cost[profile.0] = cost1 + cost2;
+                }
+            }
+            self.graph.routers[profile.0].update_costs(&self.graph.roads, profile);
+            if settings.obey_crossings {
+                self.walking_settings = settings;
+            } else {
+                self.cross_anywhere_settings = settings;
+            }
+        }
+
+        profile
+    }
 }

@@ -14,6 +14,7 @@
   import { Geocoder } from "svelte-utils/map";
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
+  import IsochroneMode from "./IsochroneMode.svelte";
   import ScoreMode from "./ScoreMode.svelte";
   import LayerControls from "./LayerControls.svelte";
   import CrossingsMode from "./CrossingsMode.svelte";
@@ -25,6 +26,7 @@
     model,
     maptilerApiKey,
     showAbout,
+    offlineMode,
     type Mode,
   } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
@@ -40,8 +42,7 @@
   import * as pmtiles from "pmtiles";
   import maplibregl from "maplibre-gl";
 
-  let offlineMode = false;
-  if (offlineMode) {
+  if ($offlineMode) {
     let protocol = new pmtiles.Protocol();
     maplibregl.addProtocol("pmtiles", protocol.tile);
   }
@@ -72,7 +73,14 @@
     let value = new URLSearchParams(window.location.search).get("mode") || "";
     // Exclude title from this list; don't stay here
     if (
-      ["score", "route", "crossings", "debug", "disconnected"].includes(value)
+      [
+        "score",
+        "route",
+        "isochrone",
+        "crossings",
+        "debug",
+        "disconnected",
+      ].includes(value)
     ) {
       return { kind: value } as Mode;
     }
@@ -133,7 +141,7 @@
   </div>
   <div slot="main" style="position:relative; width: 100%; height: 100vh;">
     <MapLibre
-      style={offlineMode
+      style={$offlineMode
         ? "http://localhost:5173/offline/light_style.json"
         : `https://api.maptiler.com/maps/landscape/style.json?key=${maptilerApiKey}`}
       hash
@@ -159,7 +167,7 @@
         />
       {/if}
 
-      {#if !offlineMode}
+      {#if !$offlineMode}
         <Geocoder {map} apiKey={maptilerApiKey} country={undefined} />
       {/if}
       <div bind:this={mapDiv} />
@@ -173,7 +181,6 @@
         </GeoJSON>
 
         <NetworkLayer
-          {offlineMode}
           show={$mode.kind != "debug" &&
             $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
@@ -181,7 +188,6 @@
           {showGradient}
         />
         <CrossingsLayer
-          {offlineMode}
           show={showCrossings &&
             $mode.kind != "disconnected" &&
             $mode.kind != "crossings"}
@@ -189,6 +195,8 @@
 
         {#if $mode.kind == "route"}
           <RouteMode />
+        {:else if $mode.kind == "isochrone"}
+          <IsochroneMode />
         {:else if $mode.kind == "score"}
           <ScoreMode />
         {:else if $mode.kind == "crossings"}

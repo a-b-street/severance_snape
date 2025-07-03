@@ -9,6 +9,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 anyhow = { workspace = true }
 bincode = { workspace = true }
+chrono = { version = "0.4.33", default-features = false, features = ["serde"] }
 console_error_panic_hook = "0.1.6"
 console_log = "1.0.0"
 geo = "0.30.0"
