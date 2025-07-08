@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use anyhow::Result;
-use geo::{Coord, LineString};
+use geo::{Coord, LineString, Polygon};
 use graph::{Direction, Graph, RoadID, Timer};
 use osm_reader::{NodeID, OsmID, RelationID, WayID};
 use utils::Tags;
@@ -12,10 +12,10 @@ use crate::{Crossing, CrossingKind, MapModel, Profile, RoadKind, Settings, cost}
 
 impl MapModel {
     pub fn create(input_bytes: &[u8], profile: Profile) -> Result<Self> {
-        let mut crossings = Crossings::default();
+        let mut extra_scraped = CrossingsAndBuildings::default();
         let graph = Graph::new(
             input_bytes,
-            &mut crossings,
+            &mut extra_scraped,
             post_process_graph(profile),
             scrape_graph(profile),
             vec![
@@ -32,7 +32,7 @@ impl MapModel {
             .collect();
         let gradients = std::iter::repeat(0.0).take(graph.roads.len()).collect();
 
-        let crossings = crossings
+        let crossings = extra_scraped
             .crossings
             .into_iter()
             .map(|(osm_id, pt, tags, roads)| Crossing {
@@ -44,11 +44,25 @@ impl MapModel {
             })
             .collect();
 
+        // TODO Careful with this; do we need two closest roads for the two profiles?
+        let profile = graph.profile_names["cross_anywhere"];
+        let mut buildings_per_road = HashMap::new();
+        for mut b in extra_scraped.buildings {
+            graph.mercator.to_mercator_in_place(&mut b);
+            // TODO Use the centroid?
+            let r = graph
+                .snap_to_road(*b.exterior().coords().next().unwrap(), profile)
+                .road;
+            buildings_per_road.entry(r).or_insert_with(Vec::new).push(b);
+        }
+
         Ok(Self {
             graph,
             road_kinds,
             crossings,
             gradients,
+
+            buildings_per_road,
 
             walking_settings: Settings::uk(),
             cross_anywhere_settings: Settings {
@@ -60,11 +74,12 @@ impl MapModel {
 }
 
 #[derive(Default)]
-struct Crossings {
+struct CrossingsAndBuildings {
     crossings: Vec<(NodeID, Coord, Tags, HashSet<RoadID>)>,
+    buildings: Vec<Polygon>,
 }
 
-impl OsmReader for Crossings {
+impl OsmReader for CrossingsAndBuildings {
     fn node(&mut self, id: NodeID, pt: Coord, tags: Tags) {
         if tags.is("highway", "crossing")
             || (tags.is("highway", "traffic_signals") && tags.is("crossing", "traffic_signals"))
@@ -75,7 +90,22 @@ impl OsmReader for Crossings {
         }
     }
 
-    fn way(&mut self, _: WayID, _: &Vec<NodeID>, _: &HashMap<NodeID, Coord>, _: &Tags) {}
+    fn way(
+        &mut self,
+        _: WayID,
+        node_ids: &Vec<NodeID>,
+        node_mapping: &HashMap<NodeID, Coord>,
+        tags: &Tags,
+    ) {
+        if tags.has("building") {
+            // TODO Handle relations, and refactor this
+            // geo closes the polygon for us
+            self.buildings.push(Polygon::new(
+                LineString::new(node_ids.into_iter().map(|id| node_mapping[id]).collect()),
+                Vec::new(),
+            ));
+        }
+    }
 
     fn relation(&mut self, _: RelationID, _: &Vec<(String, OsmID)>, _: &Tags) {}
 }
@@ -112,8 +142,8 @@ fn cross_anywhere(profile: Profile) -> Box<dyn Fn(&Tags, &LineString) -> (Direct
 
 fn scrape_graph(
     profile: Profile,
-) -> Box<dyn Fn(&mut Crossings, &utils::osm2graph::Graph) -> Result<()>> {
-    Box::new(move |crossings, graph| {
+) -> Box<dyn Fn(&mut CrossingsAndBuildings, &utils::osm2graph::Graph) -> Result<()>> {
+    Box::new(move |extra_scraped, graph| {
         // Only keep crossings on severances
         let mut severance_nodes: HashMap<NodeID, HashSet<RoadID>> = HashMap::new();
         for edge in graph.edges.values() {
@@ -129,13 +159,13 @@ fn scrape_graph(
         }
 
         let mut keep_crossings = Vec::new();
-        for mut crossing in crossings.crossings.drain(..) {
+        for mut crossing in extra_scraped.crossings.drain(..) {
             if let Some(roads) = severance_nodes.get(&crossing.0) {
                 crossing.3.extend(roads.into_iter().cloned());
                 keep_crossings.push(crossing);
             }
         }
-        crossings.crossings = keep_crossings;
+        extra_scraped.crossings = keep_crossings;
         Ok(())
     })
 }

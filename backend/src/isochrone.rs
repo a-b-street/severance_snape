@@ -50,6 +50,16 @@ impl MapModel {
                     features.push(f);
                 }
             }
+            Style::Dasymetric => {
+                let empty = Vec::new();
+                for (r, cost) in cost_per_road {
+                    for polygon in self.buildings_per_road.get(&r).unwrap_or(&empty) {
+                        let mut f = self.graph.mercator.to_wgs84_gj(polygon);
+                        f.set_property("cost_seconds", cost.as_secs());
+                        features.push(f);
+                    }
+                }
+            }
             Style::Grid | Style::Contours => {
                 // Grid values are cost in seconds
                 let mut grid: Grid<f64> = Grid::new(
@@ -90,6 +100,7 @@ pub enum Style {
     Roads,
     Grid,
     Contours,
+    Dasymetric,
 }
 
 const RESOLUTION_M: f64 = 100.0;
@@ -134,8 +145,7 @@ fn render_grid(graph: &Graph, grid: Grid<f64>) -> Vec<Feature> {
             let mut f = graph.mercator.to_wgs84_gj(&rect);
             let step = 3.0 * 60.0;
             let min = step * (value / step).floor();
-            f.set_property("min_seconds", min);
-            f.set_property("max_seconds", min + step);
+            f.set_property("cost_seconds", min);
             features.push(f);
         }
     }

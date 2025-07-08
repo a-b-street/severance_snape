@@ -65,6 +65,7 @@
         <option value="Roads">Roads</option>
         <option value="Grid">Grid</option>
         <option value="Contours">Contours</option>
+        <option value="Dasymetric">Dasymetric</option>
       </select>
     </label>
 
@@ -95,12 +96,12 @@
       />
 
       <FillLayer
-        id="isochrone-contours"
+        id="isochrone-polygons"
         beforeId={$offlineMode ? "roads_labels_major" : "Road labels"}
         filter={isPolygon}
         paint={{
-          "fill-color": makeRamp(["get", "min_seconds"], limits, colorScale),
-          "fill-opacity": 0.5,
+          "fill-color": makeRamp(["get", "cost_seconds"], limits, colorScale),
+          "fill-opacity": style == "Dasymetric" ? 1.0 : 0.5,
         }}
       />
     </GeoJSON>

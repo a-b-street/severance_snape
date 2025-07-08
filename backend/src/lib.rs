@@ -1,11 +1,11 @@
 #[macro_use]
 extern crate log;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::sync::Once;
 use std::time::Duration;
 
-use geo::{Coord, Euclidean, Length, LineString, Point};
+use geo::{Coord, Euclidean, Length, LineString, Point, Polygon};
 use geojson::GeoJson;
 use graph::{Graph, RoadID};
 use osm_reader::NodeID;
@@ -32,6 +32,8 @@ pub struct MapModel {
     gradients: Vec<f64>,
     road_kinds: Vec<RoadKind>,
     crossings: Vec<Crossing>,
+
+    buildings_per_road: HashMap<RoadID, Vec<Polygon>>,
 
     // Do we need to update a router's costs?
     walking_settings: Settings,
