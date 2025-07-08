@@ -54,6 +54,12 @@ fn read_gradients(path: &str, graph: &graph::Graph) -> Result<Vec<f64>> {
         };
 
         let slope = (height2 - height1) / (road.length_meters as f32) * 100.0;
+        if slope < -20.0 || slope > 20.0 {
+            log::warn!(
+                "Unusual slope {slope}, going from {height1} to {height2} over {} meters",
+                road.length_meters
+            );
+        }
         // TODO Check it's in a reasonable range
         gradients.push(slope.into());
     }

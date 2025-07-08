@@ -283,13 +283,24 @@ pub fn cost(
 
 // Returns m/s. https://en.wikipedia.org/wiki/Tobler%27s_hiking_function
 fn walking_speed_on_incline(base_speed_mph: f64, gradient: f64) -> f64 {
-    let exponent = -3.5 * (gradient + 0.05).abs();
+    let exponent = -3.5 * ((gradient / 100.0) + 0.05).abs();
     let tobler_kmph = mps_to_kmph(mph_to_mps(base_speed_mph)) * exponent.exp();
-    kmph_to_mps(tobler_kmph)
+    let speed = kmph_to_mps(tobler_kmph);
+    if speed < 0.3 {
+        error!(
+            "base_speed_mph of {base_speed_mph} and gradient of {gradient} yielded {} mph",
+            mps_to_mph(speed)
+        );
+    }
+    speed
 }
 
 fn mph_to_mps(mph: f64) -> f64 {
     mph * 0.44704
+}
+
+fn mps_to_mph(mps: f64) -> f64 {
+    mps * 2.23694
 }
 
 fn mps_to_kmph(mps: f64) -> f64 {
