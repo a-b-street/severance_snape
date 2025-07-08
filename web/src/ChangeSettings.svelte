@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { settings } from "./stores";
+  import type { Writable } from "svelte/store";
+  import type { Settings } from "./stores";
   import { crossingColors } from "./colors";
 
   export let open: boolean;
+  export let settings: Writable<Settings>;
 </script>
 
 <details {open}>

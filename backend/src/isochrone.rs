@@ -15,60 +15,82 @@ impl MapModel {
         start: Coord,
         style: Style,
         time_limit_mins: u64,
-        settings: Settings,
+        settings1: Settings,
+        settings2: Option<Settings>,
     ) -> GeoJson {
-        let profile = self.prepare_profile(settings.clone());
-        let start = self.graph.snap_to_road(start, profile);
-
         let public_transit = false;
         let start_time = NaiveTime::from_hms_opt(7, 0, 0).unwrap();
         let limit = Duration::from_secs(time_limit_mins * 60);
-        let cost_per_road = self.graph.get_costs(
-            vec![start.intersection],
-            profile,
-            public_transit,
-            start_time,
-            start_time + limit,
-        );
+
+        let cost_per_road1 = {
+            let profile = self.prepare_profile(settings1);
+            let start = self.graph.snap_to_road(start, profile);
+            self.graph.get_costs(
+                vec![start.intersection],
+                profile,
+                public_transit,
+                start_time,
+                start_time + limit,
+            )
+        };
+        let mut cost_per_road2 = settings2.map(|settings| {
+            let profile = self.prepare_profile(settings);
+            let start = self.graph.snap_to_road(start, profile);
+            self.graph.get_costs(
+                vec![start.intersection],
+                profile,
+                public_transit,
+                start_time,
+                start_time + limit,
+            )
+        });
 
         let mut features = Vec::new();
-        // Show reached amenities
-        /*for (r, _) in &cost_per_road {
-            for a in &amenities.per_road[r.0][profile.0] {
-                features.push(amenities.amenities[a.0].to_gj(&graph.mercator));
-            }
-        }*/
-
         match style {
             Style::Roads => {
-                for (r, cost) in cost_per_road {
+                for (r, cost1) in cost_per_road1 {
                     let mut f = self
                         .graph
                         .mercator
                         .to_wgs84_gj(&self.graph.roads[r.0].linestring);
-                    f.set_property("cost_seconds", cost.as_secs());
+                    f.set_property("cost1", cost1.as_secs());
+                    if let Some(ref mut costs) = cost_per_road2 {
+                        if let Some(cost2) = costs.remove(&r) {
+                            f.set_property("cost2", cost2.as_secs());
+                        }
+                    }
                     features.push(f);
                 }
+
+                // TODO Handle anything only in cost_per_road2
             }
             Style::Dasymetric => {
                 let empty = Vec::new();
-                for (r, cost) in cost_per_road {
+                for (r, cost1) in cost_per_road1 {
                     for polygon in self.buildings_per_road.get(&r).unwrap_or(&empty) {
                         let mut f = self.graph.mercator.to_wgs84_gj(polygon);
-                        f.set_property("cost_seconds", cost.as_secs());
+                        f.set_property("cost1", cost1.as_secs());
+                        if let Some(ref mut costs) = cost_per_road2 {
+                            if let Some(cost2) = costs.remove(&r) {
+                                f.set_property("cost2", cost2.as_secs());
+                            }
+                        }
                         features.push(f);
                     }
                 }
+
+                // TODO Handle anything only in cost_per_road2
             }
             Style::Grid | Style::Contours => {
                 // Grid values are cost in seconds
+                // TODO Or a tuple of them
                 let mut grid: Grid<f64> = Grid::new(
                     (self.graph.mercator.width / RESOLUTION_M).ceil() as usize,
                     (self.graph.mercator.height / RESOLUTION_M).ceil() as usize,
                     0.0,
                 );
 
-                for (r, cost) in cost_per_road {
+                for (r, cost1) in cost_per_road1 {
                     for pt in Euclidean
                         .densify(&self.graph.roads[r.0].linestring, RESOLUTION_M / 2.0)
                         .0
@@ -79,9 +101,11 @@ impl MapModel {
                         );
                         // If there are overlapping grid cells (bridges, tunnels, precision), just blindly
                         // clobber
-                        grid.data[grid_idx] = cost.as_secs_f64();
+                        grid.data[grid_idx] = cost1.as_secs_f64();
                     }
                 }
+
+                // TODO Handle anything only in cost_per_road2
 
                 if matches!(style, Style::Grid) {
                     features.extend(render_grid(&self.graph, grid));

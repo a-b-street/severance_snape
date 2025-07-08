@@ -65,7 +65,7 @@ export let isochroneMins: Writable<number> = writable(15);
 
 export type Position = [number, number];
 
-interface Settings {
+export interface Settings {
   obey_crossings: boolean;
   base_speed_mph: number;
   use_gradient: boolean;
@@ -73,8 +73,19 @@ interface Settings {
   delay_zebra: number;
   delay_other: number;
 }
+
 export let settings: Writable<Settings> = writable({
   obey_crossings: true,
+  base_speed_mph: 3,
+  use_gradient: false,
+  delay_signalized: 30,
+  delay_zebra: 0,
+  delay_other: 10,
+});
+
+// Used in isochrone mode sometimes
+export let settings2: Writable<Settings> = writable({
+  obey_crossings: false,
   base_speed_mph: 3,
   use_gradient: false,
   delay_signalized: 30,

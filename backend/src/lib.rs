@@ -170,7 +170,13 @@ impl MapModel {
             .graph
             .mercator
             .pt_to_mercator(Coord { x: req.x, y: req.y });
-        let gj = self.calculate_isochrone(start, req.style, req.time_limit, req.settings);
+        let gj = self.calculate_isochrone(
+            start,
+            req.style,
+            req.time_limit,
+            req.settings1,
+            req.settings2,
+        );
         let out = serde_json::to_string(&gj).map_err(err_to_js)?;
         Ok(out)
     }
@@ -228,7 +234,8 @@ struct CompareRouteRequest {
 struct IsochroneRequest {
     x: f64,
     y: f64,
-    settings: Settings,
+    settings1: Settings,
+    settings2: Option<Settings>,
     style: isochrone::Style,
     time_limit: u64,
 }
