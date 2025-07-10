@@ -32,7 +32,7 @@ export interface Step {
 
 export let model: Writable<MapModel | null> = writable(null);
 export let map: Writable<Map | null> = writable(null);
-export let offlineMode = writable(true);
+export let offlineMode = writable(false);
 
 // Don't use urlState, because we have to manually go through title mode first
 export let mode: Writable<Mode> = writable({ kind: "title" });
