@@ -14,7 +14,6 @@
   import { Popup, makeRamp } from "svelte-utils/map";
   import { model } from "./stores";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import NavBar from "./NavBar.svelte";
   import { colorScale } from "./colors";
 
   let crossingsGj = JSON.parse($model!.getCrossings());
@@ -34,7 +33,6 @@
 </script>
 
 <SplitComponent>
-  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Crossings mode</h2>
     <p>

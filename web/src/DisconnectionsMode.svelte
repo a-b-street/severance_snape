@@ -10,7 +10,6 @@
   import { SplitComponent } from "svelte-utils/top_bar_layout";
   import { constructMatchExpression } from "svelte-utils/map";
   import { map, model } from "./stores";
-  import NavBar from "./NavBar.svelte";
 
   let gj = JSON.parse($model!.findConnectedComponents());
 
@@ -52,7 +51,6 @@
 </script>
 
 <SplitComponent>
-  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Network disconnections</h2>
     <p>

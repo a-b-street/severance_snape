@@ -37,9 +37,15 @@
         }}
         itemsPerRow={1}
       />
-      <label style="margin-top: 8px">
+      <label class="form-label">
         Network opacity:
-        <input type="range" min="0" max="100" bind:value={opacity} />
+        <input
+          class="form-control"
+          type="range"
+          min="0"
+          max="100"
+          bind:value={opacity}
+        />
       </label>
 
       {#if canShowCrossings}

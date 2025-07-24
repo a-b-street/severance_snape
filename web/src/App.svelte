@@ -2,7 +2,6 @@
   import "bootstrap/dist/css/bootstrap.min.css";
   import "@fortawesome/fontawesome-free/css/all.min.css";
   import chevron from "../assets/chevron.png?url";
-  import logo from "../assets/logo.svg?url";
   import * as backend from "../../backend/pkg";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
@@ -17,6 +16,7 @@
   import DebugMode from "./DebugMode.svelte";
   import RouteMode from "./RouteMode.svelte";
   import IsochroneMode from "./IsochroneMode.svelte";
+  import NavBar from "./NavBar.svelte";
   import ScoreMode from "./ScoreMode.svelte";
   import LayerControls from "./LayerControls.svelte";
   import CrossingsMode from "./CrossingsMode.svelte";
@@ -27,7 +27,6 @@
     mode,
     model,
     maptilerApiKey,
-    showAbout,
     type Mode,
   } from "./stores";
   import TitleMode from "./title/TitleMode.svelte";
@@ -36,7 +35,6 @@
     Layout,
     mapContents,
     sidebarContents,
-    topContents,
   } from "svelte-utils/top_bar_layout";
   import About from "./About.svelte";
 
@@ -101,13 +99,8 @@
   }
   $: gotModel($model);
 
-  let topDiv: HTMLSpanElement;
   let sidebarDiv: HTMLDivElement;
   let mapDiv: HTMLDivElement;
-  $: if (topDiv && $topContents) {
-    topDiv.innerHTML = "";
-    topDiv.appendChild($topContents);
-  }
   $: if (sidebarDiv && $sidebarContents) {
     sidebarDiv.innerHTML = "";
     sidebarDiv.appendChild($sidebarContents);
@@ -120,11 +113,8 @@
 
 <About />
 <Layout>
-  <div slot="top" style="display: flex">
-    <button class="btn" on:click={() => ($showAbout = true)}>
-      <img src={logo} style="height: 6vh;" alt="A/B Street logo" />
-    </button>
-    <span bind:this={topDiv} style="margin-left: 4px; width: 100%" />
+  <div slot="top">
+    <NavBar />
   </div>
   <div slot="left">
     <h1>Severance Snape</h1>

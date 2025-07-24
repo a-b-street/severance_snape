@@ -6,7 +6,6 @@
   import { Popup, constructMatchExpression } from "svelte-utils/map";
   import { overpassQueryForPolygon } from "svelte-utils/overpass";
   import { model } from "./stores";
-  import NavBar from "./NavBar.svelte";
 
   // TODO Could try to reuse NetworkLayer and add in the interactivity
 
@@ -27,7 +26,6 @@
 </script>
 
 <SplitComponent>
-  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Debug mode</h2>
     <p>Hover to see a segment's properties, and click to open OSM</p>

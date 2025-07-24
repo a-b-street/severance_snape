@@ -2,10 +2,9 @@
   import { FillLayer, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import ChangeSettings from "./ChangeSettings.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
-  import { Modal, SequentialLegend } from "svelte-utils";
+  import { Checkbox, Modal, SequentialLegend } from "svelte-utils";
   import { isLine, isPolygon, makeRamp, emptyGeojson } from "svelte-utils/map";
   import { isochroneMins, model, routeA, settings, settings2 } from "./stores";
-  import NavBar from "./NavBar.svelte";
   import { onMount } from "svelte";
   import { colorScale } from "./colors";
 
@@ -60,15 +59,11 @@
 </script>
 
 <SplitComponent>
-  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Isochrone mode</h2>
 
-    <label
-      >Regular
-      <input type="checkbox" role="switch" bind:checked={compareTwo} />
-      Compare
-    </label>
+    <Checkbox bind:checked={compareTwo}>Compare two cases</Checkbox>
+
     {#if compareTwo}
       <button
         class="btn btn-secondary"
@@ -93,19 +88,27 @@
 
     <hr />
 
-    <label
-      >Draw:
-      <select bind:value={style}>
-        <option value="Roads">Roads</option>
-        <option value="Grid">Grid</option>
-        <option value="Contours">Contours</option>
-        <option value="Dasymetric">Dasymetric</option>
-      </select>
-    </label>
+    <div>
+      <label class="form-label"
+        >Draw:
+        <select class="form-select" bind:value={style}>
+          <option value="Roads">Roads</option>
+          <option value="Grid">Grid</option>
+          <option value="Contours">Contours</option>
+          <option value="Dasymetric">Dasymetric</option>
+        </select>
+      </label>
+    </div>
 
-    <label
+    <label class="form-label"
       >Minutes away
-      <input type="number" bind:value={$isochroneMins} min="1" max="30" />
+      <input
+        class="form-control"
+        type="number"
+        bind:value={$isochroneMins}
+        min="1"
+        max="30"
+      />
     </label>
 
     {#if compareTwo}

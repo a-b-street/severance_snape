@@ -22,7 +22,6 @@
     settings,
     type Position,
   } from "./stores";
-  import NavBar from "./NavBar.svelte";
 
   let scoreGj: FeatureCollection<LineString, { score: number }> = JSON.parse(
     $model!.scoreDetours(),
@@ -93,7 +92,6 @@
 </script>
 
 <SplitComponent>
-  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Score mode</h2>
     <p>
@@ -102,14 +100,24 @@
     </p>
     <SequentialLegend {colorScale} labels={{ limits }} />
 
-    <fieldset>
-      <label
-        >Show desire lines with scores {$minScore}-{$maxScore}:
-        <input type="range" bind:value={$minScore} min="0" max={highestScore} />
-        to
-        <input type="range" bind:value={$maxScore} min="0" max={highestScore} />
-      </label>
-    </fieldset>
+    <label class="form-label"
+      >Show desire lines with scores {$minScore}-{$maxScore}:
+      <input
+        class="form-control"
+        type="range"
+        bind:value={$minScore}
+        min="0"
+        max={highestScore}
+      />
+      to
+      <input
+        class="form-control"
+        type="range"
+        bind:value={$maxScore}
+        min="0"
+        max={highestScore}
+      />
+    </label>
 
     <hr />
 

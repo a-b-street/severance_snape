@@ -4,7 +4,6 @@
   import ChangeSettings from "./ChangeSettings.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
   import { model, type RouteGJ, routeA, routeB, settings } from "./stores";
-  import NavBar from "./NavBar.svelte";
   import { onMount } from "svelte";
 
   // TODO or empty
@@ -45,7 +44,6 @@
 </script>
 
 <SplitComponent>
-  <div slot="top"><NavBar /></div>
   <div slot="sidebar">
     <h2>Route mode</h2>
     <p>
