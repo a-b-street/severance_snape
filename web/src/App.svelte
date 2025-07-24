@@ -133,7 +133,7 @@
     >
       <StandardControls {map} />
       <MapContextMenu {map} />
-      <Basemaps bind:style choice="Maptiler Dataviz" />
+      <Basemaps bind:style choice="Maptiler Dataviz" bottom="80px" />
       <Geocoder {map} apiKey={maptilerApiKey} country={undefined} />
 
       {#if $mode.kind != "title"}
