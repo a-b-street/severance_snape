@@ -12,52 +12,48 @@
   }
 </script>
 
-<nav>
-  <ul>
-    <li>
-      <button on:click={titleMode}>Change study area</button>
-    </li>
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <div class="navbar-nav">
+      <button class="btn btn-secondary" on:click={titleMode}
+        >Change study area</button
+      >
 
-    <li>
       <button
+        class="btn btn-secondary"
         on:click={() => ($mode = { kind: "score" })}
         disabled={$mode.kind == "score"}>Score</button
       >
-    </li>
 
-    <li>
       <button
+        class="btn btn-secondary"
         on:click={() => ($mode = { kind: "route" })}
         disabled={$mode.kind == "route"}>Route</button
       >
-    </li>
 
-    <li>
       <button
+        class="btn btn-secondary"
         on:click={() => ($mode = { kind: "isochrone" })}
         disabled={$mode.kind == "isochrone"}>Isochrone</button
       >
-    </li>
 
-    <li>
       <button
+        class="btn btn-secondary"
         on:click={() => ($mode = { kind: "crossings" })}
         disabled={$mode.kind == "crossings"}>Crossings</button
       >
-    </li>
 
-    <li>
       <button
+        class="btn btn-secondary"
         on:click={() => ($mode = { kind: "disconnected" })}
         disabled={$mode.kind == "disconnected"}>Network disconnections</button
       >
-    </li>
 
-    <li>
       <button
+        class="btn btn-secondary"
         on:click={() => ($mode = { kind: "debug" })}
         disabled={$mode.kind == "debug"}>Debug network</button
       >
-    </li>
-  </ul>
+    </div>
+  </div>
 </nav>

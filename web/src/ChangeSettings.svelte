@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Checkbox } from "svelte-utils";
   import type { Writable } from "svelte/store";
   import type { Settings } from "./stores";
   import { crossingColors } from "./colors";
@@ -10,10 +11,9 @@
 <details {open}>
   <summary>Settings</summary>
 
-  <label>
-    <input type="checkbox" bind:checked={$settings.obey_crossings} />
+  <Checkbox bind:checked={$settings.obey_crossings}>
     Obey crossings (otherwise, can cross severances anywhere)
-  </label>
+  </Checkbox>
 
   <label>
     Base walking speed (mph)
@@ -26,13 +26,12 @@
     />
   </label>
 
-  <label>
-    <input type="checkbox" bind:checked={$settings.use_gradient} />
+  <Checkbox bind:checked={$settings.use_gradient}>
     Adjust speed for gradient (<a
       href="https://en.wikipedia.org/wiki/Tobler's_hiking_function"
       target="_blank">Tobler</a
     >)
-  </label>
+  </Checkbox>
 
   <label>
     <span class="circle" style:background={crossingColors.Signalized} />

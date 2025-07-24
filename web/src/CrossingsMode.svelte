@@ -5,7 +5,12 @@
     LineLayer,
     hoverStateFilter,
   } from "svelte-maplibre";
-  import { notNull, PropertiesTable, SequentialLegend } from "svelte-utils";
+  import {
+    Checkbox,
+    notNull,
+    PropertiesTable,
+    SequentialLegend,
+  } from "svelte-utils";
   import { Popup, makeRamp } from "svelte-utils/map";
   import { model } from "./stores";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
@@ -44,8 +49,7 @@
     <p>What crossings do you want to include for measuring distance?</p>
 
     {#each Object.keys(includeKinds) as key}
-      <label>
-        <input type="checkbox" bind:checked={includeKinds[key]} />
+      <Checkbox bind:checked={includeKinds[key]}>
         {key}
         {#if key != "unknown"}
           <a
@@ -53,7 +57,7 @@
             target="_blank">?</a
           >
         {/if}
-      </label>
+      </Checkbox>
     {/each}
   </div>
   <div slot="map">

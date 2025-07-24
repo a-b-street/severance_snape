@@ -6,7 +6,7 @@
     kindToColor,
     crossingColors,
   } from "./colors";
-  import { SequentialLegend, QualitativeLegend } from "svelte-utils";
+  import { Checkbox, SequentialLegend, QualitativeLegend } from "svelte-utils";
   import chevron from "../assets/chevron.png?url";
 
   export let zoomToFit: () => void;
@@ -21,8 +21,10 @@
   <div style:background="white" style:width="200px" style:padding="8px">
     <details open>
       <summary>Layers</summary>
-      <button class="outline" style="margin-bottom: 8px" on:click={zoomToFit}
-        >Zoom to fit</button
+      <button
+        class="btn btn-secondary"
+        style="margin-bottom: 8px"
+        on:click={zoomToFit}>Zoom to fit</button
       >
 
       <QualitativeLegend
@@ -41,10 +43,7 @@
       </label>
 
       {#if canShowCrossings}
-        <label>
-          <input type="checkbox" bind:checked={showCrossings} />
-          Crossings
-        </label>
+        <Checkbox bind:checked={showCrossings}>Crossings</Checkbox>
         {#if showCrossings}
           <QualitativeLegend
             labelColors={crossingColors}
@@ -55,10 +54,7 @@
       {/if}
 
       {#if canShowGradient}
-        <label>
-          <input type="checkbox" bind:checked={showGradient} />
-          Gradient
-        </label>
+        <Checkbox bind:checked={showGradient}>Gradient</Checkbox>
         {#if showGradient}
           <SequentialLegend
             colorScale={gradientColors}

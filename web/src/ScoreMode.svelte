@@ -113,8 +113,10 @@
 
     <hr />
 
-    <button on:click={gotoRouteMode} disabled={desire_line == null}
-      >See this route in detail</button
+    <button
+      class="btn btn-secondary"
+      on:click={gotoRouteMode}
+      disabled={desire_line == null}>See this route in detail</button
     >
     {#if desire_line}
       <p>

@@ -5,7 +5,7 @@
   let show = false;
 </script>
 
-<button on:click={() => (show = true)}
+<button class="btn btn-secondary mb-3" on:click={() => (show = true)}
   >Change import profile ({$profile})</button
 >
 
@@ -51,5 +51,5 @@
     </label>
   </fieldset>
 
-  <button on:click={() => (show = false)}>Done</button>
+  <button class="btn btn-primary" on:click={() => (show = false)}>Done</button>
 </Modal>

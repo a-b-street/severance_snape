@@ -78,8 +78,8 @@
       </ul>
     </details>
 
-    <center
-      ><button on:click={() => ($showAbout = false)}>Start!</button></center
+    <button class="btn btn-primary" on:click={() => ($showAbout = false)}
+      >Start!</button
     >
   </Modal>
 {/if}

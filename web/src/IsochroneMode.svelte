@@ -4,14 +4,7 @@
   import { SplitComponent } from "svelte-utils/top_bar_layout";
   import { Modal, SequentialLegend } from "svelte-utils";
   import { isLine, isPolygon, makeRamp, emptyGeojson } from "svelte-utils/map";
-  import {
-    isochroneMins,
-    offlineMode,
-    model,
-    routeA,
-    settings,
-    settings2,
-  } from "./stores";
+  import { isochroneMins, model, routeA, settings, settings2 } from "./stores";
   import NavBar from "./NavBar.svelte";
   import { onMount } from "svelte";
   import { colorScale } from "./colors";
@@ -77,8 +70,9 @@
       Compare
     </label>
     {#if compareTwo}
-      <button class="secondary" on:click={() => (showTwoSettings = true)}
-        >Route settings</button
+      <button
+        class="btn btn-secondary"
+        on:click={() => (showTwoSettings = true)}>Route settings</button
       >
 
       <Modal bind:show={showTwoSettings}>
@@ -135,7 +129,7 @@
     <GeoJSON data={isochroneGj}>
       <LineLayer
         id="isochrone-roads"
-        beforeId={$offlineMode ? "roads_labels_major" : "Road labels"}
+        beforeId="Road labels"
         filter={isLine}
         paint={{
           "line-width": 2,
@@ -151,7 +145,7 @@
 
       <FillLayer
         id="isochrone-polygons"
-        beforeId={$offlineMode ? "roads_labels_major" : "Road labels"}
+        beforeId="Road labels"
         filter={isPolygon}
         paint={{
           "fill-color": compareTwo

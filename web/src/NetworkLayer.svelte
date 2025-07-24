@@ -3,7 +3,7 @@
   import { gradientLimits, gradientColors, kindToColor } from "./colors";
   import { notNull } from "svelte-utils";
   import { constructMatchExpression, makeRamp } from "svelte-utils/map";
-  import { model, offlineMode } from "./stores";
+  import { model } from "./stores";
 
   export let show: boolean;
   export let opacity: number;
@@ -13,7 +13,7 @@
 <GeoJSON data={JSON.parse(notNull($model).render())}>
   <LineLayer
     id="network"
-    beforeId={$offlineMode ? "roads_labels_major" : "Road labels"}
+    beforeId="Road labels"
     layout={{
       visibility: show ? "visible" : "none",
     }}
@@ -28,7 +28,7 @@
 
   <SymbolLayer
     id="gradient-arrows"
-    beforeId={$offlineMode ? "roads_labels_major" : "Road labels"}
+    beforeId="Road labels"
     minzoom={12}
     filter={[">", ["abs", ["get", "gradient"]], 3]}
     layout={{

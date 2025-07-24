@@ -28,7 +28,8 @@
     "vite-plugin-wasm": "3.5.0"
   },
   "dependencies": {
-    "@picocss/pico": "^2.0.3",
+    "@fortawesome/fontawesome-free": "^7.0.0",
+    "bootstrap": "^5.3.7",
     "svelte-maplibre": "^0.9.14",
     "svelte-utils": "github:a-b-street/svelte-utils"
   }

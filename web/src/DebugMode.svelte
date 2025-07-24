@@ -32,7 +32,9 @@
     <h2>Debug mode</h2>
     <p>Hover to see a segment's properties, and click to open OSM</p>
 
-    <button on:click={updateOsm}>Update OSM data</button>
+    <button class="btn btn-secondary" on:click={updateOsm}
+      >Update OSM data</button
+    >
   </div>
   <div slot="map">
     <GeoJSON data={JSON.parse(notNull($model).render())} generateId>

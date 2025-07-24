@@ -1,6 +1,5 @@
 <script lang="ts">
-  import type { MapMouseEvent } from "maplibre-gl";
-  import { MapEvents, GeoJSON, LineLayer, Marker } from "svelte-maplibre";
+  import { GeoJSON, LineLayer, Marker } from "svelte-maplibre";
   import Directions from "./Directions.svelte";
   import ChangeSettings from "./ChangeSettings.svelte";
   import { SplitComponent } from "svelte-utils/top_bar_layout";
@@ -40,11 +39,6 @@
     }
   }
 
-  function onRightClick(e: CustomEvent<MapMouseEvent>) {
-    // Move the first marker, for convenience
-    $routeA = e.detail.lngLat.toArray();
-  }
-
   function lerp(pct: number, a: number, b: number): number {
     return a + pct * (b - a);
   }
@@ -55,8 +49,7 @@
   <div slot="sidebar">
     <h2>Route mode</h2>
     <p>
-      Move the <b>A</b> and <b>B</b> pins to find a route. (Hint: right-click to
-      set the first pin somewhere.)
+      Move the <b>A</b> and <b>B</b> pins to find a route
     </p>
     {#if route_err}
       <p>{route_err}</p>
@@ -67,8 +60,6 @@
     <ChangeSettings open {settings} />
   </div>
   <div slot="map">
-    <MapEvents on:contextmenu={onRightClick} />
-
     {#if $routeA && $routeB}
       <Marker bind:lngLat={$routeA} draggable><span class="dot">A</span></Marker
       >

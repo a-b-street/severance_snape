@@ -15,7 +15,7 @@
   onMount(async () => {
     // When running locally if a vite public/ directory is set up, load from that for speed
     try {
-      let resp = await fetch("/osm/areas.json");
+      let resp = await fetch("osm/areas.json");
       if (resp.ok) {
         useLocalVite = true;
         console.log("Using local cache, not od2net.org");
@@ -101,7 +101,7 @@
     url.searchParams.set("study_area", example);
     window.history.replaceState(null, "", url.toString());
     if (useLocalVite) {
-      await loadFromUrl(`/osm/${example}.pbf`);
+      await loadFromUrl(`osm/${example}.pbf`);
     } else {
       await loadFromUrl(
         `https://assets.od2net.org/severance_pbfs/${example}.pbf`,
@@ -127,7 +127,7 @@
 <div>
   <label>
     Load an example:
-    <select bind:value={example}>
+    <select class="form-select" bind:value={example}>
       <option value="">Custom file loaded</option>
       {#each exampleAreas as [country, areas]}
         <optgroup label={country}>
@@ -140,16 +140,21 @@
   </label>
 </div>
 
-<i>or...</i>
+<p class="fst-italic my-3">or...</p>
 
 <div>
-  <label>
+  <label class="form-label">
     Load an osm.xml or a .pbf file:
-    <input bind:this={fileInput1} on:change={loadOSMFile} type="file" />
+    <input
+      class="form-control"
+      bind:this={fileInput1}
+      on:change={loadOSMFile}
+      type="file"
+    />
   </label>
 </div>
 
-<i>or...</i>
+<p class="fst-italic my-3">or...</p>
 
 <OverpassSelector
   map={$map}
@@ -158,11 +163,16 @@
   on:error={(e) => window.alert(e.detail)}
 />
 
-<i>or...</i>
+<p class="fst-italic my-3">or...</p>
 
 <div>
-  <label>
+  <label class="form-label">
     Load a pre-built .bin file:
-    <input bind:this={fileInput2} on:change={loadBinFile} type="file" />
+    <input
+      class="form-control"
+      bind:this={fileInput2}
+      on:change={loadBinFile}
+      type="file"
+    />
   </label>
 </div>
