@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { MapModel } from "backend";
+  import * as backend from "../../../backend/pkg";
   import { onMount } from "svelte";
   import { Loading } from "svelte-utils";
   import { OverpassSelector } from "svelte-utils/overpass";
@@ -43,7 +43,7 @@
   let fileInput1: HTMLInputElement;
   async function loadOSMFile(e: Event) {
     try {
-      loadFromOSM(await fileInput1.files![0].arrayBuffer());
+      loadFromOSM(new Uint8Array(await fileInput1.files![0].arrayBuffer()));
       example = "";
     } catch (err) {
       window.alert(`Couldn't open this file: ${err}`);
@@ -58,7 +58,7 @@
       let buffer = await fileInput2.files![0].arrayBuffer();
       console.time("load");
       let isOSM = false;
-      $model = new MapModel(isOSM, new Uint8Array(buffer), $profile);
+      $model = new backend.MapModel(isOSM, new Uint8Array(buffer), $profile);
       console.timeEnd("load");
       example = "";
     } catch (err) {
@@ -67,18 +67,18 @@
     loading = "";
   }
 
-  function loadFromOSM(buffer: ArrayBuffer) {
+  function loadFromOSM(bytes: Uint8Array<ArrayBufferLike>) {
     loading = "Building map model from OSM input";
     console.time("load");
     let isOSM = true;
-    $model = new MapModel(isOSM, new Uint8Array(buffer), $profile);
+    $model = new backend.MapModel(isOSM, bytes, $profile);
     console.timeEnd("load");
   }
 
   function gotXml(e: CustomEvent<{ xml: string; boundary: Feature<Polygon> }>) {
     try {
       // TODO Can we avoid turning into bytes?
-      loadFromOSM(new TextEncoder().encode(e.detail.xml));
+      loadFromOSM(new Uint8Array(new TextEncoder().encode(e.detail.xml)));
       example = "";
     } catch (err) {
       window.alert(`Couldn't import from Overpass: ${err}`);
@@ -114,7 +114,7 @@
     try {
       loading = `Downloading ${url}`;
       let resp = await fetch(url);
-      loadFromOSM(await resp.arrayBuffer());
+      loadFromOSM(new Uint8Array(await resp.arrayBuffer()));
     } catch (err) {
       window.alert(`Couldn't open from URL ${url}: ${err}`);
     }

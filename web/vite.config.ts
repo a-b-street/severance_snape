@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
-import wasmPack from "vite-plugin-wasm-pack";
+import wasm from "vite-plugin-wasm";
 
 export default defineConfig({
   base: "/severance_snape/",
@@ -9,8 +9,14 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
+        review: resolve(__dirname, "review.html"),
       },
     },
   },
-  plugins: [svelte(), wasmPack(["../backend"], [])]
+  plugins: [svelte(), wasm()],
+  server: {
+    fs: {
+      allow: ["./", "../backend/pkg"]
+    }
+  }
 })

@@ -2,7 +2,7 @@
   import "@picocss/pico/css/pico.jade.min.css";
   import chevron from "../assets/chevron.png?url";
   import logo from "../assets/logo.svg?url";
-  import init, { MapModel } from "backend";
+  import * as backend from "../../backend/pkg";
   import type { Map } from "maplibre-gl";
   import { onMount } from "svelte";
   import {
@@ -49,7 +49,7 @@
 
   let wasmReady = false;
   onMount(async () => {
-    await init();
+    await backend.default();
     wasmReady = true;
   });
 
@@ -96,7 +96,7 @@
     }
   }
 
-  function gotModel(_m: MapModel | null) {
+  function gotModel(_m: backend.MapModel | null) {
     if (!$model) {
       return;
     }

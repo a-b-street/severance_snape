@@ -1,4 +1,4 @@
-import { MapModel } from "backend";
+import * as backend from "../../backend/pkg";
 import type { FeatureCollection } from "geojson";
 import type { Map } from "maplibre-gl";
 import { writable, type Writable } from "svelte/store";
@@ -30,7 +30,7 @@ export interface Step {
   layer: string;
 }
 
-export let model: Writable<MapModel | null> = writable(null);
+export let model: Writable<backend.MapModel | null> = writable(null);
 export let map: Writable<Map | null> = writable(null);
 export let offlineMode = writable(false);
 
