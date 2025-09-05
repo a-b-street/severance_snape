@@ -108,6 +108,7 @@ impl MapModel {
                 // TODO Handle anything only in cost_per_road2
 
                 if matches!(style, Style::Grid) {
+                    // TODO Differential isochrones not supported here
                     features.extend(render_grid(&self.graph, grid));
                 } else {
                     //features.extend(render_contours(graph, grid));
@@ -139,8 +140,8 @@ const RESOLUTION_M: f64 = 100.0;
     let mut features = Vec::new();
     for band in contour_builder.isobands(&grid.data, &thresholds).unwrap() {
         let mut f = Feature::from(Geometry::from(&graph.mercator.to_wgs84(band.geometry())));
-        f.set_property("min_seconds", band.min_v());
-        f.set_property("max_seconds", band.max_v());
+        f.set_property("cost1", band.min_v());
+        //f.set_property("max_seconds", band.max_v());
         features.push(f);
     }
     features
@@ -169,7 +170,7 @@ fn render_grid(graph: &Graph, grid: Grid<f64>) -> Vec<Feature> {
             let mut f = graph.mercator.to_wgs84_gj(&rect);
             let step = 3.0 * 60.0;
             let min = step * (value / step).floor();
-            f.set_property("cost_seconds", min);
+            f.set_property("cost1", min);
             features.push(f);
         }
     }
