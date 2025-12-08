@@ -176,23 +176,20 @@ mod tests {
         // It's similar to https://www.openstreetmap.org/way/571968303, except by speed and lane
         // count
         assert_eq!(
-            Profile::USA.classify(&tags(vec!["highway=tertiary", "sidewalk=no",])),
+            Profile::USA.classify(&Tags::new_from_pairs(&vec![
+                "highway=tertiary",
+                "sidewalk=no",
+            ])),
             Some(RoadKind::Severance)
         );
 
         // https://www.openstreetmap.org/way/41945235
         assert_eq!(
-            Profile::USA.classify(&tags(vec!["highway=secondary", "maxspeed=40 mph",])),
+            Profile::USA.classify(&Tags::new_from_pairs(&vec![
+                "highway=secondary",
+                "maxspeed=40 mph",
+            ])),
             Some(RoadKind::Severance)
         );
-    }
-
-    fn tags(kv: Vec<&str>) -> Tags {
-        let mut tags = Tags::empty();
-        for pair in kv {
-            let parts = pair.split('=').collect::<Vec<_>>();
-            tags.insert(parts[0], parts[1]);
-        }
-        tags
     }
 }
